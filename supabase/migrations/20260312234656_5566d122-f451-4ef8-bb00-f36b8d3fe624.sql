@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS known_slots jsonb DEFAULT '{}'::jsonb;

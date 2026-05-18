@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DOOR Design System - Onderwijsloket Rotterdam Style
+   Primary: Rotterdam Green #00A651 / HSL 152 100% 33%
+   Accent: Magenta/Pink for highlights
+   Typography: Clean, accessible, government-style
+   All colors MUST be HSL.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Rotterdam Green - Primary brand color */
+    --primary: 152 100% 33%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Dark text / backgrounds */
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Backgrounds */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 15%;
+    
+    /* Cards and surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 15%;
+    
+    /* Muted elements */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    
+    /* Accent - Magenta/Pink like onderwijsloket.com */
+    --accent: 330 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders and inputs */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 152 100% 33%;
+    
+    --radius: 0.25rem;
+    
+    /* Sidebar */
+    --sidebar-background: 0 0% 15%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 152 100% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: 152 100% 40%;
+    
+    /* Custom DOOR tokens */
+    --door-green: 152 100% 33%;
+    --door-green-light: 152 80% 45%;
+    --door-black: 0 0% 15%;
+    --door-magenta: 330 85% 60%;
+    --door-teal: 170 60% 40%;
+    --door-navy: 220 50% 25%;
+    --door-navy-light: 220 40% 35%;
+    --door-orange: 25 90% 55%;
+    
+    --door-shadow: 0 4px 14px -2px hsl(0 0% 0% / 0.08);
+    --door-shadow: 0 4px 14px -2px hsl(0 0% 0% / 0.08);
+    --door-shadow-lg: 0 10px 30px -5px hsl(0 0% 0% / 0.12);
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 95%;
+    
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+    
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+    
+    --primary: 152 100% 45%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 95%;
+    
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+    
+    --accent: 330 75% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 152 100% 45%;
+    
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 152 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 152 100% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Open Sans', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}

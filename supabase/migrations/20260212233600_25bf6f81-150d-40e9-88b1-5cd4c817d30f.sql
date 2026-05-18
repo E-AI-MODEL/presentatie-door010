@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN tile_order jsonb DEFAULT NULL;

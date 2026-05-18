@@ -1,0 +1,2 @@
+ALTER TABLE public.messages DROP CONSTRAINT messages_role_check;
+ALTER TABLE public.messages ADD CONSTRAINT messages_role_check CHECK (role = ANY (ARRAY['user'::text, 'assistant'::text, 'system'::text, 'advisor'::text]));
