@@ -1,109 +1,89 @@
+# Plan: DOOR Rotterdam als landelijke AI-demo
 
-Onderzoek afgerond: de pipeline klopt inderdaad nog niet volledig. Ik heb dit live gereproduceerd in de chat.
+## Doel
+Rotterdam blijft HET voorbeeld. We maken een lichte demo-versie van de site waarin drie AI-componenten centraal staan en feilloos werken, zodat andere onderwijsregio's zien hoe AI in de praktijk wordt toegepast.
 
-### Wat er nu feitelijk misgaat
-1. `homepage-coach` stuurt nog steeds externe chip-links met onvolledige `href` terug, zoals `onderwijsloket.com` en `voraad.nl` zonder `https://`.
-2. De publieke pipeline kiest externe bronnen te grof: bij bron-/feitenvragen worden actieve `trusted_sources` bijna blind toegevoegd, niet echt op relevantie of categorie geselecteerd.
-3. De antwoordtekst zelf wordt niet tegen de whitelist gevalideerd. Daardoor kan het model nog steeds een losse of hallucinatoire URL in de tekst zetten, zoals `(...https://www.rijksoverheid.nl/...)`.
-4. De frontend rendert deze output wel, maar repareert de backend-fouten niet. Daardoor krijg je een mix van:
-   - lelijke inline URL’s in de tekst
-   - chip-links die niet betrouwbaar of niet goed navigeerbaar zijn
-   - inconsistente bronverwijzingen tussen tekst en chips
+## Modelkeuze
+- **Plan & redenering:** google/gemini-3-pro-preview
+- **Uitvoering (code + AI runtime in de app):** google/gemini-3-flash-preview (huidige default in homepage-coach en doorai-chat blijft staan)
 
-### Implementatieplan
+## De drie AI-componenten in de spotlight
+1. **DoorAI public chat** (`homepage-coach`) — warme, action-first coach met betrouwbare bronnen en chips
+2. **DoorAI kandidaat-dashboard** (`doorai-chat` + dashboard) — gepersonaliseerd, smart topic menu, aanbevolen content
+3. **Events/vacatures scraping** (`scrape-events` via Firecrawl) — automatisch verse agenda + vacatures
 
-#### 1. Canonieke URL-normalisatie in de backend
-**Bestand:** `supabase/functions/homepage-coach/index.ts`
+## Aanpak: "light versie" van de site
 
-- Voeg één helper toe die alle externe URL’s canoniek maakt:
-  - `https://` toevoegen als het schema ontbreekt
-  - domein veilig parsen
-  - ongeldige URL’s weggooien
-- Gebruik die helper overal waar `trusted_sources` naar `verified_links` wordt omgezet.
+### 1. Homepage strippen tot demo-showcase
+Bestand: `src/pages/Index.tsx` + `src/components/home/*`
+- Hero behouden, maar duidelijke "Landelijke demo" badge + ondertitel: "Zo zet onderwijsregio Rotterdam AI in voor zij-instromers"
+- `JourneySection` vervangen door een **"AI in actie"-sectie** met 3 kaarten — één per component, met live mini-preview/CTA
+- `TestimonialsSection` verbergen of vervangen door een korte uitleg "Voor andere regio's" (1 alinea + contact-CTA)
+- Footer behoudt links, maar voegt "Demo voor onderwijsregio's" disclaimer toe
 
-Doel: nooit meer een chip met `href: "voraad.nl"` of `href: "onderwijsloket.com"`.
+### 2. Navigatie afslanken
+Bestand: `src/components/layout/Header.tsx`
+- Verberg of bundel pagina's die niet tot de AI-demo behoren (Opleidingen, Kennisbank blijven, maar minder prominent)
+- Primair menu: **Home · DoorAI · Dashboard · Agenda · Vacatures · Inloggen**
+- Voeg een subtiele "Demo" tag toe naast het logo
 
-#### 2. `computePublicLinks()` echt whitelist-gestuurd en intent-relevant maken
-**Bestand:** `supabase/functions/homepage-coach/index.ts`
+### 3. Dedicated demo-landingspagina `/demo`
+Nieuw: `src/pages/Demo.tsx` (route in `App.tsx`)
+- Uitleg voor andere regio's: wat doen we, welke AI, welke stack
+- 3 secties — één per AI-component met:
+  - korte uitleg ("Wat doet het?")
+  - "Hoe werkt het technisch?" (1 alinea, leesbaar voor niet-tech)
+  - directe CTA naar live preview (chat openen / dashboard demo-login / agenda-pagina)
+- Onderaan: contactblok "Wil je dit ook in jouw regio?"
 
-- Vervang de huidige logica “pak actieve trusted sources als er externe keywords zijn”.
-- Maak selectie op basis van vraagtype/intentie en categorie, bijvoorbeeld:
-  - salaris → alleen salaris/beleid-bronnen
-  - kosten → alleen kosten/subsidie-bronnen
-  - routes → routes/opleiding
-  - bevoegdheid → toelating/kwaliteit
-- Beperk externe chips tot 1-2 echt relevante bronnen.
-- Laat irrelevante fallback-links zoals “Routes en opleidingen” weg bij bron-/feitenvragen, tenzij de vraag ook echt navigatie vraagt.
+### 4. AI-componenten hardenen (van plan.md openstaande punten)
+We pakken de openstaande pipeline-fixes uit het vorige plan af, want demo = alles moet kloppen:
+- `homepage-coach`: canonieke URL-normalisatie, intent-gestuurde chip-selectie, URL-sanitizer op antwoordtekst
+- Frontend guards in `PublicChatWidget` en `AuthenticatedChatOverlay` voor kapotte hrefs
+- `normalizeMarkdown` uitbreiden voor `(...https://...)`-patronen
+- `TrustedSourcesTab` URL-normalisatie bij invoer
 
-Doel: chips moeten inhoudelijk kloppen met de vraag, niet alleen “gewitlist” zijn.
+### 5. Demo-modus zichtbaar maken
+- Subtiele "DEMO" badge linksboven (niet storend, wel duidelijk)
+- Op `/demo` een "Probeer als kandidaat"-knop die auto-login doet met een demo-account (Rotterdam testdata)
 
-#### 3. URL-sanitizer op de antwoordtekst zelf
-**Bestand:** `supabase/functions/homepage-coach/index.ts`
+### 6. Events scraping als showcase
+Bestand: `src/components/events/ScrapedEventsList.tsx` + `supabase/functions/scrape-events`
+- Toon laatste scrape-tijdstip prominent ("Laatst bijgewerkt: 2 min geleden via Firecrawl")
+- Op `/events`: kleine "Hoe werkt dit?" tooltip die uitlegt dat AI dit automatisch ophaalt
 
-- Voeg na de LLM-call en vóór streaming een tweede validatiestap toe:
-  - detecteer URLs en bare domains in `rawDraft`
-  - normaliseer ze
-  - check ze tegen de whitelist
-  - verwijder of vervang ongewitliste externe URL’s
-- Ruim expliciet patronen op zoals:
-  - `(https://...)`
-  - bare domains in lopende tekst
-- Stuur het model ook strakker aan:
-  - geen losse externe URL’s uitschrijven
-  - alleen interne markdown-links voor sitepagina’s
-  - externe bronnen liever via `verified_links` chips laten lopen
+## Wat we NIET doen
+- Geen aparte regio-routes, geen theme-tokens per regio, geen multi-tenant database
+- Geen kopieën van de site voor andere regio's
+- Geen wijzigingen aan auth/rollen of database-schema
+- Branding blijft Rotterdam Green & Magenta
 
-Doel: hallucinatoire of rommelige URL’s verdwijnen niet alleen uit chips, maar ook uit de antwoordtekst zelf.
+## Bestanden in scope
+- `src/pages/Index.tsx` (homepage afslanken)
+- `src/pages/Demo.tsx` (nieuw)
+- `src/App.tsx` (route toevoegen)
+- `src/components/home/JourneySection.tsx` (vervangen door AI-showcase)
+- `src/components/home/TestimonialsSection.tsx` (vervangen of verbergen)
+- `src/components/layout/Header.tsx` (menu afslanken + demo-badge)
+- `src/components/layout/Footer.tsx` (demo-disclaimer)
+- `src/components/events/ScrapedEventsList.tsx` (laatste-update timestamp)
+- `supabase/functions/homepage-coach/index.ts` (pipeline hardening)
+- `src/components/chat/PublicChatWidget.tsx` (href guards)
+- `src/components/chat/AuthenticatedChatOverlay.tsx` (href guards + parser)
+- `src/utils/normalizeMarkdown.ts` (URL-opruim)
+- `src/components/backoffice/TrustedSourcesTab.tsx` (URL-normalisatie input)
 
-#### 4. Frontend hardenen tegen foute backend-links
-**Bestanden:**
-- `src/components/chat/PublicChatWidget.tsx`
-- `src/components/chat/AuthenticatedChatOverlay.tsx`
+## Volgorde van uitvoering
+1. AI-pipeline hardenen (chat-kwaliteit eerst, want dat is de showcase)
+2. `/demo` landingspagina bouwen
+3. Homepage afslanken naar AI-showcase
+4. Header/Footer demo-tagging
+5. Events: scrape-timestamp tonen
+6. QA: doorloop van een "regio-bezoeker" — landing → /demo → chat → dashboard → events
 
-- Voeg een kleine guard toe:
-  - render externe chip alleen als `href` een absolute `http/https` URL is
-  - anders niet tonen
-- Laat de authenticated general-mode dezelfde meta-parsing gebruiken als de public widget (`parseStructuredMeta`), zodat de weergave consistent wordt.
-
-Doel: de UI toont nooit meer kapotte anchors, ook niet als de backend ooit nog ongeldige data terugstuurt.
-
-#### 5. Markdown-opruiming voor nette inline bronverwijzingen
-**Bestand:** `src/utils/normalizeMarkdown.ts`
-
-- Breid de normalisatie uit voor gevallen als `(...https://...)`, zodat die niet als lelijke losse URL tussen haakjes in de bubble blijven staan.
-- Dit is een extra vangnet; de primaire fix blijft backend-sanitatie.
-
-Doel: nette, leesbare chatantwoorden zonder URL-ruis.
-
-#### 6. Recidive voorkomen in backoffice
-**Bestand:** `src/components/backoffice/TrustedSourcesTab.tsx`
-
-- Normaliseer URL’s al bij invoer/opslag:
-  - schema toevoegen als het ontbreekt
-  - invalide invoer blokkeren
-- Optioneel: bestaande records eenmalig backfillen/opschonen, omdat de tabel nu gemixte waarden bevat.
-
-Doel: nieuwe trusted sources kunnen dit probleem niet opnieuw introduceren.
-
-### Verwachte uitkomst
-Na deze fix:
-- zijn externe chips altijd absolute, geldige links
-- zijn chips relevant voor de vraag
-- verdwijnen losse/hallucinatoire externe URL’s uit de antwoordtekst
-- blijven internal links netjes klikbaar
-- gedragen public widget en authenticated “Algemeen” zich hetzelfde
-
-### Bestanden in scope
-- `supabase/functions/homepage-coach/index.ts`
-- `src/components/chat/PublicChatWidget.tsx`
-- `src/components/chat/AuthenticatedChatOverlay.tsx`
-- `src/utils/normalizeMarkdown.ts`
-- `src/components/backoffice/TrustedSourcesTab.tsx`
-
-### QA na implementatie
-Ik zou daarna expliciet deze flows verifiëren:
-1. “Hallo” → korte groet, geen zichtbare link-ruis
-2. “Wat verdient een leraar?” → alleen relevante bronchips, geen losse URL tussen haakjes
-3. “Wat kost zij-instroom?” → alleen kosten/subsidie-bronnen
-4. “Ik wil vacatures zien” → interne vacaturelink, geen irrelevante externe bron
-5. Zelfde tests in zowel public widget als ingelogde “Algemeen”-tab
+## QA-scenario's na implementatie
+1. Bezoeker landt op `/` → ziet meteen "AI in actie" met 3 componenten
+2. Klikt op `/demo` → begrijpt binnen 30s wat Rotterdam doet en hoe
+3. Test chat: "Wat verdient een leraar?" → alleen relevante chips, geen losse URL's
+4. Demo-login → ziet dashboard met smart topic menu en aanbevolen content
+5. `/events` → ziet verse data + Firecrawl-attributie
