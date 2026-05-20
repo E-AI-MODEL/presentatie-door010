@@ -64,8 +64,8 @@ export function ScrapedEventsList() {
     <div className="space-y-4">
       {/* Last updated info */}
       {data?.lastUpdated && (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
             <Clock className="h-3 w-3" />
             Bijgewerkt{" "}
             {formatDistanceToNow(new Date(data.lastUpdated), {
@@ -73,6 +73,9 @@ export function ScrapedEventsList() {
               locale: nl,
             })}
             {data.fromCache && " (cached)"}
+            <span className="ml-2 inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider text-[10px]">
+              Auto-scrape via Firecrawl
+            </span>
           </span>
           <Button
             variant="ghost"

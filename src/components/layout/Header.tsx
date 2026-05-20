@@ -12,6 +12,7 @@ const navigation = [
   { name: "Opleidingen", href: "/opleidingen" },
   { name: "Agenda", href: "/events" },
   { name: "Vacatures", href: "/vacatures" },
+  { name: "Demo", href: "/demo" },
 ];
 
 // Elegant DOORai hint - clickable to open chat widget
@@ -72,6 +73,9 @@ function RegularLogo() {
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Onderwijsloket</span>
         <span className="text-lg font-bold text-primary uppercase tracking-tight">Rotterdam</span>
       </div>
+      <span className="hidden sm:inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1">
+        AI Demo
+      </span>
     </div>
   );
 }

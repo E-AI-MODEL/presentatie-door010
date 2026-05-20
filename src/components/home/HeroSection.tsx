@@ -21,6 +21,15 @@ export function HeroSection() {
 
       <div className="container py-20 md:py-28">
         <div className="max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-2 bg-white/95 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-5"
+          >
+            Landelijke AI-demo · Onderwijsregio Rotterdam
+          </motion.div>
+
           {/* Main headline - styled like onderwijsloketrotterdam.nl */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -40,8 +49,7 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg md:text-xl text-white/90 max-w-2xl mb-8"
           >
-            Van eerste oriëntatie tot instroom — persoonlijk begeleid door een AI-coach. 
-            Ontdek vacatures, events en opleidingen in het Rotterdamse onderwijs.
+            Zo zet onderwijsregio Rotterdam AI in om kandidaten te begeleiden — van eerste oriëntatie tot instroom. Een live voorbeeld voor alle onderwijsregio's.
           </motion.p>
 
           {/* CTA Buttons - styled like onderwijsloketrotterdam.nl */}
@@ -67,7 +75,7 @@ export function HeroSection() {
               className="bg-white hover:bg-white/90 text-foreground border-white font-semibold px-6"
               asChild
             >
-              <Link to="/vacatures">Bekijk vacatures</Link>
+              <Link to="/demo">Bekijk de AI-demo</Link>
             </Button>
           </motion.div>
         </div>

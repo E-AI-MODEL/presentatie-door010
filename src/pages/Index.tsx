@@ -1,8 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { JourneySection } from "@/components/home/JourneySection";
-import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { AIShowcaseSection } from "@/components/home/AIShowcaseSection";
 
 const Index = () => {
   return (
@@ -10,8 +9,7 @@ const Index = () => {
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <JourneySection />
-        <TestimonialsSection />
+        <AIShowcaseSection />
       </main>
       <Footer />
     </div>
