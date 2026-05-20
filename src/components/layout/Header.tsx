@@ -81,7 +81,6 @@ export function Header() {
   const navigate = useNavigate();
   const [showMascot, setShowMascot] = useState(false);
   const [isAdvisorOrAdmin, setIsAdvisorOrAdmin] = useState(false);
-  const [testInfoOpen, setTestInfoOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Check for unread advisor messages (punt 12)
