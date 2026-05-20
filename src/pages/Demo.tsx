@@ -17,40 +17,37 @@ import {
 const sections = [
   {
     icon: MessageCircle,
-    eyebrow: "Component 1",
-    title: "DOORai — publieke AI-coach",
-    what: "Een chat-widget op elke pagina die bezoekers direct antwoord geeft op vragen over routes, salaris, opleidingen en subsidies. De coach geeft maximaal één vervolgvraag en stuurt actiegerichte chips mee.",
-    how: "Gebouwd op de Lovable AI Gateway met Google Gemini 3 Flash. De edge function homepage-coach combineert een gecureerde kennisbank (FAQ + trusted sources) met intent-detectie, zodat antwoorden altijd op geverifieerde bronnen rusten. Chips worden gefilterd op absolute URL's en intent-relevantie.",
+    eyebrow: "Coach",
+    title: "DOORai — directe AI-coach",
+    what: "Een slimme chat op elke pagina die bezoekers meteen verder helpt met vragen over routes, salaris, opleidingen en subsidies. De coach stelt maximaal één vervolgvraag en geeft altijd een concrete actie mee.",
     bullets: [
-      "Warme, action-first persona zonder jargon",
-      "Maximaal 1 vraag per beurt",
-      "Bron-chips alleen uit een whitelist",
+      "Warm en duidelijk, zonder jargon",
+      "Beantwoordt op basis van geverifieerde bronnen",
+      "Stuurt je gericht naar de juiste vervolgstap",
     ],
     cta: { label: "Open de coach", action: "chat" as const },
   },
   {
     icon: LayoutDashboard,
-    eyebrow: "Component 2",
+    eyebrow: "Dashboard",
     title: "Persoonlijk kandidaat-dashboard",
-    what: "Ingelogde kandidaten krijgen een dashboard dat zich aanpast aan waar ze staan in hun route. AI bepaalt het juiste topic-menu, aanbevolen content en de meest passende vervolgstap.",
-    how: "Een tweede edge function doorai-chat onthoudt de conversatiegeschiedenis, leest het profiel en past de persona aan op gespreksgeschiedenis. Het dashboard rendert smart topic suggestions die meebewegen met de gesprekssituatie.",
+    what: "Ingelogde kandidaten krijgen een dashboard dat zich aanpast aan waar ze staan in hun route. De inhoud, suggesties en vervolgstappen bewegen mee met de situatie.",
     bullets: [
-      "Profielgebaseerde personalisatie",
-      "Smart topic menu dat meebeweegt",
-      "Adviseur kan live meekijken en bijsturen",
+      "Persoonlijk afgestemd op jouw profiel",
+      "Slim menu met de juiste onderwerpen",
+      "Adviseur kan meekijken en bijsturen",
     ],
     cta: { label: "Bekijk dashboard", href: "/dashboard" },
   },
   {
     icon: CalendarSearch,
-    eyebrow: "Component 3",
-    title: "Auto-scraping van agenda & vacatures",
-    what: "De agenda en vacaturepagina vullen zichzelf. Een AI-agent bezoekt geverifieerde bronnen, haalt events en vacatures op en presenteert ze in de huisstijl van Rotterdam.",
-    how: "De scrape-events edge function gebruikt Firecrawl om HTML om te zetten naar gestructureerde data, vervolgens haalt een Gemini-call titel, datum en beschrijving eruit. Resultaten worden gecached met een 'laatst bijgewerkt' timestamp.",
+    eyebrow: "Agenda & vacatures",
+    title: "Altijd verse agenda en vacatures",
+    what: "Events en vacatures worden automatisch opgehaald uit betrouwbare regionale en landelijke bronnen, en in de huisstijl van Rotterdam getoond.",
     bullets: [
       "Geen handmatig contentbeheer meer",
       "Bronvermelding altijd zichtbaar",
-      "Caching voor snelheid en kostenbeheersing",
+      "Altijd actueel aanbod, ook 's avonds",
     ],
     cta: { label: "Bekijk agenda", href: "/events" },
   },
@@ -100,19 +97,8 @@ export default function Demo() {
                       {s.title}
                     </h2>
 
-                    <div className="grid md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                          Wat doet het?
-                        </h3>
-                        <p className="text-foreground leading-relaxed">{s.what}</p>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                          Hoe werkt het?
-                        </h3>
-                        <p className="text-foreground leading-relaxed">{s.how}</p>
-                      </div>
+                    <div className="mb-6">
+                      <p className="text-foreground leading-relaxed">{s.what}</p>
                     </div>
 
                     <ul className="space-y-2 mb-6">
