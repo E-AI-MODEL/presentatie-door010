@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, Shield, LogOut, Info, Bell } from "lucide-react";
+import { Menu, X, User, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { TestInfoModal } from "@/components/onboarding/TestInfoModal";
 
 const navigation = [
   { name: "Ontdek het onderwijs", href: "/kennisbank" },
