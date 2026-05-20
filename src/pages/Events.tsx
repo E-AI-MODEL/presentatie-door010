@@ -22,21 +22,21 @@ const eventSources = [
   {
     title: "Onderwijsloket Rotterdam",
     description: "Officiële activiteiten en events voor zij-instromers",
-    url: "https://www.onderwijsloketrotterdam.nl/activiteiten",
+    url: "https://www.onderwijsloketrotterdam.nl/#activiteiten",
     category: "Primair",
     verified: true,
   },
   {
     title: "Onderwijs010",
     description: "Rotterdamse open dagen, meeloopdagen en webinars",
-    url: "https://www.onderwijs010.nl/activiteiten",
+    url: "https://www.onderwijs010.nl",
     category: "Primair",
     verified: true,
   },
   {
     title: "Hogeschool Rotterdam - Lerarenopleiding",
     description: "Open dagen en voorlichtingen lerarenopleiding",
-    url: "https://www.hogeschoolrotterdam.nl/opleidingen/voorlichting/",
+    url: "https://www.hogeschoolrotterdam.nl/opleidingen/",
     category: "Opleiding",
     verified: true,
   },
@@ -57,7 +57,7 @@ const eventSources = [
   {
     title: "Landelijk Onderwijsloket",
     description: "Landelijke activiteiten en webinars",
-    url: "https://www.onderwijsloket.com/activiteiten",
+    url: "https://www.onderwijsloket.com/",
     category: "Landelijk",
     verified: true,
   },
@@ -72,7 +72,7 @@ const upcomingEvents = [
     type: "Webinar",
     location: "Online",
     source: "Onderwijsloket Rotterdam",
-    url: "https://www.onderwijsloketrotterdam.nl/activiteiten",
+    url: "https://www.onderwijsloketrotterdam.nl/#activiteiten",
   },
   {
     title: "Meeloopdag basisschool",
@@ -81,7 +81,7 @@ const upcomingEvents = [
     type: "Meelopen",
     location: "Rotterdam",
     source: "Onderwijs010",
-    url: "https://www.onderwijs010.nl/activiteiten",
+    url: "https://www.onderwijs010.nl",
   },
   {
     title: "Open dag Hogeschool Rotterdam",
@@ -90,7 +90,7 @@ const upcomingEvents = [
     type: "Open dag",
     location: "Rotterdam",
     source: "Hogeschool Rotterdam",
-    url: "https://www.hogeschoolrotterdam.nl/opleidingen/voorlichting/",
+    url: "https://www.hogeschoolrotterdam.nl/opleidingen/",
   },
   {
     title: "Informatiebijeenkomst leraar worden",
@@ -99,7 +99,7 @@ const upcomingEvents = [
     type: "Informatie",
     location: "Rotterdam",
     source: "Onderwijsloket Rotterdam",
-    url: "https://www.onderwijsloketrotterdam.nl/activiteiten",
+    url: "https://www.onderwijsloketrotterdam.nl/#activiteiten",
   },
 ];
 

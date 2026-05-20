@@ -17,7 +17,7 @@ const opleidingsRoutes = [
     description: "De pabo leidt je op tot leraar in het primair onderwijs. Je leert kinderen van 4-12 jaar alle vakken.",
     aanbieders: ["Hogeschool Rotterdam", "Thomas More Hogeschool", "Hogeschool Inholland"],
     sector: "PO",
-    url: "https://www.studiekeuze123.nl/opleidingen/leraar-basisonderwijs-pabo",
+    url: "https://www.studiekeuze123.nl/opleidingen",
   },
   {
     title: "Tweedegraads Lerarenopleiding",
@@ -28,7 +28,7 @@ const opleidingsRoutes = [
     description: "Lesgeven in vmbo, onderbouw havo/vwo en mbo. Specialiseer je in vakken zoals Nederlands, Engels of Wiskunde.",
     aanbieders: ["Hogeschool Rotterdam", "Hogeschool Inholland"],
     sector: "VO/MBO",
-    url: "https://www.studiekeuze123.nl/opleidingen?q=tweedegraads+lerarenopleiding",
+    url: "https://www.studiekeuze123.nl/opleidingen",
   },
   {
     title: "Eerstegraads Lerarenopleiding",
@@ -39,7 +39,7 @@ const opleidingsRoutes = [
     description: "Universitaire opleiding tot eerstegraads docent voor alle niveaus in het voortgezet onderwijs.",
     aanbieders: ["Erasmus Universiteit Rotterdam", "Universiteit Leiden"],
     sector: "VO",
-    url: "https://www.studiekeuze123.nl/opleidingen?q=eerstegraads+lerarenopleiding",
+    url: "https://www.studiekeuze123.nl/opleidingen",
   },
   {
     title: "Zij-instroom traject PO",
@@ -50,7 +50,7 @@ const opleidingsRoutes = [
     description: "Combineer werken voor de klas met een verkorte opleiding. Je hebt een hbo- of wo-diploma nodig.",
     aanbieders: ["Hogeschool Rotterdam", "Thomas More Hogeschool"],
     sector: "PO",
-    url: "https://www.onderwijsloket.com/zij-instroom",
+    url: "https://www.onderwijsloket.com/over-het-onderwijs/zij-instroom-in-het-beroep/",
   },
   {
     title: "Zij-instroom traject VO/MBO",
@@ -61,7 +61,7 @@ const opleidingsRoutes = [
     description: "Stap via zij-instroom over naar het voortgezet onderwijs of mbo met je vakinhoudelijke kennis.",
     aanbieders: ["Hogeschool Rotterdam", "Hogeschool Inholland"],
     sector: "VO/MBO",
-    url: "https://www.onderwijsloket.com/zij-instroom",
+    url: "https://www.onderwijsloket.com/over-het-onderwijs/zij-instroom-in-het-beroep/",
   },
   {
     title: "PDG-traject (MBO)",
@@ -72,7 +72,7 @@ const opleidingsRoutes = [
     description: "Pedagogisch-didactisch getuigschrift voor lesgeven in het mbo met je vakinhoudelijke expertise.",
     aanbieders: ["Hogeschool Rotterdam", "Hogeschool Inholland"],
     sector: "MBO",
-    url: "https://www.onderwijsloket.com/pdg-traject",
+    url: "https://www.onderwijsloket.com/",
   },
   {
     title: "Academie Lichamelijke Opvoeding",
@@ -83,7 +83,7 @@ const opleidingsRoutes = [
     description: "Ongegradeerde bevoegdheid voor docent LO. Lesgeven in alle sectoren: PO, VO én MBO.",
     aanbieders: ["Hogeschool Rotterdam"],
     sector: "PO/VO/MBO",
-    url: "https://www.studiekeuze123.nl/opleidingen?q=lichamelijke+opvoeding",
+    url: "https://www.studiekeuze123.nl/opleidingen",
   },
   {
     title: "Hbo-master Eerstegraads",
@@ -94,7 +94,7 @@ const opleidingsRoutes = [
     description: "Breid je tweedegraads bevoegdheid uit naar eerstegraads voor bovenbouw havo/vwo.",
     aanbieders: ["Hogeschool Rotterdam"],
     sector: "VO",
-    url: "https://www.studiekeuze123.nl/opleidingen?q=eerstegraads+leraar",
+    url: "https://www.studiekeuze123.nl/opleidingen",
   },
 ];
 

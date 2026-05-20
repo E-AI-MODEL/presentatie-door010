@@ -34,7 +34,7 @@ const articles = [
     title: "Eerste- en tweedegraads bevoegdheid",
     category: "bevoegdheden",
     excerpt: "Een tweedegraads bevoegdheid geeft toegang tot vmbo en onderbouw. Eerstegraads is nodig voor bovenbouw havo/vwo.",
-    url: "https://www.onderwijsloket.com/index.php/kennisbank/",
+    url: "https://www.onderwijsloket.com/kennisbank/",
   },
   {
     id: 4,
@@ -55,7 +55,7 @@ const articles = [
     title: "Subsidies voor zij-instromers",
     category: "zij-instroom",
     excerpt: "Er zijn verschillende subsidies beschikbaar, waaronder de subsidieregeling zij-instroom.",
-    url: "https://www.onderwijsloket.com/index.php/kennisbank/praktische-zaken/",
+    url: "https://www.onderwijsloket.com/kennisbank/",
   },
 ];
 

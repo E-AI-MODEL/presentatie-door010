@@ -10,7 +10,7 @@ const externalVacatureSites = [
   {
     title: "Meesterbaan",
     description: "De grootste vacaturesite voor het onderwijs in Nederland",
-    url: "https://www.meesterbaan.nl/onderwijs-vacatures",
+    url: "https://www.meesterbaan.nl/vacatures",
     sector: "PO/VO/MBO",
   },
   {
@@ -34,7 +34,7 @@ const externalVacatureSites = [
   {
     title: "Albeda College",
     description: "Vacatures bij het grootste mbo van Rotterdam",
-    url: "https://www.werkenvooralbeda.nl/",
+    url: "https://www.albeda.nl/werken-bij",
     sector: "MBO",
   },
   {
@@ -46,7 +46,7 @@ const externalVacatureSites = [
   {
     title: "Solliciteer Direct",
     description: "Onderwijsvacatures in heel Nederland",
-    url: "https://www.solliciteerdirect.nl/vacatures/onderwijs",
+    url: "https://www.werkeninhetonderwijs.nl/",
     sector: "PO/VO/MBO",
   },
 ];
