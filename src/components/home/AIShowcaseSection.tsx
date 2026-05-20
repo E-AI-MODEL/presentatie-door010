@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MessageCircle, LayoutDashboard, CalendarSearch, ArrowRight, Sparkles } from "lucide-react";
+import { MessageCircle, LayoutDashboard, CalendarSearch, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -7,25 +7,25 @@ const components = [
   {
     icon: MessageCircle,
     title: "DOORai Coach",
-    badge: "Publieke chat",
+    badge: "Direct antwoord",
     description:
-      "Een AI-coach die bezoekers direct antwoord geeft op vragen over zij-instroom, opleidingen en salaris — met gecontroleerde bronnen.",
+      "Stel je vraag over zij-instroom, opleidingen of salaris. Je krijgt meteen een persoonlijk antwoord met de juiste vervolgstap.",
     cta: { label: "Open de coach", action: "chat" as const },
   },
   {
     icon: LayoutDashboard,
     title: "Persoonlijk Dashboard",
-    badge: "Kandidaat AI",
+    badge: "Jouw route",
     description:
-      "Voor ingelogde kandidaten: AI bepaalt waar je staat in je route en serveert passende acties, content en vacatures.",
+      "Log in en zie precies waar je staat. Passende acties, content en vacatures, afgestemd op jouw situatie.",
     cta: { label: "Bekijk dashboard", href: "/dashboard" },
   },
   {
     icon: CalendarSearch,
     title: "Verse Agenda & Vacatures",
-    badge: "Auto-scraping",
+    badge: "Altijd actueel",
     description:
-      "AI-agents halen automatisch nieuwe events en vacatures op uit betrouwbare bronnen. Geen redactiewerk meer.",
+      "Events en vacatures worden automatisch opgehaald uit betrouwbare bronnen. Altijd vers, altijd relevant.",
     cta: { label: "Bekijk agenda", href: "/events" },
   },
 ];
@@ -35,15 +35,11 @@ export function AIShowcaseSection() {
     <section className="py-16 md:py-24 bg-white">
       <div className="container">
         <div className="max-w-2xl mb-10">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-4">
-            <Sparkles className="h-3.5 w-3.5" />
-            AI in actie · Rotterdam
-          </div>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 uppercase tracking-tight">
-            Drie <span className="text-primary">AI-componenten</span> die het verschil maken
+            Alles wat je nodig hebt voor <span className="text-primary">jouw route</span>
           </h2>
           <p className="text-muted-foreground">
-            Een live voorbeeld van hoe onderwijsregio Rotterdam AI inzet om kandidaten te begeleiden van eerste interesse tot instroom.
+            Drie sterke tools die samen werken om je stap voor stap te begeleiden naar een baan in het onderwijs.
           </p>
         </div>
 
@@ -93,15 +89,6 @@ export function AIShowcaseSection() {
               </motion.div>
             );
           })}
-        </div>
-
-        <div className="mt-10 text-center">
-          <Button size="lg" asChild>
-            <Link to="/demo">
-              Volledige demo voor onderwijsregio's
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
         </div>
       </div>
     </section>

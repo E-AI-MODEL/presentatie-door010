@@ -73,9 +73,6 @@ export function ScrapedEventsList() {
               locale: nl,
             })}
             {data.fromCache && " (cached)"}
-            <span className="ml-2 inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider text-[10px]">
-              Auto-scrape via Firecrawl
-            </span>
           </span>
           <Button
             variant="ghost"

@@ -35,9 +35,6 @@ export function Footer() {
             <p className="text-sm text-secondary-foreground/70 max-w-xs">
               Van eerste oriëntatie tot instroom in het onderwijs — persoonlijk begeleid door AI.
             </p>
-            <p className="text-xs text-secondary-foreground/50 max-w-xs mt-3">
-              Deze site is een landelijke AI-demo voor onderwijsregio's, gebouwd rondom de praktijk van Rotterdam.
-            </p>
           </div>
 
           {/* Ontdek */}
