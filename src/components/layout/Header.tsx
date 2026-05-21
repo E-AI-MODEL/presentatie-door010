@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, Shield, LogOut } from "lucide-react";
+import { Menu, X, User, Shield, LogOut, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useDemoLogin } from "@/hooks/useDemoLogin";
 
 const navigation = [
   { name: "Ontdek het onderwijs", href: "/kennisbank" },
@@ -78,6 +79,7 @@ function RegularLogo() {
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
+  const { loginAsDemo, loading: demoLoading } = useDemoLogin();
   const navigate = useNavigate();
   const [showMascot, setShowMascot] = useState(false);
   const [isAdvisorOrAdmin, setIsAdvisorOrAdmin] = useState(false);
@@ -250,9 +252,23 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <Button size="sm" className="font-medium" asChild>
-                <Link to="/auth">Inloggen</Link>
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  className="font-medium"
+                  disabled={demoLoading}
+                  onClick={() => loginAsDemo("/dashboard")}
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  {demoLoading ? "Bezig..." : "Demo kandidaat"}
+                </Button>
+                <Button size="sm" variant="outline" className="font-medium" asChild>
+                  <Link to="/auth">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
+                  </Link>
+                </Button>
+              </>
             )
           )}
         </div>
@@ -323,9 +339,22 @@ export function Header() {
                       </Button>
                     </>
                   ) : (
-                    <Button className="w-full" asChild>
-                      <Link to="/auth">Inloggen</Link>
-                    </Button>
+                    <>
+                      <Button
+                        className="w-full"
+                        disabled={demoLoading}
+                        onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        {demoLoading ? "Bezig..." : "Demo kandidaat"}
+                      </Button>
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin login
+                        </Link>
+                      </Button>
+                    </>
                   )
                 )}
               </div>
