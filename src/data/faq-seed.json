@@ -37,9 +37,10 @@
     },
     {
       "question": "Wat is het salaris van een startende docent?",
-      "answer": "Als startend docent word je meestal ingeschaald in de LB-schaal. PO/VO: LB-schaal trede 1 ca. €3.622, trede 12 ca. €5.520 bruto per maand. MBO: LB-schaal trede 1 ca. €3.713, trede 12 ca. €5.495. In welke trede je precies wordt ingeschaald is afhankelijk van je eerdere werkervaring en het beleid van de school. Er bestaan hiervoor geen vaste richtlijnen — je kunt hier altijd over onderhandelen. Peildatum: CAO PO/VO 2024.",
+      "answer": "Als startend docent kom je meestal in de LB-schaal. PO/VO: LB-schaal trede 1 ca. €3.840, trede 12 ca. €5.840 bruto per maand (CAO PO 2024-2025 / CAO VO 2025-2026). MBO: LB-schaal trede 1 ca. €3.940, trede 12 ca. €5.830 (CAO MBO 2025-2026). In welke trede je precies wordt ingeschaald hangt af van je werkervaring en het schoolbeleid. Onderhandelen mag.",
       "category": "salaris",
       "tags": ["salaris", "cao", "LB-schaal", "ZIB", "source:external", "time_sensitive:true", "requires_citation:true", "alias:Hoeveel verdien ik als docent", "alias:Startsalaris leraar"],
+      "peildatum": "2026-05",
       "source_url": "https://www.poraad.nl/salaristabellen"
     },
     {
