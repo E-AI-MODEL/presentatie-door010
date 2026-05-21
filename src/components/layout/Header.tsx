@@ -260,15 +260,10 @@ export function Header() {
                   onClick={() => loginAsDemo("/dashboard")}
                 >
                   <Play className="mr-2 h-4 w-4" />
-                  {demoLoading ? "Bezig..." : "Demo kandidaat"}
-                </Button>
-                <Button size="sm" variant="outline" className="font-medium" asChild>
-                  <Link to="/auth">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Admin
-                  </Link>
+                  {demoLoading ? "Bezig..." : "Inloggen"}
                 </Button>
               </>
+
             )
           )}
         </div>
