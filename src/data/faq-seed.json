@@ -143,10 +143,11 @@
     },
     {
       "question": "Wat kost een reguliere lerarenopleiding?",
-      "answer": "Reguliere lerarenopleidingen kosten het wettelijk collegegeld van ca. €2.530 per jaar (studiejaar 2024-2025). PDG-trajecten variëren per aanbieder. Het zij-instroomtraject is kosteloos — de school vraagt subsidie aan. Let op: als je het zij-instroomtraject voortijdig stopt, kan je werkgever NIET opnieuw de subsidie voor jou aanvragen.",
+      "answer": "Reguliere lerarenopleidingen kosten het wettelijk collegegeld: €2.601 in studiejaar 2025-2026 en €2.660 in 2026-2027. PDG-trajecten variëren per aanbieder. Het zij-instroomtraject is kosteloos — de school vraagt subsidie aan. Let op: als je het zij-instroomtraject voortijdig stopt, kan je werkgever NIET opnieuw de subsidie voor jou aanvragen.",
       "category": "subsidie",
       "tags": ["kosten", "collegegeld", "subsidie", "source:internal", "time_sensitive:true", "alias:Collegegeld lerarenopleiding", "alias:Wat kost de opleiding"],
-      "source_url": null
+      "peildatum": "2026-05",
+      "source_url": "https://duo.nl/particulier/collegegeld/"
     },
     {
       "question": "Wat is de subsidie zij-instroom en hoe werkt die?",
