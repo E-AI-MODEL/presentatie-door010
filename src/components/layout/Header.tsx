@@ -341,15 +341,10 @@ export function Header() {
                         onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
                       >
                         <Play className="mr-2 h-4 w-4" />
-                        {demoLoading ? "Bezig..." : "Demo kandidaat"}
-                      </Button>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin login
-                        </Link>
+                        {demoLoading ? "Bezig..." : "Inloggen"}
                       </Button>
                     </>
+
                   )
                 )}
               </div>
