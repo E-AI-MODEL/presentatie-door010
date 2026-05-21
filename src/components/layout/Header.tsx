@@ -252,9 +252,23 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <Button size="sm" className="font-medium" asChild>
-                <Link to="/auth">Inloggen</Link>
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  className="font-medium"
+                  disabled={demoLoading}
+                  onClick={() => loginAsDemo("/dashboard")}
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  {demoLoading ? "Bezig..." : "Demo kandidaat"}
+                </Button>
+                <Button size="sm" variant="outline" className="font-medium" asChild>
+                  <Link to="/auth">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
+                  </Link>
+                </Button>
+              </>
             )
           )}
         </div>
