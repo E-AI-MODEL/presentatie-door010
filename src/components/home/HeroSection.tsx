@@ -61,15 +61,14 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex flex-col sm:flex-row items-start gap-3"
           >
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6"
-              asChild
+              disabled={demoLoading}
+              onClick={() => loginAsDemo("/dashboard")}
             >
-              <Link to="/auth">
-                <ArrowRight className="mr-2 h-5 w-5" />
-                Ontdek jouw route
-              </Link>
+              <Play className="mr-2 h-5 w-5" />
+              {demoLoading ? "Bezig..." : "Start als kandidaat"}
             </Button>
             <Button 
               size="lg" 
