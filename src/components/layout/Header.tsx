@@ -227,7 +227,9 @@ export function Header() {
           )}
         </div>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-2">
+        <div className="hidden lg:flex lg:items-center lg:gap-3">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Demo-omgeving</span>
+
           {!loading && (
             user ? (
               <>
