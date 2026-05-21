@@ -1,10 +1,12 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import rotterdamSkyline from "@/assets/rotterdam-skyline.jpeg";
+import { useDemoLogin } from "@/hooks/useDemoLogin";
 
 export function HeroSection() {
+  const { loginAsDemo, loading: demoLoading } = useDemoLogin();
   return (
     <section className="relative min-h-[70vh] flex items-center">
       {/* Background image - Rotterdam Erasmusbrug skyline */}
