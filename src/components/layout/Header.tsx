@@ -227,7 +227,9 @@ export function Header() {
           )}
         </div>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-2">
+        <div className="hidden lg:flex lg:items-center lg:gap-3">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Demo-omgeving</span>
+
           {!loading && (
             user ? (
               <>
@@ -260,15 +262,10 @@ export function Header() {
                   onClick={() => loginAsDemo("/dashboard")}
                 >
                   <Play className="mr-2 h-4 w-4" />
-                  {demoLoading ? "Bezig..." : "Demo kandidaat"}
-                </Button>
-                <Button size="sm" variant="outline" className="font-medium" asChild>
-                  <Link to="/auth">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Admin
-                  </Link>
+                  {demoLoading ? "Bezig..." : "Inloggen"}
                 </Button>
               </>
+
             )
           )}
         </div>
@@ -346,15 +343,10 @@ export function Header() {
                         onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
                       >
                         <Play className="mr-2 h-4 w-4" />
-                        {demoLoading ? "Bezig..." : "Demo kandidaat"}
-                      </Button>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin login
-                        </Link>
+                        {demoLoading ? "Bezig..." : "Inloggen"}
                       </Button>
                     </>
+
                   )
                 )}
               </div>
