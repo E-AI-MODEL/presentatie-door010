@@ -101,6 +101,33 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
       <main className="flex-1">
+        {/* Hero banner */}
+        <section className="relative overflow-hidden border-b border-border">
+          <img
+            src={heroBanner}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-card via-card/85 to-card/30" />
+          <div className="relative container py-8 md:py-12">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary mb-3">
+                <Sparkles className="h-3 w-3" />
+                Persoonlijk dashboard
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+                Welkom{profile?.first_name ? `, ${profile.first_name}` : ""}
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground mt-2">
+                {profile?.preferred_sector
+                  ? `Jouw route richting het ${profile.preferred_sector.toUpperCase()}.`
+                  : "Vind je weg naar het onderwijs, op jouw tempo."}
+              </p>
+            </div>
+          </div>
+        </section>
+
         <PhaseProgress currentPhase={currentPhase} />
 
         <div className="container py-5 md:py-8">
