@@ -63,7 +63,7 @@ export function AuthenticatedChatOverlay() {
   const [latestLinks, setLatestLinks] = useState<Array<{ label: string; href: string }>>([]);
   const [pendingPhaseSuggestion, setPendingPhaseSuggestion] = useState<{ from: string; to: string; message: string } | null>(null);
   const [reflectionWarning, setReflectionWarning] = useState<string[] | null>(null);
-  const [doubtSignal, setDoubtSignal] = useState<{ confidence: number; evidence: string[] } | null>(null);
+  const [lastConfidence, setLastConfidence] = useState<number | null>(null);
   const [showTopicPanel, setShowTopicPanel] = useState(false);
   const [personalVisibility, setPersonalVisibility] = useState<TurnVisibility | null>(null);
   const [generalVisibility, setGeneralVisibility] = useState<TurnVisibility | null>(null);
@@ -202,7 +202,7 @@ export function AuthenticatedChatOverlay() {
     setLatestActions([]);  // Clear previous turn's actions so chips don't stack
     setLatestLinks([]);
     setReflectionWarning(null);
-    setDoubtSignal(null);
+    setLastConfidence(null);
     setPersonalVisibility(null);
 
     let assistantContent = "";
@@ -226,9 +226,9 @@ export function AuthenticatedChatOverlay() {
       setKnownSlots(detector.known_slots);
       await maybePersistProfile(detector);
 
-      // Twijfel-signaal: confidence < 0.55 → toon subtiele indicator + log naar profiel
+      // Zekerheids-indicatie: toon altijd, ook bij twijfel (< 0.55)
       const isUncertain = detector.phase_confidence < 0.55;
-      setDoubtSignal(isUncertain ? { confidence: detector.phase_confidence, evidence: detector.evidence || [] } : null);
+      setLastConfidence(detector.phase_confidence);
       if (user) {
         supabase.from("profiles").update({
           last_detector_snapshot: {
@@ -861,14 +861,34 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
-            {/* Doubt signal — confidence < 0.55 */}
-            {isPersonal && doubtSignal && !currentLoading && (
-              <div className="px-4 pb-2 shrink-0">
-                <div className="text-[10px] text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-lg px-3 py-1.5">
-                  Ik twijfel of ik je goed begrijp. Klopt dit met jouw situatie, of wil je het anders verwoorden?
+            {/* Zekerheids-indicatie — altijd zichtbaar na assistant-antwoord */}
+            {isPersonal && lastConfidence !== null && !currentLoading && (() => {
+              const c = lastConfidence;
+              const level = c < 0.55 ? "twijfel" : c < 0.75 ? "redelijk zeker" : "zeker";
+              const palette =
+                c < 0.55
+                  ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/40 text-amber-900 dark:text-amber-100"
+                  : c < 0.75
+                  ? "bg-muted/50 border-border text-muted-foreground"
+                  : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-100";
+              const dot = c < 0.55 ? "bg-amber-500" : c < 0.75 ? "bg-muted-foreground/60" : "bg-emerald-500";
+              return (
+                <div className="px-4 pb-2 shrink-0">
+                  <div className={`text-[10px] border rounded-lg px-3 py-1.5 flex items-center gap-2 ${palette}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+                    <span className="font-medium">DoorAI: {level}</span>
+                    <span className="opacity-70">·</span>
+                    <span className="opacity-80">
+                      {c < 0.55
+                        ? "Ik twijfel of ik je goed begrijp — klopt dit met jouw situatie?"
+                        : c < 0.75
+                        ? "Antwoord op basis van wat je tot nu toe deelde."
+                        : "Antwoord goed afgestemd op jouw situatie."}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Input */}
             <div className="px-4 pb-3 pt-2 border-t border-border shrink-0">
