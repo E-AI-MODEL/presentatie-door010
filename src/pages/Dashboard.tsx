@@ -10,6 +10,8 @@ import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { RecommendedContent } from "@/components/dashboard/RecommendedContent";
 import { phaseData, type OrientationPhase } from "@/data/dashboard-phases";
 import type { KnownSlots } from "@/utils/phaseDetectorEngine";
+import heroBanner from "@/assets/profile-hero-banner.jpg";
+import { Sparkles } from "lucide-react";
 
 interface Profile {
   id: string;
