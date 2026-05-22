@@ -63,7 +63,7 @@ export function AuthenticatedChatOverlay() {
   const [latestLinks, setLatestLinks] = useState<Array<{ label: string; href: string }>>([]);
   const [pendingPhaseSuggestion, setPendingPhaseSuggestion] = useState<{ from: string; to: string; message: string } | null>(null);
   const [reflectionWarning, setReflectionWarning] = useState<string[] | null>(null);
-  const [doubtSignal, setDoubtSignal] = useState<{ confidence: number; evidence: string[] } | null>(null);
+  const [lastConfidence, setLastConfidence] = useState<number | null>(null);
   const [showTopicPanel, setShowTopicPanel] = useState(false);
   const [personalVisibility, setPersonalVisibility] = useState<TurnVisibility | null>(null);
   const [generalVisibility, setGeneralVisibility] = useState<TurnVisibility | null>(null);
