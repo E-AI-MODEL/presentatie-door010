@@ -40,12 +40,7 @@ function canonicalUrl(raw: string): string | null {
   }
 }
 
-// ── Output validation & repair ─────────────────────────────────
-const FORBIDDEN_TERMS = [
-  "peildatum", "kennisbank", "als ai", "goed dat je dit vraagt",
-  "ik begrijp je helemaal", "je moet", "scenario",
-  "globaal zo uit",
-];
+// FORBIDDEN_TERMS is imported from _shared/constants.ts (single source of truth)
 
 function replaceDashes(text: string): string {
   return text.replace(/[\u2014\u2013]/g, "-");
