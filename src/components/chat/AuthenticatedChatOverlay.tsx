@@ -202,6 +202,7 @@ export function AuthenticatedChatOverlay() {
     setLatestActions([]);  // Clear previous turn's actions so chips don't stack
     setLatestLinks([]);
     setReflectionWarning(null);
+    setDoubtSignal(null);
     setPersonalVisibility(null);
 
     let assistantContent = "";
