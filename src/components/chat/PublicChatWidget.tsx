@@ -53,6 +53,11 @@ function inferSignals(prev: ConversationSignals, text: string): ConversationSign
 export function PublicChatWidget() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [sheetHeight, setSheetHeight] = useState<number>(() =>
+    typeof window !== "undefined" ? Math.round(window.innerHeight * 0.7) : 560
+  );
+  const dragStartRef = useRef<{ y: number; h: number } | null>(null);
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -64,6 +69,32 @@ export function PublicChatWidget() {
     sector: "UNK",
     studyLevel: "UNK",
   });
+
+  // Drag-to-resize handlers (mobile bottom sheet)
+  const handleDragStart = (clientY: number) => {
+    dragStartRef.current = { y: clientY, h: sheetHeight };
+  };
+  const handleDragMove = (clientY: number) => {
+    if (!dragStartRef.current) return;
+    const delta = dragStartRef.current.y - clientY; // up = positive
+    const winH = window.innerHeight;
+    const next = Math.min(Math.round(winH * 0.95), Math.max(180, dragStartRef.current.h + delta));
+    setSheetHeight(next);
+  };
+  const handleDragEnd = () => {
+    if (!dragStartRef.current) return;
+    const winH = window.innerHeight;
+    // Snap: if very small, minimize; else snap to nearest of 40%/70%/92%
+    if (sheetHeight < winH * 0.25) {
+      setIsMinimized(true);
+      setSheetHeight(Math.round(winH * 0.7));
+    } else {
+      const snaps = [0.42, 0.7, 0.92].map((p) => Math.round(winH * p));
+      const nearest = snaps.reduce((a, b) => (Math.abs(b - sheetHeight) < Math.abs(a - sheetHeight) ? b : a));
+      setSheetHeight(nearest);
+    }
+    dragStartRef.current = null;
+  };
 
   const initialFollowups: Pick<Message, "primaryFollowup"> = {
     primaryFollowup: { label: "Welke route past bij mij?", value: "Welke route past bij mij om leraar te worden?" },
