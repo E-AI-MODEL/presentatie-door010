@@ -389,6 +389,10 @@ export default function Backoffice() {
                   <Globe className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   Bronnen
                 </TabsTrigger>
+                <TabsTrigger value="detector" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                  <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  {isMobile ? "AI" : "AI-analyse"}
+                </TabsTrigger>
                 {isSuperuser && (
                   <TabsTrigger value="superuser" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
                     <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4" />
