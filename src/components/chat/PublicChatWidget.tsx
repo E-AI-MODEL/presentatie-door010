@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, X, Send, Bot, Mail, Phone, ExternalLink, Trash2 } from "lucide-react";
+import { X, Send, Mail, Phone, ExternalLink, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
