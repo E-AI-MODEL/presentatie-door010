@@ -218,6 +218,129 @@
       "category": "route",
       "tags": ["AD", "associate degree", "leraarondersteuner", "source:internal", "alias:AD-PEP", "alias:2-jarige opleiding onderwijs"],
       "source_url": null
+    },
+    {
+      "question": "Welke loketten zijn er in regio Rotterdam?",
+      "answer": "In Rotterdam zijn er twee loketten die je persoonlijk kunnen begeleiden: Onderwijsloket Rotterdam (regio Rijnmond, alle sectoren) en Onderwijs010 (Rotterdamse basisscholen). Beide bieden gratis adviesgesprekken, hulp bij routekeuze en contact met scholen. Je kunt online een gesprek inplannen.",
+      "category": "regio",
+      "tags": ["regio", "rotterdam", "loket", "source:internal", "alias:Hulp in Rotterdam", "alias:Loket Rotterdam"],
+      "source_url": "https://www.onderwijsloketrotterdam.nl"
+    },
+    {
+      "question": "Hoe plan ik een gesprek met een adviseur?",
+      "answer": "Je kunt een persoonlijk gesprek met een onderwijsadviseur aanvragen via de afsprakentool op deze site. Geef aan welke vraag je hebt en welk dagdeel je voorkeur heeft. De adviseur neemt binnen 2 werkdagen contact op via mail of telefoon. Gesprekken zijn gratis en vrijblijvend.",
+      "category": "next_step",
+      "tags": ["afspraak", "adviseur", "gesprek", "source:internal", "alias:Adviseur spreken", "alias:Gesprek aanvragen"],
+      "source_url": null
+    },
+    {
+      "question": "Wat zijn mijn volgende stappen na orientatie?",
+      "answer": "Na de orientatie kun je: 1) de Routetool invullen voor een persoonlijk routeadvies, 2) een open dag of meeloopdag bezoeken om te ervaren hoe het is, 3) een gesprek aanvragen met een adviseur voor maatwerk-advies, of 4) direct contact opnemen met een lerarenopleiding voor een toelatingsgesprek. Welke stap past hangt af van hoe concreet je plan al is.",
+      "category": "next_step",
+      "tags": ["next_step", "vervolg", "actie", "source:internal", "alias:Wat nu", "alias:Volgende stap"],
+      "source_url": null
+    },
+    {
+      "question": "Zijn er open dagen of meeloopdagen?",
+      "answer": "Ja. Lerarenopleidingen organiseren door het jaar heen open dagen, infosessies en meeloopdagen. Scholen bieden vaak meeloopdagen waarbij je een dag meedraait met een leraar. De actuele agenda vind je op de Events-pagina. Loketten kunnen ook persoonlijke bezoeken regelen op verzoek.",
+      "category": "events",
+      "tags": ["events", "open dag", "meeloopdag", "source:internal", "alias:Open dag opleiding", "alias:Meelopen op school"],
+      "source_url": null
+    },
+    {
+      "question": "Hoe is de arbeidsmarkt voor leraren in 2026?",
+      "answer": "Het lerarentekort is in 2026 nog steeds groot, vooral in PO (basisonderwijs) en VO bij tekortvakken zoals wiskunde, natuurkunde, scheikunde, informatica, Duits, Frans en klassieke talen. In Rotterdam is het tekort bovengemiddeld. Zij-instromers en herintreders zijn zeer welkom; scholen werven actief. Het MBO heeft tekorten bij beroepsgerichte vakken.",
+      "category": "arbeidsmarkt",
+      "tags": ["arbeidsmarkt", "lerarentekort", "tekortvakken", "source:external", "time_sensitive:true", "alias:Is er werk", "alias:Lerarentekort 2026"],
+      "peildatum": "2026-05",
+      "source_url": "https://www.voion.nl"
+    },
+    {
+      "question": "Welke tekortvakken zijn er in het VO?",
+      "answer": "Landelijk zijn de structurele tekortvakken in VO: wiskunde, natuurkunde, scheikunde, informatica, Duits, Frans, klassieke talen (Grieks/Latijn) en Nederlands. Voor deze vakken zijn extra subsidies en versnelde trajecten beschikbaar. In de Randstad (waaronder Rotterdam) zijn de tekorten groter dan in de rest van Nederland.",
+      "category": "arbeidsmarkt",
+      "tags": ["tekortvakken", "VO", "arbeidsmarkt", "source:external", "alias:Welke vakken zijn tekort", "alias:Tekortvakken middelbaar onderwijs"],
+      "source_url": "https://www.vo-raad.nl"
+    },
+    {
+      "question": "Hoe vind ik een vacature in het onderwijs?",
+      "answer": "De grootste vacaturebank is werkeninhetonderwijs.nl, met vacatures uit alle sectoren en regio's. Daarnaast hebben veel schoolbesturen eigen vacaturepaginas. In Rotterdam helpt het Onderwijsloket Rotterdam je actief matchen met scholen. Op de Vacatures-pagina van deze site staat een actueel overzicht.",
+      "category": "vacature",
+      "tags": ["vacature", "werk zoeken", "source:internal", "alias:Vacatures onderwijs", "alias:Banen leraar"],
+      "source_url": "https://www.werkeninhetonderwijs.nl"
+    },
+    {
+      "question": "Wat is een lio-stage en hoe werkt die?",
+      "answer": "Een lio-stage (Leraar in Opleiding) is de eindstage van een lerarenopleiding, meestal in het laatste jaar. Je krijgt een arbeidsovereenkomst voor ca. 0,4-0,5 fte en staat zelfstandig voor de klas, met begeleiding. Je ontvangt een lio-salaris (lager dan een afgestudeerde, hoger dan een gewone stagevergoeding). Veel scholen nemen lio's na afstuderen direct in dienst.",
+      "category": "route",
+      "tags": ["lio", "stage", "lerarenopleiding", "source:internal", "alias:Lio-stage", "alias:Leraar in opleiding"],
+      "source_url": null
+    },
+    {
+      "question": "Wat is een geschiktheidsonderzoek bij zij-instroom?",
+      "answer": "Het geschiktheidsonderzoek beoordeelt of je geschikt bent om binnen 2 jaar tot bevoegd leraar te worden opgeleid. Het bestaat uit een gesprek, lesopname/proefles, vakinhoudelijke toets en reflectie. Een lerarenopleiding voert het uit, kosten ca. EUR 1.500-2.500 (vaak betaald door de school). Uitkomst: geschikt, geschikt onder voorwaarden, of niet geschikt nu.",
+      "category": "toelating",
+      "tags": ["geschiktheidsonderzoek", "zij-instroom", "toelating", "source:external", "alias:Wat is een GO", "alias:Geschiktheidsverklaring"],
+      "source_url": "https://www.onderwijsloket.com/over-het-onderwijs/zij-instroom-in-het-beroep/"
+    },
+    {
+      "question": "Heb ik een VOG nodig om voor de klas te staan?",
+      "answer": "Ja. Voor elke functie in het onderwijs is een Verklaring Omtrent Gedrag (VOG) verplicht. De school vraagt deze voor je aan bij Justis; je krijgt een link om digitaal te ondertekenen. Kosten ca. EUR 41,35 (2026), meestal betaald door de school. Doorlooptijd 1-4 weken. Bij bepaalde antecedenten kan de VOG geweigerd worden.",
+      "category": "toelating",
+      "tags": ["VOG", "verklaring omtrent gedrag", "toelating", "source:external", "time_sensitive:true", "alias:VOG aanvragen", "alias:Verklaring goed gedrag"],
+      "peildatum": "2026-05",
+      "source_url": "https://www.justis.nl/producten/vog"
+    },
+    {
+      "question": "Wat zijn de werktijden van een leraar?",
+      "answer": "Een fulltime leraar werkt 40 uur per week, verdeeld over lestaken, voorbereiding, nakijken, oudercontact en schooltaken. Lesgebonden uren zijn ca. 20-25 per week in PO, 22-26 in VO. De rest is werktijd thuis of op school. Vakanties zijn vastgelegd in het rooster; meestal 12 weken per jaar. Parttime werken (0,4-0,8 fte) is heel gangbaar.",
+      "category": "arbeidsmarkt",
+      "tags": ["werktijden", "vakantie", "fte", "source:internal", "alias:Hoeveel uur werkt een leraar", "alias:Vakantie leraar"],
+      "source_url": null
+    },
+    {
+      "question": "Krijg ik vakantiegeld en eindejaarsuitkering?",
+      "answer": "Ja. Volgens de CAO ontvang je 8% vakantiegeld in mei en een eindejaarsuitkering van 8,33% in december (PO en VO). MBO heeft een eindejaarsuitkering van 8,33%. Bovenop het bruto-maandsalaris. Daarnaast krijg je een persoonlijk budget voor scholing en duurzame inzetbaarheid.",
+      "category": "salaris",
+      "tags": ["vakantiegeld", "eindejaarsuitkering", "CAO", "source:external", "time_sensitive:true", "alias:13e maand leraar", "alias:Vakantietoeslag onderwijs"],
+      "peildatum": "2026-05",
+      "source_url": "https://www.poraad.nl/salaristabellen"
+    },
+    {
+      "question": "Hoe word ik schoolleider in het basisonderwijs?",
+      "answer": "Schoolleider word je via een schoolleidersopleiding (master Educational Leadership of vergelijkbaar, 1-3 jaar). Voorwaarde is meestal enkele jaren leservaring. In het PO is registratie in het Schoolleidersregister PO verplicht. In het VO is registratie in het Schoolleidersregister VO gangbaar. Salaris ligt in schaal D11-D14 (PO) of vergelijkbaar (VO).",
+      "category": "route",
+      "tags": ["schoolleider", "directeur", "leiderschap", "source:internal", "alias:Directeur basisschool worden", "alias:Schoolleidersopleiding"],
+      "source_url": "https://www.schoolleidersregisterpo.nl"
+    },
+    {
+      "question": "Wat is herregistratie in het lerarenregister?",
+      "answer": "Het lerarenregister is sinds 2020 niet meer wettelijk verplicht, maar veel scholen werken nog met vrijwillige registratie en herregistratie via beroepsverenigingen of het Lerarencollectief. Je houdt je bevoegdheid op orde via nascholing (ca. 160 uur per 4 jaar). Sommige besturen vragen dit bij sollicitatie of functioneringsgesprek.",
+      "category": "bevoegdheid",
+      "tags": ["lerarenregister", "herregistratie", "nascholing", "source:external", "alias:Lerarenregister verplicht", "alias:Herregistratie leraar"],
+      "source_url": "https://www.lerarencollectief.nl"
+    },
+    {
+      "question": "Kan ik als herintreder terugkeren in het onderwijs?",
+      "answer": "Ja. Heb je een onderwijsbevoegdheid maar al jaren niet voor de klas gestaan? Dan kun je via een herintredersprogramma terugkeren. Veel besturen bieden begeleiding, opfriscursussen en een rustige start. Je oude bevoegdheid blijft geldig. In tekortregios (zoals Rotterdam) ben je extra welkom.",
+      "category": "route",
+      "tags": ["herintreder", "terugkeer", "bevoegdheid", "source:internal", "alias:Herintreden onderwijs", "alias:Weer leraar worden"],
+      "source_url": null
+    },
+    {
+      "question": "Wat is het verschil tussen bevoegd en bekwaam?",
+      "answer": "Bevoegd betekent dat je een wettelijk erkende lerarenbevoegdheid hebt (diploma lerarenopleiding of geschiktheidsverklaring + traject). Bekwaam betekent dat je voldoet aan de bekwaamheidseisen uit de Wet BIO: vakinhoudelijk, vakdidactisch en pedagogisch. Je bent bevoegd zodra je je diploma haalt; bekwaam blijf je via permanente ontwikkeling.",
+      "category": "bevoegdheid",
+      "tags": ["bevoegdheid", "bekwaamheid", "wet BIO", "source:internal", "alias:Bevoegd vs bekwaam", "alias:Wat betekent bevoegd"],
+      "source_url": null
+    },
+    {
+      "question": "Welke subsidies bestaan er voor (aanstaande) leraren?",
+      "answer": "Belangrijke regelingen (geverifieerd mei 2026): Subsidie zij-instroom voor scholen, Lerarenbeurs voor master/post-hbo (tot EUR 7.000 per jaar), Onderwijsassistent-naar-leraar-subsidie, en regionale impulsregelingen in tekortgebieden. Voor herintreders en zij-instromers in tekortvakken zijn aanvullende premies mogelijk. Check DUO en je regioloket voor actuele voorwaarden.",
+      "category": "subsidie",
+      "tags": ["subsidie", "lerarenbeurs", "financiering", "source:external", "time_sensitive:true", "alias:Welke beurzen zijn er", "alias:Subsidie opleiding leraar"],
+      "peildatum": "2026-05",
+      "source_url": "https://duo.nl/particulier/lerarenbeurs/"
     }
   ],
   "mode": "replace"
