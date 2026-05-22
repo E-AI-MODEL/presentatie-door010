@@ -21,6 +21,7 @@ import { CandidateDetailPanel } from "@/components/backoffice/CandidateDetailPan
 import { AppointmentsTab } from "@/components/backoffice/AppointmentsTab";
 import { TrustedSourcesTab } from "@/components/backoffice/TrustedSourcesTab";
 import { SuperuserControlTab } from "@/components/backoffice/SuperuserControlTab";
+import { DetectorDebugTab } from "@/components/backoffice/DetectorDebugTab";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 
