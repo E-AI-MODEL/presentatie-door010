@@ -371,85 +371,117 @@ export function PublicChatWidget() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating launcher — distinctive pill with DOORai arrow */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button
             ref={openButtonRef}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            initial={{ scale: 0, opacity: 0, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
             exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 bg-primary text-primary-foreground rounded-full p-4 shadow-lg hover:bg-primary/90 transition-colors"
+            className="fixed z-40 bottom-5 right-5 md:bottom-6 md:right-6 flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-[1.5rem] bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.6)] hover:shadow-[0_14px_40px_-10px_hsl(var(--primary)/0.75)] transition-shadow"
             aria-label="Open DOORai chat"
           >
-            <MessageCircle className="h-6 w-6" />
+            <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary-foreground/15">
+              <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
+                <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent animate-pulse" />
+            </span>
+            <span className="text-sm font-semibold tracking-tight">Vraag DOORai</span>
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Chat window */}
+      {/* Backdrop — mobile only, blocks page interaction & prevents overlap */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm md:hidden"
+            aria-label="Sluit chat"
+            tabIndex={-1}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Chat panel — bottom sheet on mobile, floating card on desktop */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 40, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] bg-card rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col"
-            style={{ height: "520px", maxHeight: "calc(100vh-6rem)" }}
+            exit={{ opacity: 0, y: 40, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            className="fixed z-50 flex flex-col bg-card border border-border overflow-hidden shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] inset-x-0 bottom-0 rounded-t-[2rem] max-h-[88vh] md:inset-auto md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)] md:h-[560px] md:max-h-[calc(100vh-6rem)] md:rounded-[2rem]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="DOORai chat"
           >
-            {/* Header */}
-            <div className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between shrink-0 rounded-t-3xl">
-              <div className="flex items-center gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-primary-foreground/60 animate-pulse" />
-                <div>
-                  <h3 className="text-sm font-semibold">DOORai</h3>
-                  <p className="text-[10px] text-primary-foreground/70">Je gids naar het onderwijs</p>
+            {/* Mobile grab handle */}
+            <div className="md:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            </div>
+
+            {/* Header — branded gradient, not a flat colored bar */}
+            <div className="relative px-4 pt-3 pb-3.5 shrink-0 border-b border-border bg-gradient-to-br from-primary/10 via-card to-accent/5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0 flex items-center justify-center w-10 h-10 rounded-2xl bg-primary text-primary-foreground shadow-md">
+                    <svg width="20" height="20" viewBox="0 0 40 40" fill="none">
+                      <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-card" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold tracking-tight text-foreground leading-tight">DOORai</h3>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">Je gids naar het onderwijs</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  {messages.length > 1 && (
+                    <button
+                      onClick={resetPublicConversation}
+                      title="Gesprek wissen"
+                      className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                      aria-label="Gesprek wissen"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  <a
+                    href="mailto:info@onderwijsloketrotterdam.nl"
+                    title="E-mail ons"
+                    className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                  <a
+                    href="tel:+31107940000"
+                    title="Bel ons"
+                    className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                  </a>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                    aria-label="Sluit chat"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                {messages.length > 1 && (
-                  <button
-                    onClick={resetPublicConversation}
-                    title="Gesprek wissen"
-                    className="p-1 hover:bg-primary-foreground/20 rounded-full transition-colors"
-                    aria-label="Gesprek wissen"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-                <a
-                  href="https://doortje-embedded-bot.replit.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Chat met Doortje"
-                  className="p-1 hover:bg-primary-foreground/20 rounded-full transition-colors"
-                >
-                  <Bot className="h-4 w-4" />
-                </a>
-                <a
-                  href="mailto:info@onderwijsloketrotterdam.nl"
-                  title="E-mail ons"
-                  className="p-1 hover:bg-primary-foreground/20 rounded-full transition-colors"
-                >
-                  <Mail className="h-4 w-4" />
-                </a>
-                <a
-                  href="tel:+31107940000"
-                  title="Bel ons"
-                  className="p-1 hover:bg-primary-foreground/20 rounded-full transition-colors"
-                >
-                  <Phone className="h-4 w-4" />
-                </a>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-1 hover:bg-primary-foreground/20 rounded-full transition-colors"
-                  aria-label="Sluit chat"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
             </div>
+
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5" aria-live="polite">
