@@ -402,31 +402,66 @@ export function PublicChatWidget() {
 
   return (
     <>
-      {/* Floating launcher — distinctive pill with DOORai arrow */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            ref={openButtonRef}
+      {/* Floating launcher — compact pill with small minimize X, or tiny orb when minimized */}
+      <AnimatePresence mode="wait">
+        {!isOpen && !isMinimized && (
+          <motion.div
+            key="pill"
             initial={{ scale: 0, opacity: 0, rotate: -8 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
             exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed z-40 bottom-5 right-5 md:bottom-6 md:right-6 flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-[1.5rem] bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.6)] hover:shadow-[0_14px_40px_-10px_hsl(var(--primary)/0.75)] transition-shadow"
-            aria-label="Open DOORai chat"
+            className="fixed z-40 bottom-5 right-5 md:bottom-6 md:right-6 flex items-center"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
-            <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary-foreground/15">
-              <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-                <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent animate-pulse" />
-            </span>
-            <span className="text-sm font-semibold tracking-tight">Vraag DOORai</span>
+            <motion.button
+              ref={openButtonRef}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setIsOpen(true)}
+              className="flex items-center gap-2 pl-2.5 pr-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.6)] hover:shadow-[0_14px_40px_-10px_hsl(var(--primary)/0.75)] transition-shadow"
+              aria-label="Open DOORai chat"
+            >
+              <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-primary-foreground/15">
+                <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+                  <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              </span>
+              <span className="text-xs font-semibold tracking-tight">DOORai</span>
+            </motion.button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
+              aria-label="Minimaliseer widget"
+              title="Minimaliseer"
+              className="ml-1 flex items-center justify-center w-5 h-5 rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </motion.div>
+        )}
+        {!isOpen && isMinimized && (
+          <motion.button
+            key="orb"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
+            onClick={() => { setIsMinimized(false); setIsOpen(true); }}
+            className="fixed z-40 bottom-4 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.6)] flex items-center justify-center"
+            style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+            aria-label="Toon DOORai widget"
+            title="DOORai"
+          >
+            <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+              <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </motion.button>
         )}
       </AnimatePresence>
+
 
       {/* Backdrop — mobile only, blocks page interaction & prevents overlap */}
       <AnimatePresence>
