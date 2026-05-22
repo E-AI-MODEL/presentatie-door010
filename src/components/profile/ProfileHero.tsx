@@ -43,57 +43,69 @@ export function ProfileHero(props: ProfileHeroProps) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-3xl bg-gradient-to-br from-primary/5 via-card to-accent/5 border shadow-door p-5"
+      className="relative rounded-3xl border shadow-door overflow-hidden bg-card"
     >
-      <div className="flex items-start gap-4">
-        {/* Back button */}
+      {/* Decorative banner */}
+      <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+        <img
+          src={heroBanner}
+          alt=""
+          aria-hidden="true"
+          width={1536}
+          height={1024}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/10 to-card" />
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate("/dashboard")}
-          className="text-muted-foreground shrink-0 h-8 w-8"
+          className="absolute top-3 left-3 h-8 w-8 bg-card/80 backdrop-blur-sm hover:bg-card text-foreground shadow-sm"
+          aria-label="Terug naar dashboard"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-
-        {/* Avatar */}
-        <Avatar className="h-14 w-14 border-2 border-primary/20 shrink-0">
-          {props.avatarUrl && <AvatarImage src={props.avatarUrl} alt="Avatar" />}
-          <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-
-        {/* Name + badges */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-bold text-foreground truncate">
-            {props.firstName || "Nieuw"} {props.lastName || "Profiel"}
-          </h1>
-          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            {props.currentPhase && (
-              <Badge className="bg-primary/15 text-primary border-0 text-[10px]">
-                {phaseLabels[props.currentPhase] || props.currentPhase}
-              </Badge>
-            )}
-            {props.preferredSector && props.preferredSector !== "onbekend" && (
-              <Badge variant="outline" className="text-[10px]">
-                {sectorLabels[props.preferredSector] || props.preferredSector}
-              </Badge>
-            )}
-          </div>
-        </div>
       </div>
 
-      {/* Completeness - compact */}
-      <div className="mt-4">
-        <ProfileCompleteness
-          firstName={props.firstName}
-          phone={props.phone}
-          bio={props.bio}
-          preferredSector={props.preferredSector}
-          testCompleted={props.testCompleted}
-          cvUrl={props.cvUrl}
-        />
+      {/* Avatar overlapping banner */}
+      <div className="px-5 pb-5 -mt-10 relative">
+        <div className="flex items-end gap-4">
+          <Avatar className="h-20 w-20 border-4 border-card shadow-door shrink-0">
+            {props.avatarUrl && <AvatarImage src={props.avatarUrl} alt="Avatar" />}
+            <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0 pb-1">
+            <h1 className="text-xl font-bold text-foreground truncate">
+              {props.firstName || "Nieuw"} {props.lastName || "Profiel"}
+            </h1>
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              {props.currentPhase && (
+                <Badge className="bg-primary/15 text-primary border-0 text-[10px]">
+                  {phaseLabels[props.currentPhase] || props.currentPhase}
+                </Badge>
+              )}
+              {props.preferredSector && props.preferredSector !== "onbekend" && (
+                <Badge variant="outline" className="text-[10px]">
+                  {sectorLabels[props.preferredSector] || props.preferredSector}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Completeness */}
+        <div className="mt-5">
+          <ProfileCompleteness
+            firstName={props.firstName}
+            phone={props.phone}
+            bio={props.bio}
+            preferredSector={props.preferredSector}
+            testCompleted={props.testCompleted}
+            cvUrl={props.cvUrl}
+          />
+        </div>
       </div>
     </motion.div>
   );
