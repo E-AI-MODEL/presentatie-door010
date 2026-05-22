@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Reorder } from "framer-motion";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { CVUpload } from "@/components/profile/CVUpload";
 import { InterestTest } from "@/components/profile/InterestTest";
@@ -20,7 +20,6 @@ import { NotesTile } from "@/components/profile/NotesTile";
 import { SavedVacanciesTile } from "@/components/profile/SavedVacanciesTile";
 import { SavedEventsTile } from "@/components/profile/SavedEventsTile";
 import { AppointmentTile } from "@/components/profile/AppointmentTile";
-import { ProfileTileWrapper } from "@/components/profile/ProfileTileWrapper";
 import {
   User,
   Mail,
