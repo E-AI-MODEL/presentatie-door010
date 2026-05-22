@@ -306,7 +306,7 @@ function computeLinks(
     links.push({ label: "Events", href: "/events" });
   }
   if (/(salaris|cao|loon)/.test(msg)) {
-    links.push({ label: "CAO-tabellen", href: "https://www.voraad.nl/cao" });
+    links.push({ label: "CAO-tabellen", href: "https://www.vo-raad.nl/themas/arbeidsvoorwaarden-cao" });
   }
   if (/(kosten|collegegeld|duo|financiering)/.test(msg)) {
     links.push({ label: "DUO Studiekosten", href: "https://duo.nl" });
@@ -678,7 +678,7 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 ## Links
 - Linkchips verschijnen automatisch onder je antwoord. Herhaal ze NOOIT in de lopende tekst.
 - Gebruik een link in tekst alleen voor een specifieke externe bron (CAO-tabel, DUO-pagina) die niet als chip beschikbaar is.
-- Schrijf links altijd als beschrijvend anker: [CAO-salaristabellen](https://www.voraad.nl/cao), nooit kale URL's.
+- Schrijf links altijd als beschrijvend anker: [CAO-salaristabellen](https://www.vo-raad.nl/themas/arbeidsvoorwaarden-cao), nooit kale URL's.
 `;
 
 const INTENT_APPENDIX: Record<IntentType, string> = {
