@@ -226,9 +226,9 @@ export function AuthenticatedChatOverlay() {
       setKnownSlots(detector.known_slots);
       await maybePersistProfile(detector);
 
-      // Twijfel-signaal: confidence < 0.55 → toon subtiele indicator + log naar profiel
+      // Zekerheids-indicatie: toon altijd, ook bij twijfel (< 0.55)
       const isUncertain = detector.phase_confidence < 0.55;
-      setDoubtSignal(isUncertain ? { confidence: detector.phase_confidence, evidence: detector.evidence || [] } : null);
+      setLastConfidence(detector.phase_confidence);
       if (user) {
         supabase.from("profiles").update({
           last_detector_snapshot: {
