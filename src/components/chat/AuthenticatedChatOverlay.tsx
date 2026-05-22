@@ -227,12 +227,12 @@ export function AuthenticatedChatOverlay() {
 
       // Twijfel-signaal: confidence < 0.55 → toon subtiele indicator + log naar profiel
       const isUncertain = detector.phase_confidence < 0.55;
-      setDoubtSignal(isUncertain ? { confidence: detector.phase_confidence, evidence: detector.phase_evidence || [] } : null);
+      setDoubtSignal(isUncertain ? { confidence: detector.phase_confidence, evidence: detector.evidence || [] } : null);
       if (user) {
         supabase.from("profiles").update({
           last_detector_snapshot: {
             confidence: detector.phase_confidence,
-            evidence: detector.phase_evidence || [],
+            evidence: detector.evidence || [],
             phase_current_ui: detector.phase_current_ui,
             exit_criteria_met: detector.exit_criteria_met,
             uncertain: isUncertain,
