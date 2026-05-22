@@ -164,7 +164,11 @@ export function buildIntakeQuestions(signals: { missingSector: boolean; missingL
 }
 
 // ── Reflect on Draft ─────────────────────────────────────────────
-
+// MIRROR van supabase/functions/_shared/constants.ts → FORBIDDEN_TERMS.
+// tsconfig.app.json scope (include: ["src"]) verbiedt directe import uit supabase/,
+// dus deze lijst moet handmatig synchroon blijven met de edge-side SSOT.
+// De 2 extra termen hieronder ("achtergrondinformatie", "dynamische context") zijn
+// frontend-only reflectie-checks; voeg ze NIET toe aan de edge-constants.
 const FORBIDDEN_PHRASES = [
   "peildatum",
   "kennisbank",
