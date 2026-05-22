@@ -861,31 +861,26 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
-            {/* Zekerheids-indicatie — altijd zichtbaar na assistant-antwoord */}
+            {/* Zekerheids-chip — 1 per antwoord, informatief (niet klikbaar) */}
             {isPersonal && lastConfidence !== null && !currentLoading && (() => {
               const c = lastConfidence;
-              const level = c < 0.55 ? "twijfel" : c < 0.75 ? "redelijk zeker" : "zeker";
-              const palette =
-                c < 0.55
-                  ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/40 text-amber-900 dark:text-amber-100"
-                  : c < 0.75
-                  ? "bg-muted/50 border-border text-muted-foreground"
-                  : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-100";
+              const label = c < 0.55 ? "Twijfel" : c < 0.75 ? "Redelijk zeker" : "Zeker";
               const dot = c < 0.55 ? "bg-amber-500" : c < 0.75 ? "bg-muted-foreground/60" : "bg-emerald-500";
+              const tip = c < 0.55
+                ? "DoorAI weet nog niet zeker of het jouw situatie goed begrijpt."
+                : c < 0.75
+                ? "DoorAI baseert dit op wat je tot nu toe deelde."
+                : "DoorAI begrijpt jouw situatie goed.";
               return (
                 <div className="px-4 pb-2 shrink-0">
-                  <div className={`text-[10px] border rounded-lg px-3 py-1.5 flex items-center gap-2 ${palette}`}>
+                  <span
+                    title={tip}
+                    aria-label={`Zekerheid: ${label}. ${tip}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 text-[11px] text-muted-foreground cursor-default select-none"
+                  >
                     <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-                    <span className="font-medium">DoorAI: {level}</span>
-                    <span className="opacity-70">·</span>
-                    <span className="opacity-80">
-                      {c < 0.55
-                        ? "Ik twijfel of ik je goed begrijp — klopt dit met jouw situatie?"
-                        : c < 0.75
-                        ? "Antwoord op basis van wat je tot nu toe deelde."
-                        : "Antwoord goed afgestemd op jouw situatie."}
-                    </span>
-                  </div>
+                    {label}
+                  </span>
                 </div>
               );
             })()}
