@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { deriveThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
+import { FORBIDDEN_TERMS, KNOWLEDGE_AS_OF, MODELS } from "../_shared/constants.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -211,8 +212,8 @@ const KNOWLEDGE: Record<string, string> = {
   route_eerstegraads: "Eerstegraads: universitaire master (1-2 jaar) na vakinhoudelijke bachelor. Bevoegd voor alle VO-niveaus.",
   route_pdg: "PDG (Pedagogisch Didactisch Getuigschrift): 1-2 jaar naast het werk. Bedoeld voor vakmensen die in het MBO willen lesgeven.",
   route_zij_instroom: "Zij-instroom: versneld 2-jarig traject. Je werkt minimaal 0,4 fte en volgt 1 dag per week opleiding. Vereist: relevant hbo/wo-diploma, geschiktheidsonderzoek, VOG, aanstelling bij een school.",
-  salaris: "Salaris startend docent (CAO PO 2024-2025 / VO 2025-2026): LB-schaal trede 1 ca. EUR 3.840, trede 12 ca. EUR 5.840 bruto/mnd. MBO (CAO 2025-2026): trede 1 ca. EUR 3.940, trede 12 ca. EUR 5.830. Inschaling hangt af van werkervaring en schoolbeleid. Meer info: [CAO-tabellen](https://www.poraad.nl/salaristabellen).",
-  kosten: "Kosten: zij-instroom is kosteloos (school vraagt subsidie aan). Regulier wettelijk collegegeld is EUR 2.601 in 2025-2026 en EUR 2.660 in 2026-2027. PDG varieert per aanbieder. Meer info: [DUO collegegeld](https://duo.nl/particulier/collegegeld/).",
+  salaris: `Salaris startend docent (CAO PO 2025-2026 / VO 2026-2027, geverifieerd ${KNOWLEDGE_AS_OF}): LB-schaal trede 1 ca. EUR 3.890, trede 12 ca. EUR 5.880 bruto/mnd. MBO (CAO 2025-2026): trede 1 ca. EUR 3.970, trede 12 ca. EUR 5.870. Inschaling hangt af van werkervaring en schoolbeleid. Meer info: [CAO-tabellen](https://www.poraad.nl/salaristabellen).`,
+  kosten: `Kosten (geverifieerd ${KNOWLEDGE_AS_OF}): zij-instroom is kosteloos (school vraagt subsidie aan). Regulier wettelijk collegegeld is EUR 2.601 in 2025-2026 en EUR 2.660 in 2026-2027. PDG varieert per aanbieder. Meer info: [DUO collegegeld](https://duo.nl/particulier/collegegeld/).`,
   verwantschap: "Bij zij-instroom tweedegraads VO moet je diploma vakinhoudelijk verwant zijn aan het schoolvak. De opleiding beslist over toelating.",
   sool_subsidie: "De SOOL-subsidie kan beschikbaar zijn voor scholen die medewerkers laten opleiden tot leraar. Check bij het regioloket of je werkgever hiervoor in aanmerking komt.",
   bevoegdheden_mbo: "In het MBO is 'bevoegd' geen wettelijke term. Je kunt lesgeven met een eerste/tweedegraads bevoegdheid, of met een geschiktheidsverklaring plus PDG.",
@@ -1013,10 +1014,8 @@ Deno.serve(async (req) => {
 
     // ── Pre-stream reflection & repair ──────────────────────────
     const REFLECTION_FORBIDDEN = [
-      "peildatum", "kennisbank", "als ai", "goed dat je dit vraagt",
-      "ik begrijp je helemaal", "je moet", "scenario",
+      ...FORBIDDEN_TERMS,
       "achtergrondinformatie", "dynamische context",
-      "globaal zo uit",
     ];
     const reflectionIssues: string[] = [];
     const lowerDraft = draft.toLowerCase();
