@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, MessageCircle, Bell, LogOut, Calendar, RefreshCw, Search, ArrowLeft, Globe } from "lucide-react";
+import { LayoutDashboard, Users, MessageCircle, Bell, LogOut, Calendar, RefreshCw, Search, ArrowLeft, Globe, Activity } from "lucide-react";
 import { UserOverviewTable, type ProfileWithEmail } from "@/components/backoffice/UserOverviewTable";
 import { AdvisorChatPanel } from "@/components/backoffice/AdvisorChatPanel";
 import { BackofficeStats } from "@/components/backoffice/BackofficeStats";
