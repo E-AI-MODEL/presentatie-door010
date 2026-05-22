@@ -1,4 +1,5 @@
 import { publicThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
+import { FORBIDDEN_TERMS, MODELS } from "../_shared/constants.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -39,12 +40,7 @@ function canonicalUrl(raw: string): string | null {
   }
 }
 
-// ── Output validation & repair ─────────────────────────────────
-const FORBIDDEN_TERMS = [
-  "peildatum", "kennisbank", "als ai", "goed dat je dit vraagt",
-  "ik begrijp je helemaal", "je moet", "scenario",
-  "globaal zo uit",
-];
+// FORBIDDEN_TERMS is imported from _shared/constants.ts (single source of truth)
 
 function replaceDashes(text: string): string {
   return text.replace(/[\u2014\u2013]/g, "-");
@@ -473,7 +469,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: MODELS.primary,
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,

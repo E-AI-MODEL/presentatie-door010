@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { deriveThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
+import { FORBIDDEN_TERMS, KNOWLEDGE_AS_OF, MODELS } from "../_shared/constants.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -211,8 +212,8 @@ const KNOWLEDGE: Record<string, string> = {
   route_eerstegraads: "Eerstegraads: universitaire master (1-2 jaar) na vakinhoudelijke bachelor. Bevoegd voor alle VO-niveaus.",
   route_pdg: "PDG (Pedagogisch Didactisch Getuigschrift): 1-2 jaar naast het werk. Bedoeld voor vakmensen die in het MBO willen lesgeven.",
   route_zij_instroom: "Zij-instroom: versneld 2-jarig traject. Je werkt minimaal 0,4 fte en volgt 1 dag per week opleiding. Vereist: relevant hbo/wo-diploma, geschiktheidsonderzoek, VOG, aanstelling bij een school.",
-  salaris: "Salaris startend docent (CAO PO 2024-2025 / VO 2025-2026): LB-schaal trede 1 ca. EUR 3.840, trede 12 ca. EUR 5.840 bruto/mnd. MBO (CAO 2025-2026): trede 1 ca. EUR 3.940, trede 12 ca. EUR 5.830. Inschaling hangt af van werkervaring en schoolbeleid. Meer info: [CAO-tabellen](https://www.poraad.nl/salaristabellen).",
-  kosten: "Kosten: zij-instroom is kosteloos (school vraagt subsidie aan). Regulier wettelijk collegegeld is EUR 2.601 in 2025-2026 en EUR 2.660 in 2026-2027. PDG varieert per aanbieder. Meer info: [DUO collegegeld](https://duo.nl/particulier/collegegeld/).",
+  salaris: `Salaris startend docent (CAO PO 2025-2026 / VO 2026-2027, geverifieerd ${KNOWLEDGE_AS_OF}): LB-schaal trede 1 ca. EUR 3.890, trede 12 ca. EUR 5.880 bruto/mnd. MBO (CAO 2025-2026): trede 1 ca. EUR 3.970, trede 12 ca. EUR 5.870. Inschaling hangt af van werkervaring en schoolbeleid. Meer info: [CAO-tabellen](https://www.poraad.nl/salaristabellen).`,
+  kosten: `Kosten (geverifieerd ${KNOWLEDGE_AS_OF}): zij-instroom is kosteloos (school vraagt subsidie aan). Regulier wettelijk collegegeld is EUR 2.601 in 2025-2026 en EUR 2.660 in 2026-2027. PDG varieert per aanbieder. Meer info: [DUO collegegeld](https://duo.nl/particulier/collegegeld/).`,
   verwantschap: "Bij zij-instroom tweedegraads VO moet je diploma vakinhoudelijk verwant zijn aan het schoolvak. De opleiding beslist over toelating.",
   sool_subsidie: "De SOOL-subsidie kan beschikbaar zijn voor scholen die medewerkers laten opleiden tot leraar. Check bij het regioloket of je werkgever hiervoor in aanmerking komt.",
   bevoegdheden_mbo: "In het MBO is 'bevoegd' geen wettelijke term. Je kunt lesgeven met een eerste/tweedegraads bevoegdheid, of met een geschiktheidsverklaring plus PDG.",
@@ -306,7 +307,7 @@ function computeLinks(
     links.push({ label: "Events", href: "/events" });
   }
   if (/(salaris|cao|loon)/.test(msg)) {
-    links.push({ label: "CAO-tabellen", href: "https://www.voraad.nl/cao" });
+    links.push({ label: "CAO-tabellen", href: "https://www.vo-raad.nl/themas/arbeidsvoorwaarden-cao" });
   }
   if (/(kosten|collegegeld|duo|financiering)/.test(msg)) {
     links.push({ label: "DUO Studiekosten", href: "https://duo.nl" });
@@ -678,7 +679,7 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 ## Links
 - Linkchips verschijnen automatisch onder je antwoord. Herhaal ze NOOIT in de lopende tekst.
 - Gebruik een link in tekst alleen voor een specifieke externe bron (CAO-tabel, DUO-pagina) die niet als chip beschikbaar is.
-- Schrijf links altijd als beschrijvend anker: [CAO-salaristabellen](https://www.voraad.nl/cao), nooit kale URL's.
+- Schrijf links altijd als beschrijvend anker: [CAO-salaristabellen](https://www.vo-raad.nl/themas/arbeidsvoorwaarden-cao), nooit kale URL's.
 `;
 
 const INTENT_APPENDIX: Record<IntentType, string> = {
@@ -711,7 +712,7 @@ async function classifyIntent(messages: ChatMessage[], apiKey: string): Promise<
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: MODELS.fast,
         messages: [
           { role: "system", content: `Classificeer het laatste bericht. Antwoord ALLEEN met JSON.\nCategorieen: "greeting", "question", "exploration", "followup".\nFormaat: {"intent":"..."}` },
           ...messages.slice(-5).map(m => ({ role: m.role, content: truncateInput(m.content, 500) })),
@@ -778,7 +779,7 @@ async function selectBestFaqs(userMessage: string, candidates: FaqResult[], apiK
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
+          model: MODELS.fast,
           messages: [
             { role: "system", content: `Selecteer de 3 meest relevante FAQ's. Antwoord ALLEEN met een JSON array van indices, bijv: [0, 3, 7]` },
             { role: "user", content: `Vraag: "${truncateInput(userMessage, 200)}"\n\nKandidaten:\n${candidateList}` },
@@ -977,7 +978,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: MODELS.primary,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
         stream: false,
       }),
@@ -1013,10 +1014,8 @@ Deno.serve(async (req) => {
 
     // ── Pre-stream reflection & repair ──────────────────────────
     const REFLECTION_FORBIDDEN = [
-      "peildatum", "kennisbank", "als ai", "goed dat je dit vraagt",
-      "ik begrijp je helemaal", "je moet", "scenario",
+      ...FORBIDDEN_TERMS,
       "achtergrondinformatie", "dynamische context",
-      "globaal zo uit",
     ];
     const reflectionIssues: string[] = [];
     const lowerDraft = draft.toLowerCase();
@@ -1076,7 +1075,7 @@ Deno.serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash-lite",
+              model: MODELS.fast,
               messages: [
                 { role: "system", content: `Herschrijf het volgende antwoord in maximaal ${maxS} korte zinnen. Verwijder alle verboden woorden: ${REFLECTION_FORBIDDEN.join(", ")}. Geen opsommingen, geen brackets, geen subkopjes. Alleen lopende tekst.` },
                 { role: "user", content: draft },
