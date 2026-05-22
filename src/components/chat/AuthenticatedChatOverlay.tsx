@@ -861,6 +861,15 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
+            {/* Doubt signal — confidence < 0.55 */}
+            {isPersonal && doubtSignal && !currentLoading && (
+              <div className="px-4 pb-2 shrink-0">
+                <div className="text-[10px] text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-lg px-3 py-1.5">
+                  Ik twijfel of ik je goed begrijp. Klopt dit met jouw situatie, of wil je het anders verwoorden?
+                </div>
+              </div>
+            )}
+
             {/* Input */}
             <div className="px-4 pb-3 pt-2 border-t border-border shrink-0">
               <form onSubmit={handleSubmit} className="flex gap-2 items-center">
