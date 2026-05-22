@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, Mail, Lock, User } from "lucide-react";
+import { ArrowRight, Mail, Lock, User, Sparkles, MapPin, GraduationCap } from "lucide-react";
+import heroBanner from "@/assets/profile-hero-banner.jpg";
 
 const ALLOWED_REDIRECT_TARGETS = new Set([
   "dashboard",
