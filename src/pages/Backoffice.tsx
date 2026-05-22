@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, MessageCircle, Bell, LogOut, Calendar, RefreshCw, Search, ArrowLeft, Globe } from "lucide-react";
+import { LayoutDashboard, Users, MessageCircle, Bell, LogOut, Calendar, RefreshCw, Search, ArrowLeft, Globe, Activity } from "lucide-react";
 import { UserOverviewTable, type ProfileWithEmail } from "@/components/backoffice/UserOverviewTable";
 import { AdvisorChatPanel } from "@/components/backoffice/AdvisorChatPanel";
 import { BackofficeStats } from "@/components/backoffice/BackofficeStats";
@@ -21,6 +21,7 @@ import { CandidateDetailPanel } from "@/components/backoffice/CandidateDetailPan
 import { AppointmentsTab } from "@/components/backoffice/AppointmentsTab";
 import { TrustedSourcesTab } from "@/components/backoffice/TrustedSourcesTab";
 import { SuperuserControlTab } from "@/components/backoffice/SuperuserControlTab";
+import { DetectorDebugTab } from "@/components/backoffice/DetectorDebugTab";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 
@@ -388,6 +389,10 @@ export default function Backoffice() {
                   <Globe className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   Bronnen
                 </TabsTrigger>
+                <TabsTrigger value="detector" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                  <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  {isMobile ? "AI" : "AI-analyse"}
+                </TabsTrigger>
                 {isSuperuser && (
                   <TabsTrigger value="superuser" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
                     <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -491,6 +496,12 @@ export default function Backoffice() {
                 transition={{ delay: 0.1 }}
               >
                 <TrustedSourcesTab />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="detector">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <DetectorDebugTab />
               </motion.div>
             </TabsContent>
 

@@ -63,6 +63,7 @@ export function AuthenticatedChatOverlay() {
   const [latestLinks, setLatestLinks] = useState<Array<{ label: string; href: string }>>([]);
   const [pendingPhaseSuggestion, setPendingPhaseSuggestion] = useState<{ from: string; to: string; message: string } | null>(null);
   const [reflectionWarning, setReflectionWarning] = useState<string[] | null>(null);
+  const [doubtSignal, setDoubtSignal] = useState<{ confidence: number; evidence: string[] } | null>(null);
   const [showTopicPanel, setShowTopicPanel] = useState(false);
   const [personalVisibility, setPersonalVisibility] = useState<TurnVisibility | null>(null);
   const [generalVisibility, setGeneralVisibility] = useState<TurnVisibility | null>(null);
@@ -201,6 +202,7 @@ export function AuthenticatedChatOverlay() {
     setLatestActions([]);  // Clear previous turn's actions so chips don't stack
     setLatestLinks([]);
     setReflectionWarning(null);
+    setDoubtSignal(null);
     setPersonalVisibility(null);
 
     let assistantContent = "";
@@ -223,6 +225,23 @@ export function AuthenticatedChatOverlay() {
 
       setKnownSlots(detector.known_slots);
       await maybePersistProfile(detector);
+
+      // Twijfel-signaal: confidence < 0.55 → toon subtiele indicator + log naar profiel
+      const isUncertain = detector.phase_confidence < 0.55;
+      setDoubtSignal(isUncertain ? { confidence: detector.phase_confidence, evidence: detector.evidence || [] } : null);
+      if (user) {
+        supabase.from("profiles").update({
+          last_detector_snapshot: {
+            confidence: detector.phase_confidence,
+            evidence: detector.evidence || [],
+            phase_current_ui: detector.phase_current_ui,
+            exit_criteria_met: detector.exit_criteria_met,
+            uncertain: isUncertain,
+            ts: new Date().toISOString(),
+            last_user_msg: text.slice(0, 200),
+          },
+        }).eq("user_id", user.id).then(() => {});
+      }
 
       const phaseTransition = detector.phase_confidence >= 0.70 && detector.phase_current_ui !== currentPhase
         ? { from: currentPhase, to: detector.phase_current_ui }
@@ -838,6 +857,15 @@ export function AuthenticatedChatOverlay() {
               <div className="px-4 pb-2 shrink-0">
                 <div className="text-[10px] text-muted-foreground bg-muted/50 rounded-lg px-3 py-1.5">
                   ⚠️ Dit antwoord is mogelijk onvolledig of bevat aandachtspunten.
+                </div>
+              </div>
+            )}
+
+            {/* Doubt signal — confidence < 0.55 */}
+            {isPersonal && doubtSignal && !currentLoading && (
+              <div className="px-4 pb-2 shrink-0">
+                <div className="text-[10px] text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-lg px-3 py-1.5">
+                  Ik twijfel of ik je goed begrijp. Klopt dit met jouw situatie, of wil je het anders verwoorden?
                 </div>
               </div>
             )}

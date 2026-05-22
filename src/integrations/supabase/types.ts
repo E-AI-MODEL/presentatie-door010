@@ -266,6 +266,7 @@ export type Database = {
           first_name: string | null
           id: string
           known_slots: Json | null
+          last_detector_snapshot: Json | null
           last_name: string | null
           phone: string | null
           preferred_sector: string | null
@@ -286,6 +287,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           known_slots?: Json | null
+          last_detector_snapshot?: Json | null
           last_name?: string | null
           phone?: string | null
           preferred_sector?: string | null
@@ -306,6 +308,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           known_slots?: Json | null
+          last_detector_snapshot?: Json | null
           last_name?: string | null
           phone?: string | null
           preferred_sector?: string | null
