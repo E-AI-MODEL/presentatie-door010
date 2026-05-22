@@ -198,7 +198,7 @@ export default function Dashboard() {
                 Jouw volgende stap
               </div>
               <h2 className="text-base md:text-lg font-bold text-foreground leading-tight">
-                {phaseInfo.title}: {phaseInfo.description || "Ontdek wat bij je past"}
+                {phaseInfo.title}: {phaseInfo.subtitle || "Ontdek wat bij je past"}
               </h2>
               <p className="text-xs md:text-sm text-muted-foreground mt-1.5 max-w-prose">
                 Stel je vraag aan DoorAI. Hij denkt met je mee op basis van waar je nu staat.
