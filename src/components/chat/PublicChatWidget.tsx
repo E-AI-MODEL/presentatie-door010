@@ -486,15 +486,33 @@ export function PublicChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="fixed z-50 flex flex-col bg-card border border-border overflow-hidden shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] inset-x-0 bottom-0 rounded-t-[2rem] max-h-[88vh] md:inset-auto md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)] md:h-[560px] md:max-h-[calc(100vh-6rem)] md:rounded-[2rem]"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            className="fixed z-50 flex flex-col bg-card border border-border overflow-hidden shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] inset-x-0 bottom-0 rounded-t-[2rem] md:inset-auto md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)] md:h-[560px] md:max-h-[calc(100vh-6rem)] md:rounded-[2rem]"
+            style={{
+              paddingBottom: "env(safe-area-inset-bottom)",
+              height: typeof window !== "undefined" && window.innerWidth < 768 ? `${sheetHeight}px` : undefined,
+              maxHeight: typeof window !== "undefined" && window.innerWidth < 768 ? "95vh" : undefined,
+            }}
             role="dialog"
             aria-modal="true"
             aria-label="DOORai chat"
           >
-            {/* Mobile grab handle */}
-            <div className="md:hidden flex justify-center pt-2.5 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            {/* Mobile grab handle — sleep om te vergroten/verkleinen */}
+            <div
+              className="md:hidden flex justify-center pt-2 pb-2 shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+              onPointerDown={(e) => {
+                (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                handleDragStart(e.clientY);
+              }}
+              onPointerMove={(e) => handleDragMove(e.clientY)}
+              onPointerUp={(e) => {
+                (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+                handleDragEnd();
+              }}
+              onPointerCancel={handleDragEnd}
+              role="separator"
+              aria-label="Sleep om grootte aan te passen"
+            >
+              <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40" />
             </div>
 
             {/* Header — branded gradient, not a flat colored bar */}
