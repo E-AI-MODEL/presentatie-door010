@@ -53,6 +53,11 @@ function inferSignals(prev: ConversationSignals, text: string): ConversationSign
 export function PublicChatWidget() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [sheetHeight, setSheetHeight] = useState<number>(() =>
+    typeof window !== "undefined" ? Math.round(window.innerHeight * 0.7) : 560
+  );
+  const dragStartRef = useRef<{ y: number; h: number } | null>(null);
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
@@ -64,6 +69,32 @@ export function PublicChatWidget() {
     sector: "UNK",
     studyLevel: "UNK",
   });
+
+  // Drag-to-resize handlers (mobile bottom sheet)
+  const handleDragStart = (clientY: number) => {
+    dragStartRef.current = { y: clientY, h: sheetHeight };
+  };
+  const handleDragMove = (clientY: number) => {
+    if (!dragStartRef.current) return;
+    const delta = dragStartRef.current.y - clientY; // up = positive
+    const winH = window.innerHeight;
+    const next = Math.min(Math.round(winH * 0.95), Math.max(180, dragStartRef.current.h + delta));
+    setSheetHeight(next);
+  };
+  const handleDragEnd = () => {
+    if (!dragStartRef.current) return;
+    const winH = window.innerHeight;
+    // Snap: if very small, minimize; else snap to nearest of 40%/70%/92%
+    if (sheetHeight < winH * 0.25) {
+      setIsMinimized(true);
+      setSheetHeight(Math.round(winH * 0.7));
+    } else {
+      const snaps = [0.42, 0.7, 0.92].map((p) => Math.round(winH * p));
+      const nearest = snaps.reduce((a, b) => (Math.abs(b - sheetHeight) < Math.abs(a - sheetHeight) ? b : a));
+      setSheetHeight(nearest);
+    }
+    dragStartRef.current = null;
+  };
 
   const initialFollowups: Pick<Message, "primaryFollowup"> = {
     primaryFollowup: { label: "Welke route past bij mij?", value: "Welke route past bij mij om leraar te worden?" },
@@ -371,31 +402,66 @@ export function PublicChatWidget() {
 
   return (
     <>
-      {/* Floating launcher — distinctive pill with DOORai arrow */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            ref={openButtonRef}
+      {/* Floating launcher — compact pill with small minimize X, or tiny orb when minimized */}
+      <AnimatePresence mode="wait">
+        {!isOpen && !isMinimized && (
+          <motion.div
+            key="pill"
             initial={{ scale: 0, opacity: 0, rotate: -8 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
             exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed z-40 bottom-5 right-5 md:bottom-6 md:right-6 flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-[1.5rem] bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.6)] hover:shadow-[0_14px_40px_-10px_hsl(var(--primary)/0.75)] transition-shadow"
-            aria-label="Open DOORai chat"
+            className="fixed z-40 bottom-5 right-5 md:bottom-6 md:right-6 flex items-center"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
-            <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-primary-foreground/15">
-              <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-                <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-accent animate-pulse" />
-            </span>
-            <span className="text-sm font-semibold tracking-tight">Vraag DOORai</span>
+            <motion.button
+              ref={openButtonRef}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setIsOpen(true)}
+              className="flex items-center gap-2 pl-2.5 pr-3 py-1.5 rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.6)] hover:shadow-[0_14px_40px_-10px_hsl(var(--primary)/0.75)] transition-shadow"
+              aria-label="Open DOORai chat"
+            >
+              <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-primary-foreground/15">
+                <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+                  <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              </span>
+              <span className="text-xs font-semibold tracking-tight">DOORai</span>
+            </motion.button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
+              aria-label="Minimaliseer widget"
+              title="Minimaliseer"
+              className="ml-1 flex items-center justify-center w-5 h-5 rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shadow-sm"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </motion.div>
+        )}
+        {!isOpen && isMinimized && (
+          <motion.button
+            key="orb"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
+            onClick={() => { setIsMinimized(false); setIsOpen(true); }}
+            className="fixed z-40 bottom-4 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground shadow-[0_6px_18px_-6px_hsl(var(--primary)/0.6)] flex items-center justify-center"
+            style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+            aria-label="Toon DOORai widget"
+            title="DOORai"
+          >
+            <svg width="14" height="14" viewBox="0 0 40 40" fill="none">
+              <path d="M10 20H28M28 20L22 14M28 20L22 26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </motion.button>
         )}
       </AnimatePresence>
+
 
       {/* Backdrop — mobile only, blocks page interaction & prevents overlap */}
       <AnimatePresence>
@@ -420,15 +486,33 @@ export function PublicChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="fixed z-50 flex flex-col bg-card border border-border overflow-hidden shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] inset-x-0 bottom-0 rounded-t-[2rem] max-h-[88vh] md:inset-auto md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)] md:h-[560px] md:max-h-[calc(100vh-6rem)] md:rounded-[2rem]"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            className="fixed z-50 flex flex-col bg-card border border-border overflow-hidden shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] inset-x-0 bottom-0 rounded-t-[2rem] md:inset-auto md:bottom-6 md:right-6 md:w-[400px] md:max-w-[calc(100vw-3rem)] md:h-[560px] md:max-h-[calc(100vh-6rem)] md:rounded-[2rem]"
+            style={{
+              paddingBottom: "env(safe-area-inset-bottom)",
+              height: typeof window !== "undefined" && window.innerWidth < 768 ? `${sheetHeight}px` : undefined,
+              maxHeight: typeof window !== "undefined" && window.innerWidth < 768 ? "95vh" : undefined,
+            }}
             role="dialog"
             aria-modal="true"
             aria-label="DOORai chat"
           >
-            {/* Mobile grab handle */}
-            <div className="md:hidden flex justify-center pt-2.5 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            {/* Mobile grab handle — sleep om te vergroten/verkleinen */}
+            <div
+              className="md:hidden flex justify-center pt-2 pb-2 shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+              onPointerDown={(e) => {
+                (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                handleDragStart(e.clientY);
+              }}
+              onPointerMove={(e) => handleDragMove(e.clientY)}
+              onPointerUp={(e) => {
+                (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+                handleDragEnd();
+              }}
+              onPointerCancel={handleDragEnd}
+              role="separator"
+              aria-label="Sleep om grootte aan te passen"
+            >
+              <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40" />
             </div>
 
             {/* Header — branded gradient, not a flat colored bar */}
