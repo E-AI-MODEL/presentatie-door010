@@ -116,27 +116,36 @@ export default function Kennisbank() {
         </PageHero>
 
         {/* Categories */}
-        <section className="bg-white py-6 border-b border-border sticky top-16 z-40">
+        <section className="bg-white/95 backdrop-blur-sm py-3 border-b border-border sticky top-16 z-40">
           <div className="container">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={!selectedCategory ? "default" : "outline"}
-                size="sm"
+            <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
+              <button
                 onClick={() => setSelectedCategory(null)}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                  !selectedCategory
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
+                }`}
               >
                 Alle onderwerpen
-              </Button>
-              {categories.map((cat) => (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.id)}
-                >
-                  <cat.icon className="mr-2 h-4 w-4" />
-                  {cat.name}
-                </Button>
-              ))}
+              </button>
+              {categories.map((cat) => {
+                const active = selectedCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-transparent text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
+                    }`}
+                  >
+                    <cat.icon className="h-3.5 w-3.5" />
+                    {cat.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
