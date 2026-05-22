@@ -5,6 +5,7 @@ import { ProfileCompleteness } from "./ProfileCompleteness";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import heroBanner from "@/assets/profile-hero-banner.jpg";
 
 interface ProfileHeroProps {
   firstName: string | null;
