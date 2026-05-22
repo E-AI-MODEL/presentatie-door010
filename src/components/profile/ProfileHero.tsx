@@ -46,26 +46,25 @@ export function ProfileHero(props: ProfileHeroProps) {
       className="relative rounded-3xl border shadow-door overflow-hidden bg-card"
     >
       {/* Decorative banner */}
-      <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+      <div className="relative h-20 sm:h-28 w-full overflow-hidden bg-gradient-to-br from-primary/15 via-card to-accent/10">
         <img
           src={heroBanner}
           alt=""
           aria-hidden="true"
-          width={1536}
-          height={1024}
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/10 to-card" />
+        <div className="absolute inset-0 bg-gradient-to-b from-card/20 via-card/40 to-card" />
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate("/dashboard")}
-          className="absolute top-3 left-3 h-8 w-8 bg-card/80 backdrop-blur-sm hover:bg-card text-foreground shadow-sm"
+          className="absolute top-3 left-3 h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-card text-foreground shadow-sm"
           aria-label="Terug naar dashboard"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
       </div>
+
 
       {/* Avatar overlapping banner */}
       <div className="px-5 pb-5 -mt-10 relative">
