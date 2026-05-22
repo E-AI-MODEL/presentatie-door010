@@ -226,7 +226,9 @@ export function AuthenticatedChatOverlay() {
       setKnownSlots(detector.known_slots);
       await maybePersistProfile(detector);
 
-      // Zekerheids-indicatie: toon altijd, ook bij twijfel (< 0.55)
+      // Zekerheids-snapshot: schrijf altijd weg voor backoffice debug-tab.
+      // 'uncertain' (< 0.55) wordt enkel als boolean meegegeven; de chip in chat
+      // toont alle 3 niveaus via lastConfidence verderop.
       const isUncertain = detector.phase_confidence < 0.55;
       setLastConfidence(detector.phase_confidence);
       if (user) {
