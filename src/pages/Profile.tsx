@@ -359,19 +359,38 @@ export default function Profile() {
               cvUrl={cvUrl}
             />
 
-            <Reorder.Group
-              axis="y"
-              values={tileOrder}
-              onReorder={handleReorder}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"
-              as="div"
-            >
-              {tileOrder.map((id) => (
-                <ProfileTileWrapper key={id} id={id}>
-                  {tileMap[id]}
-                </ProfileTileWrapper>
-              ))}
-            </Reorder.Group>
+            <Tabs defaultValue="profiel" className="mt-5">
+              <TabsList className="grid grid-cols-3 w-full rounded-2xl bg-card border border-border p-1 h-auto">
+                <TabsTrigger value="profiel" className="rounded-xl text-xs sm:text-sm py-2">Profiel</TabsTrigger>
+                <TabsTrigger value="documenten" className="rounded-xl text-xs sm:text-sm py-2">Documenten</TabsTrigger>
+                <TabsTrigger value="activiteit" className="rounded-xl text-xs sm:text-sm py-2">Activiteit</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="profiel" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {tileMap.personal}
+                  {tileMap.sector}
+                  {tileMap.phase}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="documenten" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tileMap.test}
+                  {tileMap.cv}
+                  {tileMap.notes}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="activiteit" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tileMap.appointment}
+                  {tileMap.vacancies}
+                  {tileMap.events}
+                  <div className="md:col-span-2">{tileMap.timeline}</div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             {/* Sticky save bar */}
             <div className="sticky bottom-4 mt-4 flex justify-end gap-3 bg-background/80 backdrop-blur-sm rounded-2xl border border-border p-3 shadow-door">
