@@ -1,4 +1,5 @@
 import { publicThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
+import { FORBIDDEN_TERMS, MODELS } from "../_shared/constants.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -473,7 +474,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: MODELS.primary,
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,

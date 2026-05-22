@@ -712,7 +712,7 @@ async function classifyIntent(messages: ChatMessage[], apiKey: string): Promise<
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: MODELS.fast,
         messages: [
           { role: "system", content: `Classificeer het laatste bericht. Antwoord ALLEEN met JSON.\nCategorieen: "greeting", "question", "exploration", "followup".\nFormaat: {"intent":"..."}` },
           ...messages.slice(-5).map(m => ({ role: m.role, content: truncateInput(m.content, 500) })),
@@ -779,7 +779,7 @@ async function selectBestFaqs(userMessage: string, candidates: FaqResult[], apiK
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
+          model: MODELS.fast,
           messages: [
             { role: "system", content: `Selecteer de 3 meest relevante FAQ's. Antwoord ALLEEN met een JSON array van indices, bijv: [0, 3, 7]` },
             { role: "user", content: `Vraag: "${truncateInput(userMessage, 200)}"\n\nKandidaten:\n${candidateList}` },
@@ -978,7 +978,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: MODELS.primary,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
         stream: false,
       }),
@@ -1075,7 +1075,7 @@ Deno.serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash-lite",
+              model: MODELS.fast,
               messages: [
                 { role: "system", content: `Herschrijf het volgende antwoord in maximaal ${maxS} korte zinnen. Verwijder alle verboden woorden: ${REFLECTION_FORBIDDEN.join(", ")}. Geen opsommingen, geen brackets, geen subkopjes. Alleen lopende tekst.` },
                 { role: "user", content: draft },
