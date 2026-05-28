@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Snapshot {
@@ -23,11 +23,7 @@ interface Row {
   last_detector_snapshot: Snapshot | null;
 }
 
-function confColor(c: number) {
-  if (c < 0.55) return "bg-amber-100 text-amber-800 border-amber-300";
-  if (c < 0.7) return "bg-blue-100 text-blue-800 border-blue-300";
-  return "bg-emerald-100 text-emerald-800 border-emerald-300";
-}
+
 
 export function DetectorDebugTab() {
   const [rows, setRows] = useState<Row[]>([]);
