@@ -68,11 +68,8 @@ export function DetectorDebugTab() {
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex gap-2 text-xs">
-          <Badge variant="outline">{withSnapshot.length} actieve gesprekken</Badge>
-          <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-            <AlertTriangle className="h-3 w-3 mr-1" /> {uncertain.length} met twijfel
-          </Badge>
+        <div className="text-xs text-muted-foreground">
+          {withSnapshot.length} gesprekken · {uncertain.length} met twijfel
         </div>
 
         {withSnapshot.length === 0 && (
@@ -92,22 +89,16 @@ export function DetectorDebugTab() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-medium text-sm truncate">{name}</span>
                     <Badge variant="outline" className="text-[10px]">{s.phase_current_ui}</Badge>
-                    {s.uncertain ? (
+                    {s.uncertain && (
                       <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">
-                        <AlertTriangle className="h-3 w-3 mr-1" /> twijfel
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px]">
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> zeker
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        twijfel · {(s.confidence * 100).toFixed(0)}%
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={`${confColor(s.confidence)} text-[10px] border`}>
-                      confidence {(s.confidence * 100).toFixed(0)}%
-                    </Badge>
-                    <span className="text-[10px] text-muted-foreground">{time}</span>
-                  </div>
+                  <span className="text-[10px] text-muted-foreground">{time}</span>
+                </div>
+
                 </div>
 
                 {s.last_user_msg && (
