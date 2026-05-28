@@ -99,7 +99,7 @@ export function DetectorDebugTab() {
                   <span className="text-[10px] text-muted-foreground">{time}</span>
                 </div>
 
-                </div>
+
 
                 {s.last_user_msg && (
                   <div className="text-xs italic text-muted-foreground bg-muted/40 rounded-lg px-2 py-1 truncate">
