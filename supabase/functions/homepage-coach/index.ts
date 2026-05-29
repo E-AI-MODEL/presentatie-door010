@@ -1,5 +1,6 @@
 import { publicThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
 import { FORBIDDEN_TERMS, MODELS } from "../_shared/constants.ts";
+import { sanitizeAssistantText } from "../_shared/sanitize.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -61,6 +62,9 @@ function validateAndRepair(draft: string, maxSentences: number): { text: string;
     issues.push("Bevat bracket-labels zoals [Label]");
     text = text.replace(/\[[A-Z][^\]]{1,30}\]\s*/g, "");
   }
+
+  // Hard-strip forbidden terms, internal headers, verification dates, scores.
+  text = sanitizeAssistantText(text);
 
   const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
   if (sentences.length > maxSentences) {
@@ -386,12 +390,24 @@ interface RequestBody {
 
 function buildProfileHint(ctx?: ProfileContext): string {
   if (!ctx) return "";
-  const parts: string[] = [];
-  if (ctx.first_name) parts.push(`heet ${ctx.first_name}`);
-  if (ctx.preferred_sector) parts.push(`is geinteresseerd in ${ctx.preferred_sector.toUpperCase()}`);
-  if (ctx.current_phase) parts.push(`fase: ${ctx.current_phase}`);
-  if (parts.length === 0) return "";
-  return `\n\n## BEKENDE PROFIELDATA\nDe ingelogde gebruiker ${parts.join(", ")}.`;
+  const phaseDescs: Record<string, string> = {
+    interesseren: "verkent of het onderwijs iets is",
+    orienteren: "bekijkt routes en opties",
+    beslissen: "staat voor een concrete keuze",
+    matchen: "zoekt een school of vacature",
+    voorbereiden: "bereidt zich voor op de start",
+  };
+  const sentences: string[] = [];
+  if (ctx.first_name) sentences.push(`De gebruiker heet ${ctx.first_name}.`);
+  if (ctx.preferred_sector) {
+    sentences.push(`Interesse ligt bij ${ctx.preferred_sector.toUpperCase()}.`);
+  }
+  if (ctx.current_phase) {
+    const desc = phaseDescs[ctx.current_phase.toLowerCase()];
+    if (desc) sentences.push(`De gebruiker ${desc}.`);
+  }
+  if (sentences.length === 0) return "";
+  return `\n\n## Achtergrond (intern, niet noemen)\n${sentences.join(" ")} Gebruik dit alleen om je toon en verwijzingen licht te personaliseren. Noem deze achtergrondinformatie nooit letterlijk.`;
 }
 
 Deno.serve(async (req) => {
