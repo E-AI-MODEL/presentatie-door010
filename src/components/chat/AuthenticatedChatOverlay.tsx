@@ -13,6 +13,7 @@ import { ResponseActions } from "@/components/chat/ResponseActions";
 import { PhaseConfirmation } from "@/components/chat/PhaseConfirmation";
 import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { parseStructuredMeta } from "@/utils/responsePipeline";
+import { sanitizeClientText } from "@/utils/sanitizeClient";
 import type { StructuredResponse } from "@/utils/responsePipeline";
 import { decideConversationMode } from "@/utils/conversationRouter";
 import type { TurnVisibility } from "@/utils/conversationRouter";
@@ -397,6 +398,16 @@ export function AuthenticatedChatOverlay() {
           }
         }
       }
+
+      // Final sanitize pass — strip any leaks that escaped the edge function.
+      assistantContent = sanitizeClientText(assistantContent);
+      setMessages((prev) => {
+        const updated = [...prev];
+        if (updated[updated.length - 1]?.role === "assistant") {
+          updated[updated.length - 1] = { role: "assistant", content: assistantContent };
+        }
+        return updated;
+      });
 
       if (convId) await saveMessage(convId, "assistant", assistantContent);
 
