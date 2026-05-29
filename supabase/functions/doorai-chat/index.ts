@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { deriveThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
 import { FORBIDDEN_TERMS, KNOWLEDGE_AS_OF, MODELS } from "../_shared/constants.ts";
+import { sanitizeAssistantText } from "../_shared/sanitize.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -212,8 +213,8 @@ const KNOWLEDGE: Record<string, string> = {
   route_eerstegraads: "Eerstegraads: universitaire master (1-2 jaar) na vakinhoudelijke bachelor. Bevoegd voor alle VO-niveaus.",
   route_pdg: "PDG (Pedagogisch Didactisch Getuigschrift): 1-2 jaar naast het werk. Bedoeld voor vakmensen die in het MBO willen lesgeven.",
   route_zij_instroom: "Zij-instroom: versneld 2-jarig traject. Je werkt minimaal 0,4 fte en volgt 1 dag per week opleiding. Vereist: relevant hbo/wo-diploma, geschiktheidsonderzoek, VOG, aanstelling bij een school.",
-  salaris: `Salaris startend docent (CAO PO 2025-2026 / VO 2026-2027, geverifieerd ${KNOWLEDGE_AS_OF}): LB-schaal trede 1 ca. EUR 3.890, trede 12 ca. EUR 5.880 bruto/mnd. MBO (CAO 2025-2026): trede 1 ca. EUR 3.970, trede 12 ca. EUR 5.870. Inschaling hangt af van werkervaring en schoolbeleid. Meer info: [CAO-tabellen](https://www.poraad.nl/salaristabellen).`,
-  kosten: `Kosten (geverifieerd ${KNOWLEDGE_AS_OF}): zij-instroom is kosteloos (school vraagt subsidie aan). Regulier wettelijk collegegeld is EUR 2.601 in 2025-2026 en EUR 2.660 in 2026-2027. PDG varieert per aanbieder. Meer info: [DUO collegegeld](https://duo.nl/particulier/collegegeld/).`,
+  salaris: `Salaris startend docent (CAO PO 2025-2026 / VO 2026-2027): LB-schaal trede 1 ca. EUR 3.890, trede 12 ca. EUR 5.880 bruto/mnd. MBO (CAO 2025-2026): trede 1 ca. EUR 3.970, trede 12 ca. EUR 5.870. Inschaling hangt af van werkervaring en schoolbeleid. Meer info: [CAO-tabellen](https://www.poraad.nl/salaristabellen).`,
+  kosten: `Kosten: zij-instroom is kosteloos (school vraagt subsidie aan). Regulier wettelijk collegegeld is EUR 2.601 in 2025-2026 en EUR 2.660 in 2026-2027. PDG varieert per aanbieder. Meer info: [DUO collegegeld](https://duo.nl/particulier/collegegeld/).`,
   verwantschap: "Bij zij-instroom tweedegraads VO moet je diploma vakinhoudelijk verwant zijn aan het schoolvak. De opleiding beslist over toelating.",
   sool_subsidie: "De SOOL-subsidie kan beschikbaar zijn voor scholen die medewerkers laten opleiden tot leraar. Check bij het regioloket of je werkgever hiervoor in aanmerking komt.",
   bevoegdheden_mbo: "In het MBO is 'bevoegd' geen wettelijke term. Je kunt lesgeven met een eerste/tweedegraads bevoegdheid, of met een geschiktheidsverklaring plus PDG.",
@@ -453,16 +454,17 @@ function interpretProfile(pm?: ProfileMeta | null): string {
     parts.push(`Voorkeurssector: ${sectorLabel}.`);
   }
 
-  // Phase from profile
+  // Phase from profile — neutral description, never the bare label.
   if (pm.current_phase) {
     const phaseDescs: Record<string, string> = {
-      interesseren: "interesse-fase (verkent of onderwijs past)",
-      orienteren: "oriëntatie-fase (bekijkt routes en opties)",
-      beslissen: "beslisfase (staat voor een keuze)",
-      matchen: "matchfase (zoekt school of opleiding)",
-      voorbereiden: "voorbereidingsfase (klaar voor de start)",
+      interesseren: "verkent nog of het onderwijs past",
+      orienteren: "bekijkt routes en opties",
+      beslissen: "staat voor een concrete keuze",
+      matchen: "zoekt een school of opleiding",
+      voorbereiden: "bereidt zich voor op de start",
     };
-    parts.push(`Fase: ${phaseDescs[pm.current_phase.toLowerCase()] || pm.current_phase}.`);
+    const desc = phaseDescs[pm.current_phase.toLowerCase()];
+    if (desc) parts.push(`De gebruiker ${desc}.`);
   }
 
   if (pm.test_completed && pm.test_results) {
@@ -471,7 +473,7 @@ function interpretProfile(pm?: ProfileMeta | null): string {
       const ranking = tr.ranking as Array<{ sector: string; score: number }>;
       const names: Record<string, string> = { po: "basisonderwijs (PO)", vo: "voortgezet onderwijs (VO)", mbo: "beroepsonderwijs (MBO)" };
       const top = ranking[0];
-      if (top) parts.push(`Interessetest: ${names[String(top.sector).toLowerCase()] || top.sector} past het best (score ${top.score}).`);
+      if (top) parts.push(`Past qua interesse het best bij ${names[String(top.sector).toLowerCase()] || top.sector}.`);
     }
   }
 
@@ -566,9 +568,17 @@ async function webFallbackSearch(
       .filter((r: { markdown?: string; url?: string }) => r.markdown)
       .slice(0, 2)
       .map((r: { markdown?: string; url?: string; title?: string }) => {
-        const content = truncate(r.markdown || "", 300);
-        const source = r.url ? ` Bron: ${r.url}` : "";
-        return `${content}${source}`;
+        // Strip markdown artefacts (headings, bullets, table pipes, bold/italic)
+        // before injecting into the system prompt, and never include the raw URL —
+        // the model regularly echoes "Bron: https://..." verbatim.
+        const cleaned = truncate((r.markdown || "")
+          .replace(/^#{1,6}\s+/gm, "")
+          .replace(/^[-*]\s+/gm, "")
+          .replace(/\|/g, " ")
+          .replace(/\*\*|__/g, "")
+          .replace(/\s+/g, " ")
+          .trim(), 300);
+        return cleaned;
       });
   } catch (e) {
     console.error("Web fallback error:", e);
