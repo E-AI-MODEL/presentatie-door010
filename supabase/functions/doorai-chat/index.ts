@@ -1096,19 +1096,20 @@ Deno.serve(async (req) => {
             const repaired = repairData.choices?.[0]?.message?.content?.trim();
             if (repaired && repaired.length > 10) {
               draft = replaceDashes(repaired);
-    }
-
-    // ── Final hard-strip: forbidden terms, headers, verification dates, scores ──
-    // Idempotent; runs even when reflection found no issues, to catch suffix-vormen
-    // ("oriëntatie-fase"), "geverifieerd <maand> <jaar>", "(score 0.x)", URLs, etc.
-    draft = sanitizeAssistantText(draft);
-
+            }
           }
         } catch (e) {
           console.error("Repair call failed:", e);
         }
       }
     }
+
+    // ── Final hard-strip: forbidden terms, internal headers, verification dates,
+    // scores, suffix-vormen ("oriëntatie-fase"). Idempotent; runs even when
+    // reflection found no issues, to catch leaks the bare-word filter misses.
+    draft = sanitizeAssistantText(draft);
+
+
 
     // ── Re-validate the final draft after any repairs ──────────
     const finalIssues: string[] = [];
