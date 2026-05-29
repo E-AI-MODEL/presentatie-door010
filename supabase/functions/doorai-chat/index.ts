@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { deriveThemes, themesToActions, detectCurrentThemeKeys } from "../_shared/themes.ts";
-import { FORBIDDEN_TERMS, KNOWLEDGE_AS_OF, MODELS } from "../_shared/constants.ts";
+import { FORBIDDEN_TERMS, MODELS } from "../_shared/constants.ts";
 import { sanitizeAssistantText } from "../_shared/sanitize.ts";
 
 const corsHeaders = {
