@@ -10,6 +10,7 @@ import { ResponseActions } from "@/components/chat/ResponseActions";
 import {
   parseStructuredMeta,
 } from "@/utils/responsePipeline";
+import { sanitizeClientText } from "@/utils/sanitizeClient";
 import type { StructuredResponse, FollowUpAction } from "@/utils/responsePipeline";
 import { decideConversationMode } from "@/utils/conversationRouter";
 import type { TurnVisibility } from "@/utils/conversationRouter";
@@ -343,6 +344,17 @@ export function PublicChatWidget() {
           }
         }
       }
+
+      // Final sanitize pass — strip leaks the edge function missed.
+      assistantContent = sanitizeClientText(assistantContent);
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last?.role === "assistant") {
+          updated[updated.length - 1] = { ...last, content: assistantContent };
+        }
+        return updated;
+      });
 
       // If no actions came from backend, generate thematic defaults
       let fallbackAddedActions = false;

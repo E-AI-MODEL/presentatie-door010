@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeClientText } from "@/utils/sanitizeClient";
 
 interface Message {
   role: "user" | "assistant" | "advisor";
@@ -105,10 +106,12 @@ export function useChatConversation(userId: string | undefined, profile: Profile
         if (msgs && msgs.length > 0) {
           const loaded = msgs.map((m) => ({
             role: m.role as "user" | "assistant" | "advisor",
-            content: m.content
-              .replace(/<!--ACTIONS:\[.*?\]-->/s, "")
-              .replace(/<!--ACTIONS:[\s\S]*$/, "")
-              .trimEnd(),
+            content: sanitizeClientText(
+              m.content
+                .replace(/<!--[A-Z_]+:[\s\S]*?-->/g, "")
+                .replace(/<!--[A-Z_]+:[\s\S]*$/g, "")
+                .trimEnd(),
+            ),
           }));
           setMessages(loaded);
           return;
@@ -144,10 +147,12 @@ export function useChatConversation(userId: string | undefined, profile: Profile
   }, [conversationId, userId]);
 
   const saveMessage = useCallback(async (convId: string, role: string, content: string) => {
+    // Sanitize before persistence so reloads never show leaked internals.
+    const safe = role === "assistant" ? sanitizeClientText(content) : content;
     await supabase.from("messages").insert({
       conversation_id: convId,
       role,
-      content,
+      content: safe,
     });
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
   }, []);
