@@ -527,6 +527,16 @@ export function AuthenticatedChatOverlay() {
         }
       }
 
+      // Final sanitize pass.
+      assistantContent = sanitizeClientText(assistantContent);
+      setGeneralMessages((prev) => {
+        const updated = [...prev];
+        if (updated[updated.length - 1]?.role === "assistant") {
+          updated[updated.length - 1] = { role: "assistant", content: assistantContent };
+        }
+        return updated;
+      });
+
       // Run router for general pipeline
       const vis = decideConversationMode({
         pipeline: "general",
