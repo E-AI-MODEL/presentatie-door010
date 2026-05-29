@@ -179,6 +179,15 @@ const FORBIDDEN_PHRASES = [
   "scenario",
   "achtergrondinformatie",
   "dynamische context",
+  "bekende profieldata",
+];
+
+// Regex-based leaks: phase suffix vormen, internal scores, verification dates.
+const FORBIDDEN_PATTERNS: RegExp[] = [
+  /\b(interesse|ori[eë]ntatie|orienteer|beslis|beslissings?|match|matching|voorbereid(?:ings?)?)[- ]?fase\b/i,
+  /\bfase\s*[:=]\s*[a-zA-ZëéèáâüöïíÉ\-]+/i,
+  /\(\s*score[:\s]*[\d.,]+\s*\)/i,
+  /\bgeverifieerd\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+\d{4}/i,
 ];
 
 export interface ReflectionResult {
@@ -199,6 +208,12 @@ export function reflectOnDraft(
   for (const phrase of FORBIDDEN_PHRASES) {
     if (lower.includes(phrase)) {
       issues.push(`Bevat verboden term: "${phrase}"`);
+    }
+  }
+  for (const pattern of FORBIDDEN_PATTERNS) {
+    const m = draft.match(pattern);
+    if (m) {
+      issues.push(`Bevat verboden patroon: "${m[0]}"`);
     }
   }
 
