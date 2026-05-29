@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeClientText } from "@/utils/sanitizeClient";
 
 interface Message {
   role: "user" | "assistant" | "advisor";
