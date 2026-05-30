@@ -20,7 +20,6 @@ export function ChatActions({ actions, onActionClick, disabled }: ChatActionsPro
       animate={{ opacity: 1, y: 0 }}
       className="container max-w-3xl mx-auto py-3"
     >
-      <p className="text-xs text-muted-foreground mb-2">Suggesties</p>
       <div className="flex flex-wrap gap-2">
       {actions.map((action, i) => (
         <button
