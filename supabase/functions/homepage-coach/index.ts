@@ -432,8 +432,8 @@ Deno.serve(async (req) => {
     function buildActions(): Array<{ label: string; value: string }> {
       if (answerType === "begroeting") {
         return [
-          { label: "Welke route past bij mij?", value: "Welke route past bij mij om leraar te worden?" },
-          { label: "Ik werk al en wil overstappen", value: "Ik werk al. Kan ik overstappen naar het onderwijs?" },
+          { label: "Wat past bij mij?", value: "Welke route past bij mij om in het onderwijs te werken?" },
+          { label: "Ik werk al", value: "Ik werk al. Kan ik overstappen naar het onderwijs?" },
         ];
       }
 
@@ -444,8 +444,8 @@ Deno.serve(async (req) => {
       if (actions.length > 0) return actions;
 
       return [
-        { label: "Routes bekijken", value: "Welke opleidingsroutes zijn er?" },
-        { label: "Sectoren vergelijken", value: "Wat zijn de verschillen tussen PO, VO en MBO?" },
+        { label: "Routes", value: "Kun je me door de routes praten?" },
+        { label: "PO, VO of MBO", value: "Wat past het beste: PO, VO of MBO?" },
       ];
     }
 
