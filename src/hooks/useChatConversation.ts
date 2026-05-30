@@ -75,8 +75,14 @@ export function useChatConversation(userId: string | undefined, profile: Profile
   const getWelcomeMessage = useCallback((): { content: string; actions: Array<{ label: string; value: string }> } => {
     const phase = profile?.current_phase || "interesseren";
     const actions = PHASE_WELCOME_ACTIONS[phase] || [];
+    const variants = [
+      "Fijn dat je er weer bent. Waar wil je vandaag mee verder?",
+      "Hoi! Wat speelt er bij je? Stel gerust je vraag.",
+      "Welkom terug. Waar ben je nu mee bezig?",
+      "Leuk dat je er bent. Wat wil je weten of bespreken?",
+    ];
     return {
-      content: "Welkom terug! Stel gerust je vraag of kies een onderwerp via het menu.",
+      content: variants[Math.floor(Math.random() * variants.length)],
       actions,
     };
   }, [profile]);
