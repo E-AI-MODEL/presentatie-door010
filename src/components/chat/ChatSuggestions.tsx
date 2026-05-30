@@ -61,7 +61,7 @@ export function ChatSuggestions({ actions, onActionClick, disabled }: ChatSugges
       animate={{ opacity: 1, y: 0 }}
       className="space-y-3"
     >
-      <p className="text-xs text-muted-foreground">Suggesties</p>
+
 
       {cards.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

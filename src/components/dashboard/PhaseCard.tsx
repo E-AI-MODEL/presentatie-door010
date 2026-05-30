@@ -22,9 +22,8 @@ export function PhaseCard({ phaseInfo }: PhaseCardProps) {
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">
-            Fase: {phaseInfo.title}
+            {phaseInfo.subtitle}
           </h2>
-          <p className="text-white/90 text-sm">{phaseInfo.subtitle}</p>
         </div>
       </div>
       

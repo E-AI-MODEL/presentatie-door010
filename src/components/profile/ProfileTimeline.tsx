@@ -185,15 +185,15 @@ export function ProfileTimeline({ userId, currentPhase, preferredSector, testCom
                   )}
                 </div>
 
-                {/* Title + badge */}
+                {/* Title + badge — toon de actiegerichte subtitle ipv interne fasenaam */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`font-semibold text-sm ${status === "active" ? "text-primary" : "text-foreground"}`}>
-                      {data.title}
+                      {data.subtitle}
                     </span>
                     {status === "active" && (
                       <Badge className="bg-primary/15 text-primary border-0 text-[10px] py-0">
-                        Huidige fase
+                        Waar je nu staat
                       </Badge>
                     )}
                     {status === "completed" && (

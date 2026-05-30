@@ -1,31 +1,32 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
+// Geen interne fasenamen op de publieke pagina — gebruik handelingsgerichte titels.
 const journeySteps = [
   {
     phase: 1,
-    title: "Interesseren",
+    title: "Eerst even rondkijken",
     description: "Ontdek wat werken in het onderwijs inhoudt en of het bij je past.",
   },
   {
     phase: 2,
-    title: "Oriënteren",
-    description: "Verken de verschillende sectoren, rollen en mogelijkheden.",
+    title: "Routes verkennen",
+    description: "Zie welke sectoren, rollen en opleidingen er zijn.",
   },
   {
     phase: 3,
-    title: "Beslissen",
-    description: "Maak een weloverwogen keuze over je richting in het onderwijs.",
+    title: "Knoop doorhakken",
+    description: "Vergelijk opties en maak een keuze die bij jou past.",
   },
   {
     phase: 4,
-    title: "Matchen",
-    description: "Vind de perfecte match tussen jouw profiel en beschikbare vacatures.",
+    title: "Plek vinden",
+    description: "Vind de school of opleiding waar je terechtkunt.",
   },
   {
     phase: 5,
-    title: "Voorbereiden",
-    description: "Bereid je voor op je nieuwe carrière met de juiste opleiding en begeleiding.",
+    title: "Klaarmaken voor de start",
+    description: "Regel de praktische dingen en bereid je eerste dag voor.",
   },
 ];
 

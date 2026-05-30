@@ -19,12 +19,13 @@ interface ProfileHeroProps {
   cvUrl: string | null;
 }
 
+// Frontend-vriendelijke omschrijvingen — geen interne fasenamen tonen.
 const phaseLabels: Record<string, string> = {
-  interesseren: "Interesseren",
-  orienteren: "Oriënteren",
-  beslissen: "Beslissen",
-  matchen: "Matchen",
-  voorbereiden: "Voorbereiden",
+  interesseren: "Aan het ontdekken",
+  orienteren: "Aan het verkennen",
+  beslissen: "Aan het kiezen",
+  matchen: "Op zoek naar een plek",
+  voorbereiden: "Bijna onderweg",
 };
 
 const sectorLabels: Record<string, string> = {
