@@ -544,9 +544,10 @@ export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed }
   const slotTopics = getSlotTopics(knownSlots);
   const ssotTopics = useMemo(() => getSSOTTopics(currentPhase, knownSlots), [currentPhase, knownSlots]);
 
+  // Eerste groep: gebruik subtitle in plaats van interne fasenaam (geen UX-leak)
   const groups: TopicGroup[] = [
     {
-      title: phaseInfo.title,
+      title: phaseInfo.subtitle || "Voor jou nu",
       icon: MessageCircle,
       items: phaseTopics,
     },
@@ -568,10 +569,13 @@ export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed }
     });
   }
 
+  // Per render 2 willekeurige vragen uit de pool — zorgt voor rotatie zonder backend roundtrip.
+  const rotatingFaq = useMemo(() => pickRandom(FAQ_POOL, 2), [currentPhase, knownSlots]);
+
   groups.push({
     title: "Veelgestelde vragen",
     icon: MessageCircle,
-    items: FAQ_TOPICS,
+    items: rotatingFaq,
   });
 
   groups.push({
