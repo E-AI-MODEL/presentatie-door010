@@ -328,7 +328,7 @@ function getSSOTTopics(phase: OrientationPhase, slots: KnownSlots): TopicMenuIte
       for (const ts of themeSignals) {
         if (items.length >= 6) break;
         if (!coveredLabels.has(ts.label.toLowerCase())) {
-          items.push({ label: ts.label, chatMessage: ts.chatPrompt });
+          items.push({ label: ts.label, chatMessage: pickThemePrompt(ts) });
         }
       }
     }
