@@ -10,23 +10,43 @@ export interface ThemeSignal {
   key: string;
   label: string;
   chatPrompt: string;
+  chatPromptVariants?: string[];
 }
 
+// Meerdere varianten per thema → chips/suggesties roteren en voelen niet stug.
 const ALL_THEMES: ThemeSignal[] = [
-  { key: "route", label: "Routes en opleidingen", chatPrompt: "Welke routes zijn er om in het onderwijs te werken?" },
-  { key: "bevoegdheid", label: "Bevoegdheden", chatPrompt: "Welke bevoegdheid heb ik nodig?" },
-  { key: "vacatures", label: "Vacatures", chatPrompt: "Welke vacatures zijn er in het onderwijs?" },
-  { key: "salaris", label: "Salaris en arbeidsvoorwaarden", chatPrompt: "Wat verdient een leraar?" },
-  { key: "kosten", label: "Kosten en financiering", chatPrompt: "Wat kost een opleiding en welke financiering is er?" },
-  { key: "subsidie", label: "Subsidies en tegemoetkomingen", chatPrompt: "Welke subsidies zijn er voor aanstaande leraren?" },
-  { key: "regio", label: "Regio en scholen", chatPrompt: "Welke scholen en mogelijkheden zijn er in mijn regio?" },
-  { key: "toelating", label: "Toelatingseisen", chatPrompt: "Wat zijn de toelatingseisen?" },
-  { key: "functie", label: "Functies in het onderwijs", chatPrompt: "Welke functies zijn er in het onderwijs?" },
-  { key: "sector", label: "Sectoren vergelijken", chatPrompt: "Wat zijn de verschillen tussen PO, VO en MBO?" },
-  { key: "next_step", label: "Volgende stap", chatPrompt: "Wat is mijn logische volgende stap?" },
-  { key: "events", label: "Events en open dagen", chatPrompt: "Zijn er events of open dagen?" },
-  { key: "zij_instroom", label: "Zij-instroom", chatPrompt: "Hoe werkt zij-instroom precies?" },
+  { key: "route", label: "Routes en opleidingen", chatPrompt: "Welke routes zijn er om in het onderwijs te werken?",
+    chatPromptVariants: ["Welke routes zijn er om in het onderwijs te werken?", "Hoe ziet zo'n traject naar het onderwijs er voor mij uit?", "Welke wegen leiden naar de klas?"] },
+  { key: "bevoegdheid", label: "Bevoegdheden", chatPrompt: "Welke bevoegdheid heb ik nodig?",
+    chatPromptVariants: ["Welke bevoegdheid heb ik nodig?", "Welk papiertje moet ik straks hebben?", "Hoe weet ik welke bevoegdheid bij mij past?"] },
+  { key: "vacatures", label: "Vacatures", chatPrompt: "Welke vacatures zijn er in het onderwijs?",
+    chatPromptVariants: ["Welke vacatures zijn er in het onderwijs?", "Waar zit nu vraag in mijn regio?", "Welke scholen zoeken op dit moment?"] },
+  { key: "salaris", label: "Salaris en arbeidsvoorwaarden", chatPrompt: "Wat verdient een leraar?",
+    chatPromptVariants: ["Wat verdient een leraar?", "Wat kan ik straks ongeveer verdienen?", "Hoe zit het met salaris en voorwaarden?"] },
+  { key: "kosten", label: "Kosten en financiering", chatPrompt: "Wat kost een opleiding en welke financiering is er?",
+    chatPromptVariants: ["Wat kost een opleiding en welke financiering is er?", "Kan ik dit betalen zonder grote schuld?", "Hoe zit het met de kosten?"] },
+  { key: "subsidie", label: "Subsidies en tegemoetkomingen", chatPrompt: "Welke subsidies zijn er voor aanstaande leraren?",
+    chatPromptVariants: ["Welke subsidies zijn er voor aanstaande leraren?", "Is er een tegemoetkoming voor mijn situatie?", "Welke regelingen kan ik gebruiken?"] },
+  { key: "regio", label: "Regio en scholen", chatPrompt: "Welke scholen en mogelijkheden zijn er in mijn regio?",
+    chatPromptVariants: ["Welke scholen en mogelijkheden zijn er in mijn regio?", "Wat speelt er bij mij in de buurt?", "Welke opties zitten dichtbij?"] },
+  { key: "toelating", label: "Toelatingseisen", chatPrompt: "Wat zijn de toelatingseisen?",
+    chatPromptVariants: ["Wat zijn de toelatingseisen?", "Wat heb ik nodig om te starten?", "Welke vooropleiding wordt gevraagd?"] },
+  { key: "functie", label: "Functies in het onderwijs", chatPrompt: "Welke functies zijn er in het onderwijs?",
+    chatPromptVariants: ["Welke functies zijn er in het onderwijs?", "Wat kan ik doen naast lesgeven?", "Welke rollen passen bij mij?"] },
+  { key: "sector", label: "Sectoren vergelijken", chatPrompt: "Wat zijn de verschillen tussen PO, VO en MBO?",
+    chatPromptVariants: ["Wat zijn de verschillen tussen PO, VO en MBO?", "Welke leeftijdsgroep past bij mij?", "Wat is het verschil tussen basis, voortgezet en MBO?"] },
+  { key: "next_step", label: "Volgende stap", chatPrompt: "Wat is mijn logische volgende stap?",
+    chatPromptVariants: ["Wat is mijn logische volgende stap?", "Wat kan ik nu het beste doen?", "Hoe kom ik in beweging?"] },
+  { key: "events", label: "Events en open dagen", chatPrompt: "Zijn er events of open dagen?",
+    chatPromptVariants: ["Zijn er events of open dagen?", "Waar kan ik een dag meelopen?", "Wat zijn de aankomende meeloopmomenten?"] },
+  { key: "zij_instroom", label: "Zij-instroom", chatPrompt: "Hoe werkt zij-instroom precies?",
+    chatPromptVariants: ["Hoe werkt zij-instroom precies?", "Kan ik zij-instromen met mijn achtergrond?", "Wat houdt zij-instroom in voor iemand zoals ik?"] },
 ];
+
+export function pickThemePrompt(t: ThemeSignal): string {
+  const pool = t.chatPromptVariants && t.chatPromptVariants.length > 0 ? t.chatPromptVariants : [t.chatPrompt];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 export function deriveThemes(opts: {
   phase: string;
