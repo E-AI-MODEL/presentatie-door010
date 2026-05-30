@@ -587,7 +587,11 @@ async function webFallbackSearch(
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Context Assembler
+// Context Assembler — bronhiërarchie met anti-bias
+// Volgorde van prioriteit voor het model:
+//   1. Verse externe bronnen (Firecrawl op whitelist trusted_sources)
+//   2. Interne kennisbank (FAQ met peildatum; verouderd wordt gemarkeerd)
+//   3. Basiskennis SSOT (alleen fallback bij sparse external/FAQ data)
 // ─────────────────────────────────────────────────────────────────────
 function assembleContext(
   phase: string,
@@ -613,36 +617,46 @@ function assembleContext(
   parts.push(`Toon: ${tone}`);
   parts.push(`Situatie: ${situation}`);
 
-  // Knowledge injection based on intent
-  if (intent === "question" || intent === "followup") {
-    const knowledge = resolveKnowledge(slots, phase, userMessage);
-    if (faqKnowledge.length > 0) knowledge.push(...faqKnowledge);
-    if (webKnowledge.length > 0) knowledge.push(...webKnowledge);
-    if (knowledge.length > 0) {
-      parts.push(`\nRelevante informatie:\n${knowledge.map(k => `- ${k}`).join("\n")}`);
-    } else {
-      parts.push(`\nRelevante informatie:\n${BASELINE_KNOWLEDGE}`);
+  if (intent === "question" || intent === "followup" || intent === "exploration") {
+    const ssotKnowledge = resolveKnowledge(slots, phase, userMessage);
+    const sections: string[] = [];
+
+    // 1. Verse externe bronnen — leidend
+    if (webKnowledge.length > 0) {
+      sections.push(`## Verse externe bronnen (laatst opgehaald, leidend bij tegenspraak)\n${webKnowledge.map(k => `- ${k}`).join("\n")}`);
     }
-  } else if (intent === "exploration") {
-    const knowledge = resolveKnowledge(slots, phase, userMessage);
-    parts.push(`\nRelevante informatie:\n${BASELINE_KNOWLEDGE}`);
-    if (faqKnowledge.length > 0) knowledge.push(...faqKnowledge);
-    if (webKnowledge.length > 0) knowledge.push(...webKnowledge);
-    if (knowledge.length > 0) parts.push(`\nAanvullend:\n${knowledge.map(k => `- ${k}`).join("\n")}`);
+    // 2. Interne kennisbank
+    if (faqKnowledge.length > 0) {
+      sections.push(`## Interne kennisbank\n${faqKnowledge.map(k => `- ${k}`).join("\n")}`);
+    }
+    // 3. Basiskennis — alleen als fallback / context
+    if (ssotKnowledge.length > 0) {
+      sections.push(`## Basiskennis (fallback, gebruik alleen als hierboven niets staat)\n${ssotKnowledge.map(k => `- ${k}`).join("\n")}`);
+    }
+    if (sections.length === 0) {
+      sections.push(`## Basiskennis\n${BASELINE_KNOWLEDGE}`);
+    }
+
+    parts.push(
+      `\nKennisbronnen voor je antwoord:\n${sections.join("\n\n")}\n\n` +
+      `Regels bij tegenspraak: kies altijd de meest recente bron. ` +
+      `Een fragment dat "(mogelijk verouderd, ...)" zegt mag je niet als feit presenteren — verwijs dan naar de externe bron of geef aan dat je het laat checken. ` +
+      `Noem nooit de sectienamen ("Verse externe bronnen", "Interne kennisbank", "Basiskennis") in je antwoord.`
+    );
   }
 
   if (profile) parts.push(`\nOver de gebruiker: ${profile}`);
 
   if (phaseTransition) {
-    parts.push(`\nDe gebruiker is klaar om verder te gaan: van "${phaseTransition.from}" naar "${phaseTransition.to}". Erken dit kort en positief.`);
+    parts.push(`\nDe gebruiker is klaar voor een nieuwe stap. Erken dit kort en positief, zonder interne stap- of fasenamen te noemen.`);
   }
 
   if (textLinks && intent !== "greeting") {
-    parts.push(`\nRelevante links (gebruik max 4 als markdown-links in je antwoord waar ze passen):\n${textLinks}`);
+    parts.push(`\nRelevante links (gebruik max 2 als markdown-links in je antwoord waar ze passen):\n${textLinks}`);
   }
 
   const assembled = parts.join("\n");
-  if (assembled.length > 3200) return parts.slice(0, 4).join("\n");
+  if (assembled.length > 3600) return parts.slice(0, 4).join("\n");
   return assembled;
 }
 
@@ -681,7 +695,13 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 - Opsommingen, stappen, bullets, genummerde lijsten.
 - Tekst tussen vierkante haken: [Landelijk], [Regionaal], [Stap 1], etc.
 - Zinnen als "Het traject ziet er globaal zo uit:" gevolgd door stappen.
-- De volgende termen of frasen mag je nooit gebruiken (interne labels of clichés): ${FORBIDDEN_TERMS.map(t => `"${t}"`).join(", ")}.
+- De volgende termen of frasen mag je nooit gebruiken (interne labels of clich\u00e9s): ${FORBIDDEN_TERMS.map(t => `"${t}"`).join(", ")}.
+
+## Bronnen en actualiteit (anti-bias)
+- Kennisbronnen krijg je in een vaste volgorde: verse externe bronnen > interne kennisbank > basiskennis. Behandel ze ook in die volgorde.
+- Bij tegenspraak: kies de meest recente bron. Verse externe bronnen winnen altijd van basiskennis.
+- Een fragment met "(mogelijk verouderd, ...)" mag je niet als hard feit brengen. Noem dan een range, verwijs door naar de externe bron, of zeg dat het verschilt per moment.
+- Noem nooit interne sectienamen, peildatums of brontypes in je antwoord.
 
 ## Links
 - Linkchips verschijnen automatisch onder je antwoord. Herhaal ze NOOIT in de lopende tekst.
@@ -812,14 +832,34 @@ async function selectBestFaqs(userMessage: string, candidates: FaqResult[], apiK
   return candidates.slice(0, 3);
 }
 
-async function retrieveFaqKnowledge(userMessage: string, apiKey: string): Promise<{ fragments: string[]; sourceLinks: UiLink[] }> {
+async function retrieveFaqKnowledge(userMessage: string, apiKey: string): Promise<{ fragments: string[]; sourceLinks: UiLink[]; oldestPeildatumMonths: number | null }> {
   const candidates = await searchFaqsByFts(userMessage);
-  if (candidates.length === 0) return { fragments: [], sourceLinks: [] };
+  if (candidates.length === 0) return { fragments: [], sourceLinks: [], oldestPeildatumMonths: null };
 
   const best = await selectBestFaqs(userMessage, candidates, apiKey);
 
+  // Hoe oud is de oudste relevante FAQ? Bepaalt of we externe verse bron willen meenemen.
+  let oldestMonths: number | null = null;
+  const now = new Date();
+  for (const faq of best) {
+    if (!faq.peildatum) continue;
+    const d = new Date(faq.peildatum);
+    if (Number.isNaN(d.getTime())) continue;
+    const months = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+    if (oldestMonths === null || months > oldestMonths) oldestMonths = months;
+  }
+
   const fragments = best.map(faq => {
-    let entry = `${faq.question} - ${faq.answer}`;
+    // Provenance + leeftijd staat NIET tussen brackets (sanitizer strip die), maar in een korte voorvoeging die later weer wordt geknipt.
+    let ageHint = "";
+    if (faq.peildatum) {
+      const d = new Date(faq.peildatum);
+      if (!Number.isNaN(d.getTime())) {
+        const months = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+        if (months >= 12) ageHint = ` (mogelijk verouderd, laatst gecheckt ${faq.peildatum})`;
+      }
+    }
+    let entry = `${faq.question} - ${faq.answer}${ageHint}`;
     if (faq.source_url) entry += ` Meer info: [bron](${faq.source_url})`;
     return entry;
   });
@@ -832,7 +872,7 @@ async function retrieveFaqKnowledge(userMessage: string, apiKey: string): Promis
       href: faq.source_url!,
     }));
 
-  return { fragments, sourceLinks };
+  return { fragments, sourceLinks, oldestPeildatumMonths: oldestMonths };
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -934,11 +974,19 @@ Deno.serve(async (req) => {
       faqKnowledge = faqResult.fragments;
       faqSourceLinks = faqResult.sourceLinks;
 
-      // Web fallback: only if FAQ + SSOT knowledge is sparse
+      // Web fallback triggers — verse trusted data wint van mogelijk verouderde interne data:
+      //   a) interne kennis is sparse (originele heuristiek)
+      //   b) onderwerp is tijdgevoelig (salaris/cao/collegegeld/subsidie/lerarentekort/jaartal)
+      //   c) oudste relevante FAQ-peildatum is >= 12 maanden oud
       const ssotKnowledge = resolveKnowledge(slots, phase, lastUserMessage);
-      if (faqKnowledge.length + ssotKnowledge.length < 2 && trustedSources.length > 0) {
+      const TIME_SENSITIVE_RE = /\b(salaris|verdien|loon|cao|collegegeld|kosten|subsidie|lerarentekort|tekort|vacature|20\d{2})\b/i;
+      const isTimeSensitive = TIME_SENSITIVE_RE.test(lastUserMessage);
+      const faqIsStale = (faqResult.oldestPeildatumMonths ?? 0) >= 12;
+      const sparseInternal = faqKnowledge.length + ssotKnowledge.length < 2;
+
+      if (trustedSources.length > 0 && (sparseInternal || isTimeSensitive || faqIsStale)) {
         webKnowledge = await webFallbackSearch(lastUserMessage, trustedSources);
-        console.log(`Web fallback: ${webKnowledge.length} results for "${lastUserMessage.slice(0, 50)}"`);
+        console.log(`Web fallback: ${webKnowledge.length} results | sparse=${sparseInternal} timeSensitive=${isTimeSensitive} stale=${faqIsStale}`);
       }
     }
 

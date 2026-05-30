@@ -10,20 +10,21 @@ export interface ThemeSignal {
   chatPrompt: string;
 }
 
+// Themapromts zijn bewust kort, mensgericht en uitnodigend. Geen examen-toon.
 const ALL_THEMES: ThemeSignal[] = [
-  { key: "route", label: "Routes en opleidingen", chatPrompt: "Welke routes zijn er om in het onderwijs te werken?" },
-  { key: "bevoegdheid", label: "Bevoegdheden", chatPrompt: "Welke bevoegdheid heb ik nodig?" },
-  { key: "vacatures", label: "Vacatures", chatPrompt: "Welke vacatures zijn er in het onderwijs?" },
-  { key: "salaris", label: "Salaris en arbeidsvoorwaarden", chatPrompt: "Wat verdient een leraar?" },
-  { key: "kosten", label: "Kosten en financiering", chatPrompt: "Wat kost een opleiding en welke financiering is er?" },
-  { key: "subsidie", label: "Subsidies en tegemoetkomingen", chatPrompt: "Welke subsidies zijn er voor aanstaande leraren?" },
-  { key: "regio", label: "Regio en scholen", chatPrompt: "Welke scholen en mogelijkheden zijn er in mijn regio?" },
-  { key: "toelating", label: "Toelatingseisen", chatPrompt: "Wat zijn de toelatingseisen?" },
-  { key: "functie", label: "Functies in het onderwijs", chatPrompt: "Welke functies zijn er in het onderwijs?" },
-  { key: "sector", label: "Sectoren vergelijken", chatPrompt: "Wat zijn de verschillen tussen PO, VO en MBO?" },
-  { key: "next_step", label: "Volgende stap", chatPrompt: "Wat is mijn logische volgende stap?" },
-  { key: "events", label: "Events en open dagen", chatPrompt: "Zijn er events of open dagen?" },
-  { key: "zij_instroom", label: "Zij-instroom", chatPrompt: "Hoe werkt zij-instroom precies?" },
+  { key: "route", label: "Routes", chatPrompt: "Kun je me door de routes praten?" },
+  { key: "bevoegdheid", label: "Bevoegdheid", chatPrompt: "Wat voor bevoegdheid past bij wat ik wil?" },
+  { key: "vacatures", label: "Werk", chatPrompt: "Waar zit nu vraag in het onderwijs?" },
+  { key: "salaris", label: "Verdienen", chatPrompt: "Wat kan ik straks ongeveer verdienen?" },
+  { key: "kosten", label: "Kosten", chatPrompt: "Hoe zit het met kosten en financiering?" },
+  { key: "subsidie", label: "Subsidie", chatPrompt: "Is er steun of subsidie voor mijn situatie?" },
+  { key: "regio", label: "In de buurt", chatPrompt: "Wat speelt er bij mij in de buurt?" },
+  { key: "toelating", label: "Toelating", chatPrompt: "Wat heb ik nodig om te starten?" },
+  { key: "functie", label: "Functies", chatPrompt: "Welke rollen zijn er naast voor de klas?" },
+  { key: "sector", label: "PO, VO of MBO", chatPrompt: "Wat past het beste: PO, VO of MBO?" },
+  { key: "next_step", label: "Wat nu?", chatPrompt: "Wat is een logische volgende stap voor mij?" },
+  { key: "events", label: "Open dagen", chatPrompt: "Zijn er binnenkort open dagen of meeloopdagen?" },
+  { key: "zij_instroom", label: "Zij-instroom", chatPrompt: "Hoe werkt zij-instroom voor iemand zoals ik?" },
 ];
 
 /**

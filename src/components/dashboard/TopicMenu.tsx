@@ -339,23 +339,15 @@ function getSSOTTopics(phase: OrientationPhase, slots: KnownSlots): TopicMenuIte
   }
 }
 
+// Anchors bewust beperkt — max 2 per groep, lossere toon.
 const FAQ_TOPICS: TopicMenuItem[] = [
-  {
-    label: "Salaris & arbeidsvoorwaarden",
-    subTopics: [
-      { label: "Salaris leraar", chatMessage: "Wat verdient een leraar gemiddeld?" },
-      { label: "CAO onderwijs", chatMessage: "Wat staat er in de CAO voor het onderwijs?" },
-    ],
-  },
-  { label: "Toelatingseisen", chatMessage: "Wat zijn de toelatingseisen voor lerarenopleidingen?" },
-  { label: "Lerarentekort Rotterdam", chatMessage: "Hoe zit het met het lerarentekort in Rotterdam?" },
+  { label: "Wat kan ik verdienen?", chatMessage: "Wat kan ik straks ongeveer verdienen?" },
+  { label: "Wat heb ik nodig om te starten?", chatMessage: "Wat heb ik nodig om met een opleiding te starten?" },
 ];
 
 const QUICK_LINKS: TopicMenuItem[] = [
   { label: "Vacatures", href: "/vacatures" },
-  { label: "Events & open dagen", href: "/events" },
-  { label: "Opleidingen", href: "/opleidingen" },
-  { label: "Kennisbank", href: "/kennisbank" },
+  { label: "Open dagen", href: "/events" },
 ];
 
 interface TopicMenuProps {

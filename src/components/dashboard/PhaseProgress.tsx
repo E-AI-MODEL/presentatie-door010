@@ -17,8 +17,9 @@ export function PhaseProgress({ currentPhase }: PhaseProgressProps) {
             const isCompleted = index < currentPhaseIndex;
             const data = phaseData[phase];
 
+            // Toon alleen voor de actieve stap een korte omschrijving; overige stappen alleen nummer.
             return (
-              <div key={phase} className="flex items-center">
+              <div key={phase} className="flex items-center" title={data.subtitle}>
                 <div
                   className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all ${
                     isActive
@@ -35,7 +36,7 @@ export function PhaseProgress({ currentPhase }: PhaseProgressProps) {
                   >
                     {isCompleted ? "✓" : index + 1}
                   </span>
-                  <span>{data.title}</span>
+                  {isActive && <span className="hidden sm:inline">{data.subtitle}</span>}
                 </div>
                 {index < phases.length - 1 && (
                   <div className={`w-2 sm:w-4 h-0.5 mx-0.5 ${isCompleted ? "bg-primary/40" : "bg-border"}`} />

@@ -27,8 +27,9 @@ export const FORBIDDEN_TERMS: readonly string[] = [
 export const MODELS = {
   // Snelle classificatie / phase-detection / korte completions
   fast: "google/gemini-2.5-flash",
-  // Hoofdmodel voor orchestrator-replies (publiek + dashboard)
-  primary: "google/gemini-2.5-flash",
+  // Hoofdmodel voor orchestrator-replies (publiek + dashboard).
+  // gpt-5.4: sterker in bronhiërarchie-afweging en anti-bias dan flash.
+  primary: "openai/gpt-5.4",
   // Zware redenering (zelden gebruikt)
-  reasoning: "google/gemini-2.5-pro",
+  reasoning: "openai/gpt-5.4-pro",
 } as const;
