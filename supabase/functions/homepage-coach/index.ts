@@ -431,10 +431,16 @@ Deno.serve(async (req) => {
 
     function buildActions(): Array<{ label: string; value: string }> {
       if (answerType === "begroeting") {
-        return [
+        const greetingPool: Array<{ label: string; value: string }> = [
           { label: "Wat past bij mij?", value: "Welke route past bij mij om in het onderwijs te werken?" },
           { label: "Ik werk al", value: "Ik werk al. Kan ik overstappen naar het onderwijs?" },
+          { label: "Hoe begin ik?", value: "Waar zou ik moeten beginnen als ik het onderwijs in wil?" },
+          { label: "PO, VO of MBO?", value: "Wat is het verschil tussen werken in PO, VO of MBO?" },
+          { label: "Wat verdien ik?", value: "Wat kan ik straks ongeveer verdienen in het onderwijs?" },
         ];
+        // shuffle + pak 2 → varieert per begroeting
+        const shuffled = [...greetingPool].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 2);
       }
 
       const currentKeys = detectCurrentThemeKeys(lastUserMsg);
@@ -443,10 +449,13 @@ Deno.serve(async (req) => {
 
       if (actions.length > 0) return actions;
 
-      return [
+      const fallbackPool: Array<{ label: string; value: string }> = [
         { label: "Routes", value: "Kun je me door de routes praten?" },
         { label: "PO, VO of MBO", value: "Wat past het beste: PO, VO of MBO?" },
+        { label: "Bevoegdheid", value: "Welk papiertje heb ik nodig om voor de klas te staan?" },
+        { label: "Eerste stap", value: "Waar zou ik moeten beginnen?" },
       ];
+      return [...fallbackPool].sort(() => Math.random() - 0.5).slice(0, 2);
     }
 
     const actions = buildActions();
