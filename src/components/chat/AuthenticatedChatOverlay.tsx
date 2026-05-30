@@ -624,7 +624,7 @@ export function AuthenticatedChatOverlay() {
     setReflectionWarning(null);
     setMessages([{
       role: "assistant",
-      content: "Welkom terug! Stel gerust je vraag of kies een onderwerp via het menu.",
+      content: "Fijn dat je er weer bent. Waar wil je vandaag mee verder?",
     }]);
   }, [profile, resetConversation, setMessages, chatMode]);
 

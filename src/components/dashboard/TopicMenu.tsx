@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { phaseData, type OrientationPhase } from "@/data/dashboard-phases";
 import type { KnownSlots } from "@/utils/phaseDetectorEngine";
 import { loadPhaseDetectorConfig, type DetectorPhaseCode } from "@/utils/phaseDetectorParser";
-import { deriveThemes } from "@/utils/themeMapper";
+import { deriveThemes, pickThemePrompt } from "@/utils/themeMapper";
 
 interface SubTopic {
   label: string;
@@ -328,7 +328,7 @@ function getSSOTTopics(phase: OrientationPhase, slots: KnownSlots): TopicMenuIte
       for (const ts of themeSignals) {
         if (items.length >= 6) break;
         if (!coveredLabels.has(ts.label.toLowerCase())) {
-          items.push({ label: ts.label, chatMessage: ts.chatPrompt });
+          items.push({ label: ts.label, chatMessage: pickThemePrompt(ts) });
         }
       }
     }
@@ -339,16 +339,30 @@ function getSSOTTopics(phase: OrientationPhase, slots: KnownSlots): TopicMenuIte
   }
 }
 
-// Anchors bewust beperkt — max 2 per groep, lossere toon.
-const FAQ_TOPICS: TopicMenuItem[] = [
+// Pool van warme veelgestelde vragen — er worden er per render 2 willekeurig gekozen
+// zodat de chips niet altijd hetzelfde tonen.
+const FAQ_POOL: TopicMenuItem[] = [
   { label: "Wat kan ik verdienen?", chatMessage: "Wat kan ik straks ongeveer verdienen?" },
   { label: "Wat heb ik nodig om te starten?", chatMessage: "Wat heb ik nodig om met een opleiding te starten?" },
+  { label: "Welke route past bij mij?", chatMessage: "Welke route naar het onderwijs zou bij mij passen?" },
+  { label: "Hoe lang duurt het?", chatMessage: "Hoe lang duurt zo'n traject naar het onderwijs gemiddeld?" },
+  { label: "Kan ik dit combineren met werk?", chatMessage: "Kan ik een lerarenopleiding combineren met mijn huidige werk?" },
+  { label: "Is er financiële steun?", chatMessage: "Welke subsidies of tegemoetkomingen zijn er voor mijn situatie?" },
 ];
 
 const QUICK_LINKS: TopicMenuItem[] = [
   { label: "Vacatures", href: "/vacatures" },
   { label: "Open dagen", href: "/events" },
 ];
+
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+}
 
 interface TopicMenuProps {
   currentPhase: OrientationPhase;
@@ -530,9 +544,10 @@ export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed }
   const slotTopics = getSlotTopics(knownSlots);
   const ssotTopics = useMemo(() => getSSOTTopics(currentPhase, knownSlots), [currentPhase, knownSlots]);
 
+  // Eerste groep: gebruik subtitle in plaats van interne fasenaam (geen UX-leak)
   const groups: TopicGroup[] = [
     {
-      title: phaseInfo.title,
+      title: phaseInfo.subtitle || "Voor jou nu",
       icon: MessageCircle,
       items: phaseTopics,
     },
@@ -554,10 +569,13 @@ export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed }
     });
   }
 
+  // Per render 2 willekeurige vragen uit de pool — zorgt voor rotatie zonder backend roundtrip.
+  const rotatingFaq = useMemo(() => pickRandom(FAQ_POOL, 2), [currentPhase, knownSlots]);
+
   groups.push({
     title: "Veelgestelde vragen",
     icon: MessageCircle,
-    items: FAQ_TOPICS,
+    items: rotatingFaq,
   });
 
   groups.push({

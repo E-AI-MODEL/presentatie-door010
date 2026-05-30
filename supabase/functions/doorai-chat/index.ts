@@ -695,7 +695,8 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 - Opsommingen, stappen, bullets, genummerde lijsten.
 - Tekst tussen vierkante haken: [Landelijk], [Regionaal], [Stap 1], etc.
 - Zinnen als "Het traject ziet er globaal zo uit:" gevolgd door stappen.
-- De volgende termen of frasen mag je nooit gebruiken (interne labels of clich\u00e9s): ${FORBIDDEN_TERMS.map(t => `"${t}"`).join(", ")}.
+- Verwijs NOOIT naar UI-elementen in je tekst: niet naar "suggesties", "het menu", "chips", "de knop", "het overzicht hieronder", "via de tegel", "klik op", "kies hieronder", "zie linkjes onder". De gebruiker ziet die elementen al; benoem ze niet.
+- De volgende termen of frasen mag je nooit gebruiken (interne labels of cliché's): ${FORBIDDEN_TERMS.map(t => `"${t}"`).join(", ")}.
 
 ## Bronnen en actualiteit (anti-bias)
 - Kennisbronnen krijg je in een vaste volgorde: verse externe bronnen > interne kennisbank > basiskennis. Behandel ze ook in die volgorde.

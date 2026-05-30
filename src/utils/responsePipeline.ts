@@ -180,6 +180,14 @@ const FORBIDDEN_PHRASES = [
   "achtergrondinformatie",
   "dynamische context",
   "bekende profieldata",
+  // UI-referenties die niet in chat-tekst horen
+  "via suggesties",
+  "via de suggesties",
+  "via het menu",
+  "via de chips",
+  "kies hieronder",
+  "klik hieronder",
+  "klik op de",
 ];
 
 // Regex-based leaks: phase suffix vormen, internal scores, verification dates.
