@@ -167,5 +167,5 @@ export function publicThemes(userMessage: string, excludeKeys: string[] = []): T
  * Convert ThemeSignals to UI actions (label + value).
  */
 export function themesToActions(themes: ThemeSignal[], max = 2): Array<{ label: string; value: string }> {
-  return themes.slice(0, max).map(t => ({ label: t.label, value: t.chatPrompt }));
+  return themes.slice(0, max).map(t => ({ label: t.label, value: pickPrompt(t) }));
 }
