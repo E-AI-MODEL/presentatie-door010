@@ -42,7 +42,7 @@ const sections = [
   {
     icon: CalendarSearch,
     eyebrow: "Agenda & vacatures",
-    title: "Altijd verse agenda en vacatures",
+    title: "Altijd actuele agenda en vacatures",
     what: "Events en vacatures worden automatisch opgehaald uit betrouwbare regionale en landelijke bronnen, en in de huisstijl van Rotterdam getoond.",
     bullets: [
       "Geen handmatig contentbeheer meer",

@@ -22,7 +22,7 @@ const components = [
   },
   {
     icon: CalendarSearch,
-    title: "Verse Agenda & Vacatures",
+    title: "Agenda & Vacatures",
     badge: "Altijd actueel",
     description:
       "Events en vacatures worden automatisch opgehaald uit betrouwbare bronnen. Altijd vers, altijd relevant.",
