@@ -339,16 +339,30 @@ function getSSOTTopics(phase: OrientationPhase, slots: KnownSlots): TopicMenuIte
   }
 }
 
-// Anchors bewust beperkt — max 2 per groep, lossere toon.
-const FAQ_TOPICS: TopicMenuItem[] = [
+// Pool van warme veelgestelde vragen — er worden er per render 2 willekeurig gekozen
+// zodat de chips niet altijd hetzelfde tonen.
+const FAQ_POOL: TopicMenuItem[] = [
   { label: "Wat kan ik verdienen?", chatMessage: "Wat kan ik straks ongeveer verdienen?" },
   { label: "Wat heb ik nodig om te starten?", chatMessage: "Wat heb ik nodig om met een opleiding te starten?" },
+  { label: "Welke route past bij mij?", chatMessage: "Welke route naar het onderwijs zou bij mij passen?" },
+  { label: "Hoe lang duurt het?", chatMessage: "Hoe lang duurt zo'n traject naar het onderwijs gemiddeld?" },
+  { label: "Kan ik dit combineren met werk?", chatMessage: "Kan ik een lerarenopleiding combineren met mijn huidige werk?" },
+  { label: "Is er financiële steun?", chatMessage: "Welke subsidies of tegemoetkomingen zijn er voor mijn situatie?" },
 ];
 
 const QUICK_LINKS: TopicMenuItem[] = [
   { label: "Vacatures", href: "/vacatures" },
   { label: "Open dagen", href: "/events" },
 ];
+
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, n);
+}
 
 interface TopicMenuProps {
   currentPhase: OrientationPhase;
