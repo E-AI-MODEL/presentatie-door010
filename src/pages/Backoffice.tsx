@@ -210,6 +210,26 @@ export default function Backoffice() {
     checkAccessAndFetchData();
   }, [checkAccessAndFetchData]);
 
+  // Realtime: refresh hele lijst bij elke profile-wijziging zodat advisor
+  // test-completion, fase-update, CV-upload, etc. live ziet.
+  useEffect(() => {
+    if (!hasAccess) return;
+    const channel = supabase
+      .channel("backoffice-profiles")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        () => { checkAccessAndFetchData(); },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "profiles" },
+        () => { checkAccessAndFetchData(); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [hasAccess, checkAccessAndFetchData]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
