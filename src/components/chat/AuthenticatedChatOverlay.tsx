@@ -93,7 +93,8 @@ export function AuthenticatedChatOverlay() {
     resetConversation,
   } = useChatConversation(user?.id, profileRef);
 
-  // Fetch profile
+  // Fetch profile + live sync (CustomEvent, visibilitychange, realtime)
+  const fetchProfileRef = useRef<() => Promise<void>>(async () => {});
   useEffect(() => {
     if (!user) return;
     const fetchProfile = async () => {
@@ -112,7 +113,9 @@ export function AuthenticatedChatOverlay() {
             }
           }
           const schoolType = sectorToSchoolType(data.preferred_sector);
-          setKnownSlots(prev => ({ ...(schoolType ? { school_type: schoolType } : {}), ...dbSlots, ...prev }));
+          // DB slots winnen van in-memory prev voor velden die al door user/advisor zijn gezet,
+          // maar prev wint voor slots die alleen in deze sessie zijn gedetecteerd.
+          setKnownSlots(prev => ({ ...prev, ...(schoolType ? { school_type: schoolType } : {}), ...dbSlots }));
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -120,7 +123,34 @@ export function AuthenticatedChatOverlay() {
         setProfileLoaded(true);
       }
     };
+    fetchProfileRef.current = fetchProfile;
     fetchProfile();
+
+    // CustomEvent — instant in-tab refresh na Profile save
+    const evtHandler = () => { fetchProfile(); };
+    window.addEventListener("profile-updated", evtHandler);
+
+    // Visibility — refetch bij terug-focussen
+    const visHandler = () => {
+      if (document.visibilityState === "visible") fetchProfile();
+    };
+    document.addEventListener("visibilitychange", visHandler);
+
+    // Realtime — advisor of andere tab wijzigt profiel
+    const channel = supabase
+      .channel(`overlay-profile-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` },
+        () => { fetchProfile(); },
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener("profile-updated", evtHandler);
+      document.removeEventListener("visibilitychange", visHandler);
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Load conversation once profile loaded
