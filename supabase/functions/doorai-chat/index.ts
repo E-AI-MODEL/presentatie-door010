@@ -911,8 +911,10 @@ async function resolveSystemPrompt(chatbotKey: string, fallbackPrompt: string): 
 
     if (addons.length === 0) return fallbackPrompt;
 
-    // Append add-ons to the base prompt (never replace)
-    return fallbackPrompt + "\n\n" + addons.join("\n\n");
+    // Sanitize each admin-supplied override before splicing into the prompt
+    const safeAddons = addons.map((a: string) => sanitizeAssistantText(a));
+    return fallbackPrompt + "\n\n" + safeAddons.join("\n\n");
+
   } catch {
     return fallbackPrompt;
   }
@@ -1304,13 +1306,34 @@ Deno.serve(async (req) => {
 
 
 
+        const safePhaseSuggestion = phaseSuggestion
+          ? { ...phaseSuggestion, message: sanitizeAssistantText(String(phaseSuggestion.message || "")) }
+          : undefined;
+
+        // Persist merged known_slots so they survive page refresh
+        try {
+          const authHeader = req.headers.get("Authorization") ?? "";
+          const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+          if (jwt && Object.keys(slots).length > 0) {
+            const adminClient = createAdminClient();
+            const { data: u } = await adminClient.auth.getUser(jwt);
+            const uid = u?.user?.id;
+            if (uid) {
+              await adminClient.from("profiles").update({ known_slots: slots }).eq("user_id", uid);
+            }
+          }
+        } catch (e) {
+          console.warn("[doorai-chat] known_slots persist skipped:", (e as Error).message);
+        }
+
         const uiPayload = JSON.stringify({
           actions: followupActions,
           corrected_slots: Object.keys(correctedSlots).length > 0 ? correctedSlots : undefined,
           links: shouldIncludeLinks ? uiLinks : [],
-          phase_suggestion: phaseSuggestion,
+          phase_suggestion: safePhaseSuggestion,
         });
         await writer.write(enc.encode(`event: ui\ndata: ${uiPayload}\n\n`));
+
       } catch (e) {
         console.error("Stream error:", e);
       } finally {

@@ -23,7 +23,8 @@ const SCORE_INLINE_RE = /\bscore[:\s]+[\d.,]+%?/gi;
 
 // "geverifieerd <maand> <jaar>" disclaimer that leaks the internal peildatum.
 const VERIFICATION_DATE_RE =
-  /,?\s*\(?\s*geverifieerd\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+\d{4}\s*\)?/gi;
+  /,?\s*\(?\s*(?:geverifieerd|laatst gecheckt|mogelijk verouderd,?\s*laatst gecheckt)\s+[^)]*?\d{4}\s*\)?/gi;
+
 
 // "## BEKENDE PROFIELDATA" or similar internal headers the model may echo.
 const INTERNAL_HEADER_RE = /^#{1,6}\s*BEKENDE\s+\w+.*$/gim;
