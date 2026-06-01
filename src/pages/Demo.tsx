@@ -61,7 +61,7 @@ export default function Demo() {
         <PageHero
           title="Landelijke demo"
           titleHighlight="AI voor onderwijsregio's"
-          subtitle="Zo zet onderwijsregio Rotterdam AI in om kandidaten te begeleiden van eerste interesse tot instroom in het onderwijs. Drie componenten, één samenhangende ervaring."
+          subtitle="Zo zet ​ AI in om kandidaten te begeleiden van eerste interesse tot instroom in het onderwijs. Drie componenten, één samenhangende ervaring."
         >
           <div className="flex flex-wrap gap-3">
             <Button size="lg" variant="secondary" asChild>
