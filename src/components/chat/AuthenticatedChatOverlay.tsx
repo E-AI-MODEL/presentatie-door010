@@ -905,30 +905,23 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
-            {/* Reflection warning — only when router allows */}
-            {isPersonal && reflectionWarning && !currentLoading && (turnVisibility?.showReflectionWarning !== false) && (
-              <div className="px-4 pb-2 shrink-0">
-                <div className="text-[10px] text-muted-foreground bg-muted/50 rounded-lg px-3 py-1.5">
-                  ⚠️ Dit antwoord is mogelijk onvolledig of bevat aandachtspunten.
-                </div>
-              </div>
-            )}
-
-            {/* Zekerheids-chip — 1 per antwoord, informatief (niet klikbaar) */}
+            {/* Eén gecombineerde zekerheidsindicator — vervangt aparte warning + chip */}
             {isPersonal && lastConfidence !== null && !currentLoading && (() => {
               const c = lastConfidence;
-              const label = c < 0.55 ? "Twijfel" : c < 0.75 ? "Redelijk zeker" : "Zeker";
+              const showWarning = (turnVisibility?.showReflectionWarning !== false) && reflectionWarning && c < 0.55;
+              const label = c < 0.55 ? "Nog niet zeker" : c < 0.75 ? "Redelijk zeker" : "Zeker";
               const dot = c < 0.55 ? "bg-amber-500" : c < 0.75 ? "bg-muted-foreground/60" : "bg-emerald-500";
               const tip = c < 0.55
-                ? "DoorAI weet nog niet zeker of het jouw situatie goed begrijpt."
+                ? "DoorAI begrijpt jouw situatie nog niet volledig. Vertel iets meer voor een scherper antwoord."
                 : c < 0.75
                 ? "DoorAI baseert dit op wat je tot nu toe deelde."
                 : "DoorAI begrijpt jouw situatie goed.";
+              const extra = showWarning ? " Antwoord mogelijk onvolledig." : "";
               return (
                 <div className="px-4 pb-2 shrink-0">
                   <span
-                    title={tip}
-                    aria-label={`Zekerheid: ${label}. ${tip}`}
+                    title={tip + extra}
+                    aria-label={`Zekerheid: ${label}.${extra} ${tip}`}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 text-[11px] text-muted-foreground cursor-default select-none"
                   >
                     <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
@@ -937,6 +930,7 @@ export function AuthenticatedChatOverlay() {
                 </div>
               );
             })()}
+
 
             {/* Input */}
             <div className="px-4 pb-3 pt-2 border-t border-border shrink-0">
