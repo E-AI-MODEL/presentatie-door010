@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useLiveProfile } from "@/hooks/useLiveProfile";
 import { PhaseProgress } from "@/components/dashboard/PhaseProgress";
 import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { RecommendedContent } from "@/components/dashboard/RecommendedContent";
