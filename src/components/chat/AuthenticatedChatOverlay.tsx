@@ -280,9 +280,8 @@ export function AuthenticatedChatOverlay() {
             last_user_msg: text.slice(0, 200),
           },
         }).eq("user_id", user.id).then(() => { notifyProfileUpdated(); });
-
-        }).eq("user_id", user.id).then(() => {});
       }
+
 
       const phaseTransition = detector.phase_confidence >= 0.70 && detector.phase_current_ui !== currentPhase
         ? { from: currentPhase, to: detector.phase_current_ui }
