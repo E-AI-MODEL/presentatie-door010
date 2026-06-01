@@ -404,11 +404,44 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messages, profileContext }: RequestBody = await req.json();
+    const body: RequestBody = await req.json();
+    const { messages } = body;
+    let { profileContext } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // ── Server-side verse profile fetch (zelfde patroon als doorai-chat) ──
+    try {
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      if (jwt) {
+        const adminClient = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        );
+        const { data: userData } = await adminClient.auth.getUser(jwt);
+        const uid = userData?.user?.id;
+        if (uid) {
+          const { data: fresh } = await adminClient
+            .from("profiles")
+            .select("first_name, preferred_sector, current_phase")
+            .eq("user_id", uid)
+            .maybeSingle();
+          if (fresh) {
+            profileContext = {
+              ...(profileContext ?? {}),
+              first_name: fresh.first_name ?? profileContext?.first_name ?? null,
+              preferred_sector: fresh.preferred_sector ?? profileContext?.preferred_sector ?? null,
+              current_phase: fresh.current_phase ?? profileContext?.current_phase ?? null,
+            };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[homepage-coach] server-side profile fetch skipped:", (e as Error).message);
     }
 
     const lastUserMsg = [...messages].reverse().find(m => m.role === "user")?.content?.trim() ?? "";
