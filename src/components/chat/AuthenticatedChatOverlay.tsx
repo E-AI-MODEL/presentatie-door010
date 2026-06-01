@@ -14,6 +14,8 @@ import { PhaseConfirmation } from "@/components/chat/PhaseConfirmation";
 import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { parseStructuredMeta } from "@/utils/responsePipeline";
 import { sanitizeClientText } from "@/utils/sanitizeClient";
+import { notifyProfileUpdated } from "@/hooks/useLiveProfile";
+
 import type { StructuredResponse } from "@/utils/responsePipeline";
 import { decideConversationMode } from "@/utils/conversationRouter";
 import type { TurnVisibility } from "@/utils/conversationRouter";
@@ -213,10 +215,14 @@ export function AuthenticatedChatOverlay() {
         const { data, error } = await supabase
           .from("profiles").update(updates).eq("user_id", user.id)
           .select("current_phase, preferred_sector, first_name, bio, test_completed, test_results, known_slots").single();
-        if (!error && data) setProfile(data);
+        if (!error && data) {
+          setProfile(data);
+          notifyProfileUpdated();
+        }
       } catch (e) {
         console.warn("Profile update skipped:", e);
       }
+
     },
     [user, profile],
   );
@@ -273,6 +279,8 @@ export function AuthenticatedChatOverlay() {
             ts: new Date().toISOString(),
             last_user_msg: text.slice(0, 200),
           },
+        }).eq("user_id", user.id).then(() => { notifyProfileUpdated(); });
+
         }).eq("user_id", user.id).then(() => {});
       }
 
@@ -369,10 +377,11 @@ export function AuthenticatedChatOverlay() {
               if (parsed.corrected_slots && typeof parsed.corrected_slots === "object") {
                 setKnownSlots(prev => {
                   const merged = { ...prev, ...parsed.corrected_slots };
-                  supabase.from("profiles").update({ known_slots: merged }).eq("user_id", user!.id).then(() => {});
+                  supabase.from("profiles").update({ known_slots: merged }).eq("user_id", user!.id).then(() => { notifyProfileUpdated(); });
                   return merged;
                 });
               }
+
 
               // Handle phase_suggestion
               if (parsed.phase_suggestion && parsed.phase_suggestion.from && parsed.phase_suggestion.to) {
