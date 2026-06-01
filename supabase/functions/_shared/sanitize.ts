@@ -162,6 +162,7 @@ export function sanitizeAssistantText(
   out = stripVerificationDates(out);
   out = stripInternalScores(out);
   out = stripForbiddenTerms(out);
+  out = stripInternalPaths(out);
   if (opts?.whitelistedDomains) out = sanitizeUrls(out, opts.whitelistedDomains);
   // Clean up double spaces / dangling punctuation left by removals.
   out = out.replace(/ {2,}/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim();
