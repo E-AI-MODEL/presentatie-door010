@@ -250,7 +250,7 @@ export function PublicChatWidget() {
               let pf: FollowUpAction | null = null;
               if (parsedMeta?.primary_followup) pf = parsedMeta.primary_followup;
               if (parsedMeta?.verifiedLinks?.length) {
-                setLatestLinks(parsedMeta.verifiedLinks.slice(0, 3).map((link) => ({ label: link.label, href: link.href })));
+                setLatestLinks(parsedMeta.verifiedLinks.slice(0, 1).map((link) => ({ label: link.label, href: link.href })));
                 turnHasLinks = true;
               }
 
@@ -265,9 +265,10 @@ export function PublicChatWidget() {
               }
               if (pf) turnHasActions = true;
               if (parsed.links && Array.isArray(parsed.links)) {
-                setLatestLinks(parsed.links.slice(0, 3));
+                setLatestLinks(parsed.links.slice(0, 1));
                 turnHasLinks = parsed.links.length > 0;
               }
+
 
               setMessages((prev) => {
                 const updated = [...prev];
@@ -295,7 +296,7 @@ export function PublicChatWidget() {
               offersExternalSearch = offersExternalSearch || parsed.meta.offers_external_search === true || parsed.meta.external_search_offer === true;
               hasExternalResults = hasExternalResults || parsed.meta.has_external_results === true || (typeof parsed.meta.external_results_count === "number" && parsed.meta.external_results_count > 0);
               if (parsed.meta.verified_links && Array.isArray(parsed.meta.verified_links)) {
-                setLatestLinks(parsed.meta.verified_links.slice(0, 3));
+                setLatestLinks(parsed.meta.verified_links.slice(0, 1));
                 turnHasLinks = parsed.meta.verified_links.length > 0;
               }
               setMessages((prev) => {
@@ -315,7 +316,7 @@ export function PublicChatWidget() {
               const pf = parsed.actions[0] ? { label: parsed.actions[0].label, value: parsed.actions[0].value } : null;
               turnHasActions = parsed.actions.length > 0;
               if (parsed.links && Array.isArray(parsed.links)) {
-                setLatestLinks(parsed.links.slice(0, 3));
+                setLatestLinks(parsed.links.slice(0, 1));
                 turnHasLinks = parsed.links.length > 0;
               }
               setMessages((prev) => {

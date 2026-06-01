@@ -29,7 +29,7 @@ const phaseContent: Record<OrientationPhase, {
 }> = {
   interesseren: {
     description:
-      "De interesse voor een functie in het onderwijs is gewekt. Je maakt kennis met het onderwijs als potentiële arbeidsmarkt en ontdekt of het bij je past. In deze fase verken je wat het onderwijs te bieden heeft zonder verplichtingen.",
+      "Hier ontdek je wat een functie in het onderwijs inhoudt. Je maakt vrijblijvend kennis met het werk en kijkt of het bij je past.",
     keyInfo: [
       "Er zijn functies als leraar, onderwijsassistent, schoolleider, instructeur en meer",
       "Sectoren: Primair Onderwijs (PO), Voortgezet Onderwijs (VO), MBO en Speciaal Onderwijs (SO)",
@@ -39,13 +39,13 @@ const phaseContent: Record<OrientationPhase, {
     ],
     links: [
       { label: "Praat met DOORai", href: "/chat", icon: MessageCircle },
-      { label: "Bekijk sectoren", href: "/kennisbank", icon: BookOpen },
+      { label: "Sectoren ontdekken", href: "/kennisbank", icon: BookOpen },
       { label: "Open dagen & events", href: "/events", icon: Calendar },
     ],
   },
   orienteren: {
     description:
-      "Je overweegt of een functie in het onderwijs passend is en onderzoekt hoe de route daarnaartoe eruitziet. Dit is het moment om verschillende opleidingsroutes te vergelijken: Pabo, zij-instroom, PDG, kopopleiding of universitaire lerarenopleiding.",
+      "Je weegt af of het onderwijs bij je past en bekijkt welke routes er zijn. Vergelijk opties zoals Pabo, zij-instroom, PDG, kopopleiding of universitaire lerarenopleiding.",
     keyInfo: [
       "Vergelijk voltijd, deeltijd en zij-instroom trajecten",
       "Met een tweedegraads bevoegdheid mag je lesgeven in vmbo, onderbouw havo/vwo en mbo",
@@ -57,12 +57,12 @@ const phaseContent: Record<OrientationPhase, {
     links: [
       { label: "Routes bekijken", href: "/opleidingen", icon: GraduationCap },
       { label: "Bespreek met DOORai", href: "/chat", icon: MessageCircle },
-      { label: "Kennisbank", href: "/kennisbank", icon: BookOpen },
+      { label: "Meer informatie", href: "/kennisbank", icon: BookOpen },
     ],
   },
   beslissen: {
     description:
-      "Aan het eind van de oriëntatie volgt het beslismoment: je maakt een weloverwogen keuze over je richting. Je weet welke sector je wilt, welke bevoegdheid je nodig hebt en via welke route je dit gaat bereiken.",
+      "Nu maak je een weloverwogen keuze over je richting: welke sector, welke bevoegdheid en via welke route je dat wilt bereiken.",
     keyInfo: [
       "Vraag naar startmomenten bij opleidingen (meestal september of februari)",
       "Bekijk subsidiemogelijkheden zoals de Lerarenbeurs of tegemoetkoming studiekosten",
@@ -72,13 +72,13 @@ const phaseContent: Record<OrientationPhase, {
     ],
     links: [
       { label: "Opleidingen vergelijken", href: "/opleidingen", icon: GraduationCap },
-      { label: "Subsidie-info", href: "/kennisbank", icon: BookOpen },
+      { label: "Subsidie & financiën", href: "/kennisbank", icon: BookOpen },
       { label: "DOORai advies", href: "/chat", icon: MessageCircle },
     ],
   },
   matchen: {
     description:
-      "Wanneer je route bekend is, moet er een geschikte werk- en/of opleidingsplek worden gevonden. Je zoekt actief naar scholen in de regio Rotterdam die passen bij jouw profiel, en je bereidt je voor op het sollicitatieproces.",
+      "Je route is duidelijk, nu zoek je een passende werk- of opleidingsplek. Zoek actief naar scholen in de regio Rotterdam en bereid je sollicitatie voor.",
     keyInfo: [
       "Schrijf je in bij meerdere scholen in de regio Rotterdam",
       "Bezoek banenmarkten en open dagen om werkgevers persoonlijk te ontmoeten",
@@ -94,7 +94,7 @@ const phaseContent: Record<OrientationPhase, {
   },
   voorbereiden: {
     description:
-      "Vóórdat je aan je eerste werk- of opleidingsdag begint, is er van alles te ondernemen. Je regelt praktische zaken, neemt contact op met je toekomstige school of opleiding en bereidt je mentaal voor op de start.",
+      "Vóórdat je aan je eerste werk- of opleidingsdag begint, regel je praktische zaken en neem je contact op met je toekomstige school of opleiding.",
     keyInfo: [
       "Regel je inschrijving bij de opleiding op tijd",
       "Vraag naar een inwerkprogramma bij je nieuwe school",
@@ -103,12 +103,13 @@ const phaseContent: Record<OrientationPhase, {
       "Informeer naar registratie in het lerarenregister",
     ],
     links: [
-      { label: "Praktische zaken", href: "/kennisbank", icon: BookOpen },
+      { label: "Praktische routegids", href: "/kennisbank", icon: BookOpen },
       { label: "Laatste vragen aan DOORai", href: "/chat", icon: MessageCircle },
       { label: "Belangrijke data", href: "/events", icon: Calendar },
     ],
   },
 };
+
 
 export function ProfileTimeline({ userId, currentPhase, preferredSector, testCompleted }: ProfileTimelineProps) {
   const [conversationCount, setConversationCount] = useState(0);

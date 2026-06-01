@@ -14,6 +14,8 @@ import { PhaseConfirmation } from "@/components/chat/PhaseConfirmation";
 import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { parseStructuredMeta } from "@/utils/responsePipeline";
 import { sanitizeClientText } from "@/utils/sanitizeClient";
+import { notifyProfileUpdated } from "@/hooks/useLiveProfile";
+
 import type { StructuredResponse } from "@/utils/responsePipeline";
 import { decideConversationMode } from "@/utils/conversationRouter";
 import type { TurnVisibility } from "@/utils/conversationRouter";
@@ -213,10 +215,14 @@ export function AuthenticatedChatOverlay() {
         const { data, error } = await supabase
           .from("profiles").update(updates).eq("user_id", user.id)
           .select("current_phase, preferred_sector, first_name, bio, test_completed, test_results, known_slots").single();
-        if (!error && data) setProfile(data);
+        if (!error && data) {
+          setProfile(data);
+          notifyProfileUpdated();
+        }
       } catch (e) {
         console.warn("Profile update skipped:", e);
       }
+
     },
     [user, profile],
   );
@@ -273,8 +279,9 @@ export function AuthenticatedChatOverlay() {
             ts: new Date().toISOString(),
             last_user_msg: text.slice(0, 200),
           },
-        }).eq("user_id", user.id).then(() => {});
+        }).eq("user_id", user.id).then(() => { notifyProfileUpdated(); });
       }
+
 
       const phaseTransition = detector.phase_confidence >= 0.70 && detector.phase_current_ui !== currentPhase
         ? { from: currentPhase, to: detector.phase_current_ui }
@@ -359,19 +366,21 @@ export function AuthenticatedChatOverlay() {
                 turnHasActions = parsed.actions.length > 0;
               }
               if (parsed.links && Array.isArray(parsed.links)) {
-                setLatestLinks(parsed.links.slice(0, 3));
+                setLatestLinks(parsed.links.slice(0, 1));
                 turnHasLinks = parsed.links.length > 0;
               }
+
               if (parsed.mode) turnBackendMode = parsed.mode;
 
               // Handle corrected_slots
               if (parsed.corrected_slots && typeof parsed.corrected_slots === "object") {
                 setKnownSlots(prev => {
                   const merged = { ...prev, ...parsed.corrected_slots };
-                  supabase.from("profiles").update({ known_slots: merged }).eq("user_id", user!.id).then(() => {});
+                  supabase.from("profiles").update({ known_slots: merged }).eq("user_id", user!.id).then(() => { notifyProfileUpdated(); });
                   return merged;
                 });
               }
+
 
               // Handle phase_suggestion
               if (parsed.phase_suggestion && parsed.phase_suggestion.from && parsed.phase_suggestion.to) {
@@ -409,7 +418,7 @@ export function AuthenticatedChatOverlay() {
             // Legacy fallback
             if (parsed.actions && Array.isArray(parsed.actions)) {
               setLatestActions(parsed.actions.slice(0, 1));
-              if (parsed.links) setLatestLinks((parsed.links as Array<{ label: string; href: string }>).slice(0, 3));
+              if (parsed.links) setLatestLinks((parsed.links as Array<{ label: string; href: string }>).slice(0, 1));
               continue;
             }
 
@@ -529,13 +538,14 @@ export function AuthenticatedChatOverlay() {
             // Meta payload from homepage-coach (first event)
             if (parsed.meta) {
               if (parsed.meta.actions) {
-                setGeneralActions(parsed.meta.actions.slice(0, 2));
+                setGeneralActions(parsed.meta.actions.slice(0, 1));
                 genHasActions = parsed.meta.actions.length > 0;
               }
               if (parsed.meta.verified_links) {
-                setGeneralLinks(parsed.meta.verified_links.slice(0, 3));
+                setGeneralLinks(parsed.meta.verified_links.slice(0, 1));
                 genHasLinks = parsed.meta.verified_links.length > 0;
               }
+
               genOffersExternalSearch = genOffersExternalSearch || parsed.meta.offers_external_search === true || parsed.meta.external_search_offer === true;
               genHasExternalResults = genHasExternalResults || parsed.meta.has_external_results === true || (typeof parsed.meta.external_results_count === "number" && parsed.meta.external_results_count > 0);
               continue;
@@ -905,30 +915,23 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
-            {/* Reflection warning — only when router allows */}
-            {isPersonal && reflectionWarning && !currentLoading && (turnVisibility?.showReflectionWarning !== false) && (
-              <div className="px-4 pb-2 shrink-0">
-                <div className="text-[10px] text-muted-foreground bg-muted/50 rounded-lg px-3 py-1.5">
-                  ⚠️ Dit antwoord is mogelijk onvolledig of bevat aandachtspunten.
-                </div>
-              </div>
-            )}
-
-            {/* Zekerheids-chip — 1 per antwoord, informatief (niet klikbaar) */}
+            {/* Eén gecombineerde zekerheidsindicator — vervangt aparte warning + chip */}
             {isPersonal && lastConfidence !== null && !currentLoading && (() => {
               const c = lastConfidence;
-              const label = c < 0.55 ? "Twijfel" : c < 0.75 ? "Redelijk zeker" : "Zeker";
+              const showWarning = (turnVisibility?.showReflectionWarning !== false) && reflectionWarning && c < 0.55;
+              const label = c < 0.55 ? "Nog niet zeker" : c < 0.75 ? "Redelijk zeker" : "Zeker";
               const dot = c < 0.55 ? "bg-amber-500" : c < 0.75 ? "bg-muted-foreground/60" : "bg-emerald-500";
               const tip = c < 0.55
-                ? "DoorAI weet nog niet zeker of het jouw situatie goed begrijpt."
+                ? "DoorAI begrijpt jouw situatie nog niet volledig. Vertel iets meer voor een scherper antwoord."
                 : c < 0.75
                 ? "DoorAI baseert dit op wat je tot nu toe deelde."
                 : "DoorAI begrijpt jouw situatie goed.";
+              const extra = showWarning ? " Antwoord mogelijk onvolledig." : "";
               return (
                 <div className="px-4 pb-2 shrink-0">
                   <span
-                    title={tip}
-                    aria-label={`Zekerheid: ${label}. ${tip}`}
+                    title={tip + extra}
+                    aria-label={`Zekerheid: ${label}.${extra} ${tip}`}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 text-[11px] text-muted-foreground cursor-default select-none"
                   >
                     <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
@@ -937,6 +940,7 @@ export function AuthenticatedChatOverlay() {
                 </div>
               );
             })()}
+
 
             {/* Input */}
             <div className="px-4 pb-3 pt-2 border-t border-border shrink-0">

@@ -625,10 +625,11 @@ function assembleContext(
     if (webKnowledge.length > 0) {
       sections.push(`## Verse externe bronnen (laatst opgehaald, leidend bij tegenspraak)\n${webKnowledge.map(k => `- ${k}`).join("\n")}`);
     }
-    // 2. Interne kennisbank
+    // 2. Interne bronnen
     if (faqKnowledge.length > 0) {
-      sections.push(`## Interne kennisbank\n${faqKnowledge.map(k => `- ${k}`).join("\n")}`);
+      sections.push(`## Interne bronnen\n${faqKnowledge.map(k => `- ${k}`).join("\n")}`);
     }
+
     // 3. Basiskennis — alleen als fallback / context
     if (ssotKnowledge.length > 0) {
       sections.push(`## Basiskennis (fallback, gebruik alleen als hierboven niets staat)\n${ssotKnowledge.map(k => `- ${k}`).join("\n")}`);
@@ -699,12 +700,14 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 - Verwijs NOOIT naar UI-elementen in je tekst: niet naar "suggesties", "het menu", "chips", "de knop", "het overzicht hieronder", "via de tegel", "klik op", "kies hieronder", "zie linkjes onder". De gebruiker ziet die elementen al; benoem ze niet.
 - Schrijf NOOIT een intern pad zichtbaar in de tekst (geen "/opleidingen", "/vacatures", "/events", "/kennisbank", "/profile", "/dashboard"), ook niet tussen haakjes.
 - De volgende termen of frasen mag je nooit gebruiken (interne labels of cliché's): ${FORBIDDEN_TERMS.map(t => `"${t}"`).join(", ")}.
+- Noem NOOIT content-vormen als "ervaringsverhalen", "podcasts", "video's", "webinars", "blogs" of vergelijkbaar tenzij een concrete titel of URL voor die vorm letterlijk in de bronnen hieronder staat. Bij twijfel: weglaten.
 
 ## Bronnen en actualiteit (anti-bias)
-- Kennisbronnen krijg je in een vaste volgorde: verse externe bronnen > interne kennisbank > basiskennis. Behandel ze ook in die volgorde.
+- Kennisbronnen krijg je in een vaste volgorde: verse externe bronnen > interne bronnen > basiskennis. Behandel ze ook in die volgorde.
 - Bij tegenspraak: kies de meest recente bron. Verse externe bronnen winnen altijd van basiskennis.
 - Een fragment met "(mogelijk verouderd, ...)" mag je niet als hard feit brengen. Noem dan een range, verwijs door naar de externe bron, of zeg dat het verschilt per moment.
 - Noem nooit interne sectienamen, peildatums of brontypes in je antwoord.
+
 
 ## Links
 - Linkchips verschijnen automatisch onder je antwoord. Herhaal ze NOOIT in de lopende tekst.
@@ -911,8 +914,10 @@ async function resolveSystemPrompt(chatbotKey: string, fallbackPrompt: string): 
 
     if (addons.length === 0) return fallbackPrompt;
 
-    // Append add-ons to the base prompt (never replace)
-    return fallbackPrompt + "\n\n" + addons.join("\n\n");
+    // Sanitize each admin-supplied override before splicing into the prompt
+    const safeAddons = addons.map((a: string) => sanitizeAssistantText(a));
+    return fallbackPrompt + "\n\n" + safeAddons.join("\n\n");
+
   } catch {
     return fallbackPrompt;
   }
@@ -1053,7 +1058,7 @@ Deno.serve(async (req) => {
         existingHrefs.add(fl.href);
       }
     }
-    uiLinks = uiLinks.slice(0, 6);
+    uiLinks = uiLinks.slice(0, 1);
 
     // Step 4: Build text links
     const textLinks = computeTextLinks(faqSourceLinks);
@@ -1274,8 +1279,9 @@ Deno.serve(async (req) => {
             excludeKeys: currentKeys,
           });
 
-          // Convert themes to actions, max 2
-          return themesToActions(themes, 2);
+          // Convert themes to actions, max 1 (chip limit rule)
+          return themesToActions(themes, 1);
+
         }
 
         const followupActions = buildConversationFollowups(phase, slots, intent, detector?.missing_slots || [], lastUserMessage);
@@ -1303,13 +1309,34 @@ Deno.serve(async (req) => {
 
 
 
+        const safePhaseSuggestion = phaseSuggestion
+          ? { ...phaseSuggestion, message: sanitizeAssistantText(String(phaseSuggestion.message || "")) }
+          : undefined;
+
+        // Persist merged known_slots so they survive page refresh
+        try {
+          const authHeader = req.headers.get("Authorization") ?? "";
+          const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+          if (jwt && Object.keys(slots).length > 0) {
+            const adminClient = createAdminClient();
+            const { data: u } = await adminClient.auth.getUser(jwt);
+            const uid = u?.user?.id;
+            if (uid) {
+              await adminClient.from("profiles").update({ known_slots: slots }).eq("user_id", uid);
+            }
+          }
+        } catch (e) {
+          console.warn("[doorai-chat] known_slots persist skipped:", (e as Error).message);
+        }
+
         const uiPayload = JSON.stringify({
           actions: followupActions,
           corrected_slots: Object.keys(correctedSlots).length > 0 ? correctedSlots : undefined,
           links: shouldIncludeLinks ? uiLinks : [],
-          phase_suggestion: phaseSuggestion,
+          phase_suggestion: safePhaseSuggestion,
         });
         await writer.write(enc.encode(`event: ui\ndata: ${uiPayload}\n\n`));
+
       } catch (e) {
         console.error("Stream error:", e);
       } finally {
