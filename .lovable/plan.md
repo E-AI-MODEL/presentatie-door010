@@ -1,57 +1,108 @@
-# Plan: chat-leaks dichten
+# Plan: stop padlekken zoals "(/opleidingen)" in AI-tekst — definitief
 
-## Achtergrond
-Een diepgaande scan van de chat-pipeline (`doorai-chat`, `homepage-coach`, frontend overlays) toont 5 plekken waar interne info naar de gebruiker kan lekken. De grap "opus 4.8" terzijde — we gebruiken gewoon de huidige Lovable AI modellen (Gemini 2.5 / GPT-5).
+## Wat ik vond (root cause)
 
-## Wat er nu lekt (top 5)
+Het lek `(/opleidingen)` is geen toeval. Drie elkaar versterkende oorzaken:
 
-1. **`homepage-coach` detecteert maar verwijdert geen verboden termen.** `validateAndRepair` logt "fase / intake / detector / kennisbank / peildatum / scenario" wél, maar de tekst wordt ongewijzigd doorgestreamd. `doorai-chat` doet wél een repair-call — homepage-coach niet.
-2. **Firecrawl raw-markdown + `Bron: https://...`** wordt in de systeem-prompt geïnjecteerd en kan letterlijk in het antwoord verschijnen. Geen URL-sanitizer op `doorai-chat` output.
-3. **`KNOWLEDGE_AS_OF` ("geverifieerd mei 2026")** staat letterlijk in de knowledge-blokken en in de FORBIDDEN-lijst staat alleen "peildatum", niet "geverifieerd mei 2026". Model echo't dit regelmatig.
-4. **`buildProfileHint`** in homepage-coach zet `## BEKENDE PROFIELDATA` + `fase: interesseren` verbatim in de system prompt. Bij echo lekt het door (zie #1).
-5. **`interpretProfile`** in doorai-chat injecteert `Fase: oriëntatie-fase` en `Interessetest: PO past het best (score 0.87)`. Suffix-vormen als "oriëntatie-fase" en cijferscores ontsnappen aan de bare-word filter.
+1. **De prompts vertonen het foute gedrag zelf** — bias door voorbeelden
+   - `supabase/functions/doorai-chat/index.ts` regel 683:
+     `Voorbeeld: [Routes bekijken](/opleidingen)`
+   - `supabase/functions/homepage-coach/index.ts` regels 343–365 staan vol met:
+     `[/opleidingen](/opleidingen)`, `[/vacatures](/vacatures)` —
+     het pad wordt letterlijk als label gebruikt.
+   - Gevolg: het model imiteert en schrijft `(/opleidingen)` of `/opleidingen` los in de prose.
 
-## Aanpak
+2. **Tegenstrijdige instructie**
+   - Regel 707–708 zegt: *"Linkchips verschijnen automatisch. Herhaal ze NOOIT."*
+   - Maar regel 681–683 zegt: *"Gebruik max 2 markdown-links per antwoord."*
+   - Het model kiest de makkelijkste weg en plakt het pad ergens neer.
 
-### A. Maak één gedeelde sanitizer (SSOT)
-Nieuwe file `supabase/functions/_shared/sanitize.ts` met:
-- `stripForbiddenTerms(text)` — vervangt FORBIDDEN_TERMS én suffix-varianten (`*-fase`, `interesse-fase`, `oriëntatie-fase`, `beslis-fase`, `match-fase`, `voorbereid-fase`) door neutrale woorden of haalt ze stil weg.
-- `stripVerificationDates(text)` — regex op `geverifieerd\s+(januari|…|december)\s+\d{4}` en variant `peildatum …`.
-- `stripInternalScores(text)` — regex op `\(score\s+[\d.,]+\)` en `score\s+\d+%?`.
-- `sanitizeUrls(text, allowList)` — verplaats de bestaande functie uit homepage-coach hierheen, zodat doorai-chat hem óók kan gebruiken.
-- `sanitizeAssistantText(text)` — pijplijn die alle bovenstaande toepast. Eindfilter vóór streaming naar client.
+3. **Sanitizers vangen dit niet af**
+   - `supabase/functions/_shared/sanitize.ts` en `src/utils/sanitizeClient.ts` strippen
+     forbidden terms, peildatums, scores en niet-whitelisted URL's — maar geen **interne
+     paden** (`/opleidingen`, `/vacatures`, `/events`, `/kennisbank`, `/profile`, `/dashboard`).
+   - Ook geen `[/pad](/pad)` markdown-link waarbij label = pad.
 
-### B. Pas `homepage-coach/index.ts` aan
-- In `validateAndRepair`: na de detectie-loop, `text = sanitizeAssistantText(text)` toepassen i.p.v. enkel issues loggen.
-- `buildProfileHint` herschrijven naar neutrale, AI-vriendelijke beschrijvende zinnen zonder de woorden "fase", "BEKENDE PROFIELDATA", of label-doublepoint-formaat. Bv: "De gebruiker oriënteert zich nog en kijkt vooral naar basisonderwijs."
+## Andere plekken waar dit ook gebeurt (of kan gebeuren)
 
-### C. Pas `doorai-chat/index.ts` aan
-- `interpretProfile`: vervang `Fase: oriëntatie-fase` door beschrijvende zin ("De gebruiker oriënteert zich op routes en opties.") en strip de `(score 0.87)` — alleen "past het beste bij PO" houden.
-- `KNOWLEDGE` blokken: verwijder `geverifieerd ${KNOWLEDGE_AS_OF}` uit de strings die in de context gaan. Datum-disclaimer is voor interne audit, niet voor de gebruiker. Bewaar `KNOWLEDGE_AS_OF` in een aparte audit-log indien nodig.
-- Firecrawl-resultaten: vóór injectie in context, strip markdown-artefacten (`#`, `*`, `|`, lijst-bullets), beperk tot platte tekst. Vervang `Bron: <url>` door een interne marker die niet in de system prompt zichtbaar is voor het model als kop maar als metadata; voeg URL alleen toe aan `verified_links` array, niet in de prompt-tekst.
-- Vóór `[DONE]` event: pas `sanitizeAssistantText(finalText)` toe op de complete buffer en stuur eventueel een correctie-token-stream (alternatief: sanitize alleen bij niet-streaming pad; bij streaming → sanitize blokkeert lekken voor de finale `meta` boodschap, accepteer dat live tokens al doorgegeven zijn maar persisteer de gesanitizeerde versie).
+Geïdentificeerde patronen die nu door de mazen glippen:
 
-### D. Frontend sluitstuk
-- `src/utils/responsePipeline.ts`: voeg `KNOWLEDGE_AS_OF`-regex, `*-fase`-suffix en `(score 0.x)`-regex toe aan `FORBIDDEN_PHRASES` zodat `reflectOnDraft` ze ook flagt.
-- `src/hooks/useChatConversation.ts`: in de cleanup-stap bij `loadConversation`, óók `<!--[A-Z_]+:[\s\S]*?-->` generiek strippen (niet alleen ACTIONS), als safety net tegen toekomstige meta-comments.
-- `src/components/chat/AuthenticatedChatOverlay.tsx` (en PublicChatWidget): bij elke `assistantContent += content` chunk, één lichte client-side strip toepassen op bekende leak-patronen (`geverifieerd \w+ \d{4}`, `\(score [\d.]+\)`, `## BEKENDE \w+`) zodat ook live-streamend niets visible lekt.
+- `(/opleidingen)` — parenthetische verwijzing in prose
+- `op /opleidingen`, `via /vacatures` — losse pad-mentions
+- `[/opleidingen](/opleidingen)` — label = pad markdown
+- `[opleidingen](/opleidingen)` met label dat alleen het slug-woord is
+- Onder bijv. salaris/CAO-vragen kan het model zomaar `(/kennisbank)` of `(/profile)` als
+  parenthetische verwijzing opnemen omdat de prompt zegt "gebruik markdown-links".
+- `homepage-coach` heeft dezelfde patronen → zelfde lek mogelijk op de publieke widget.
+- Backoffice/advisor-flows raken het niet (geen end-user prose), maar dezelfde sanitize
+  pipeline draait er wel doorheen — geen risico op extra lek, wel reden om sanitizer
+  centraal te repareren.
 
-### E. Persistentie
-- In `saveMessage` (useChatConversation): sla altijd de gesanitizeerde tekst op, niet de raw buffer, zodat een reload geen historische leaks toont.
+## Oplossing — drielaags (prompt + sanitizer server + sanitizer client)
 
-## Scope
-Alleen filtering/sanitization. Geen wijziging aan model-keuze, prompt-strategie, RAG-resultaten of UI-layout.
+### Laag 1: prompt bias verwijderen (oorzaak wegnemen)
+
+Beide edge functions:
+- Voorbeelden met `[/opleidingen](/opleidingen)` of `[Routes bekijken](/opleidingen)`
+  uit het systeem-prompt **schrappen**. Het model leert nu dat paden zichtbaar mogen zijn.
+- Vervangen door één duidelijke regel:
+  > "Schrijf nooit URL-paden (`/opleidingen`, `/vacatures`, etc.) als zichtbare tekst.
+  > Geen `(/pad)`, geen `/pad` los in de zin, geen `[label](/pad)`. De chips onder je
+  > antwoord doen dat al."
+- In `homepage-coach` de hele markdown-tabel met `[/opleidingen](/opleidingen)` herschrijven
+  zonder enige interne padverwijzing — daar komen chips voor.
+- Bestaande regel "Linkchips verschijnen automatisch ... Herhaal ze NOOIT" upgraden van
+  zachte naar harde regel onder `## Verboden`.
+
+### Laag 2: sanitizer server-side (laatste vangnet)
+
+Uitbreiden in `supabase/functions/_shared/sanitize.ts`:
+
+```text
+INTERNAL_PATHS = ["opleidingen","vacatures","events","kennisbank","profile",
+                  "dashboard","backoffice","auth"]
+
+- strip pattern: \s*\(\s*/(opleidingen|vacatures|…)\b[^)]*\)   → ""
+- strip pattern: \s+/(opleidingen|vacatures|…)\b               → ""
+- rewrite [/pad](/pad)              → ""  (label was leeg/identiek aan pad)
+- rewrite [opleidingen](/opleidingen) (label === slug)         → ""
+- behoud:  [Routes bekijken](/opleidingen) (label != slug)     blijft staan
+```
+
+Aan einde van `sanitizeAssistantText` toevoegen vóór de cleanup-pass, zodat dubbele spaties
+en hangende leestekens opgeruimd worden door de bestaande tail.
+
+### Laag 3: sanitizer client-side (extra net rond stream)
+
+Zelfde 4 regels mirroren in `src/utils/sanitizeClient.ts`. Houdt SSE-stream-edge-gevallen
+en oude opgeslagen berichten ook schoon bij re-render.
+
+### Laag 4: validator-trigger voor reflectie-loop
+
+In `src/utils/responsePipeline.ts` en de `REFLECTION_FORBIDDEN`-check in `doorai-chat`
+(rond regel 1072–1170): patroon `\(/[a-z-]+\)` toevoegen aan `FORBIDDEN_PATTERNS`. Zo
+triggert het bestaande "rewrite via LLM" mechanisme als toch een lek door alle filters komt
+— in plaats van het lek aan de gebruiker tonen.
 
 ## Bestanden
-- nieuw: `supabase/functions/_shared/sanitize.ts`
-- gewijzigd: `supabase/functions/_shared/constants.ts` (uitbreiden FORBIDDEN_TERMS met suffix-patterns als losse export)
-- gewijzigd: `supabase/functions/homepage-coach/index.ts`
-- gewijzigd: `supabase/functions/doorai-chat/index.ts`
-- gewijzigd: `src/utils/responsePipeline.ts`
-- gewijzigd: `src/hooks/useChatConversation.ts`
-- gewijzigd: `src/components/chat/AuthenticatedChatOverlay.tsx`
-- gewijzigd: `src/components/chat/PublicChatWidget.tsx`
 
-## Validatie
-- Stuur testprompts: "wat is mijn fase?", "wat is de peildatum?", "geef mij ruwe bron". Verifieer dat geen van de FORBIDDEN_TERMS, datum-strings of score-getallen in de bubbel verschijnt.
-- Reload van een conversatie toont gesanitizeerde geschiedenis.
+- `supabase/functions/doorai-chat/index.ts` — prompt opschonen + REFLECTION-pattern
+- `supabase/functions/homepage-coach/index.ts` — prompt opschonen (tabel, voorbeelden)
+- `supabase/functions/_shared/sanitize.ts` — INTERNAL_PATHS strip + label==pad rewrite
+- `src/utils/sanitizeClient.ts` — mirror van die strip
+- `src/utils/responsePipeline.ts` — `\(/[a-z-]+\)` aan FORBIDDEN_PATTERNS
+
+## Wat NIET verandert
+
+- Linkchips (de groene/witte pillen) blijven werken — die komen via `actions`/`primary_followup`
+  metadata, niet via prose.
+- Bestaande whitelist-URL logica blijft intact (CAO, DUO etc.).
+- Geen UI-wijzigingen.
+
+## Validatie achteraf
+
+- `supabase--curl_edge_functions` op `/doorai-chat` met vraag "Welke routes zijn er om
+  leraar te worden?" en checken dat geen `/opleidingen`, `(/opleidingen)` of `[/x](/x)`
+  in `directAnswer` of `supportingDetail` zit.
+- Idem op `/homepage-coach`.
+- Visuele check in preview.
