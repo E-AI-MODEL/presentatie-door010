@@ -22,6 +22,24 @@ const FORBIDDEN_BARE = [
   "bekende profieldata",
 ];
 
+const INTERNAL_PATH_SLUGS = [
+  "opleidingen",
+  "vacatures",
+  "events",
+  "kennisbank",
+  "profile",
+  "dashboard",
+  "backoffice",
+  "auth",
+];
+const _PATH_GROUP = `(?:${INTERNAL_PATH_SLUGS.join("|")})`;
+const PARENTHETICAL_PATH_RE = new RegExp(`\\s*\\(\\s*\\/${_PATH_GROUP}\\b[^)]*\\)`, "gi");
+const BARE_PATH_RE = new RegExp(`\\s+\\/${_PATH_GROUP}\\b`, "gi");
+const SLUG_LABEL_LINK_RE = new RegExp(
+  `\\[\\/?${_PATH_GROUP}\\]\\(\\/${_PATH_GROUP}[^)]*\\)`,
+  "gi",
+);
+
 export function sanitizeClientText(text: string): string {
   if (!text) return text;
   let out = text;
@@ -34,6 +52,9 @@ export function sanitizeClientText(text: string): string {
     const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "giu");
     out = out.replace(re, "");
   }
+  out = out.replace(SLUG_LABEL_LINK_RE, "");
+  out = out.replace(PARENTHETICAL_PATH_RE, "");
+  out = out.replace(BARE_PATH_RE, "");
   out = out.replace(/ {2,}/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim();
   return out;
 }

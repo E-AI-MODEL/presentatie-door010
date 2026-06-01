@@ -190,12 +190,15 @@ const FORBIDDEN_PHRASES = [
   "klik op de",
 ];
 
-// Regex-based leaks: phase suffix vormen, internal scores, verification dates.
+// Regex-based leaks: phase suffix vormen, internal scores, verification dates,
+// en interne route-paden die niet in prose horen.
 const FORBIDDEN_PATTERNS: RegExp[] = [
   /\b(interesse|ori[eë]ntatie|orienteer|beslis|beslissings?|match|matching|voorbereid(?:ings?)?)[- ]?fase\b/i,
   /\bfase\s*[:=]\s*[a-zA-ZëéèáâüöïíÉ\-]+/i,
   /\(\s*score[:\s]*[\d.,]+\s*\)/i,
   /\bgeverifieerd\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+\d{4}/i,
+  /\(\s*\/(opleidingen|vacatures|events|kennisbank|profile|dashboard|backoffice|auth)\b[^)]*\)/i,
+  /\[\/?(opleidingen|vacatures|events|kennisbank|profile|dashboard|backoffice|auth)\]\(\/(opleidingen|vacatures|events|kennisbank|profile|dashboard|backoffice|auth)/i,
 ];
 
 export interface ReflectionResult {
