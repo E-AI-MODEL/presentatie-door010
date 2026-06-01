@@ -145,7 +145,7 @@ export default function Auth() {
             <div className="relative mt-auto p-8 space-y-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 <MapPin className="h-3 w-3" />
-                Onderwijsregio Rotterdam
+                ​
               </div>
               <h2 className="text-3xl font-bold text-foreground leading-tight">
                 Jouw eerste stap naar het onderwijs.
@@ -179,7 +179,7 @@ export default function Auth() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
                 <div className="absolute bottom-3 left-4 right-4">
-                  <p className="text-xs font-semibold text-foreground">Onderwijsregio Rotterdam</p>
+                  <p className="text-xs font-semibold text-foreground">​</p>
                   <p className="text-sm font-bold text-foreground">Jouw route naar het onderwijs</p>
                 </div>
               </div>
