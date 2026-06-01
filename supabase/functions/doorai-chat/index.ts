@@ -625,10 +625,11 @@ function assembleContext(
     if (webKnowledge.length > 0) {
       sections.push(`## Verse externe bronnen (laatst opgehaald, leidend bij tegenspraak)\n${webKnowledge.map(k => `- ${k}`).join("\n")}`);
     }
-    // 2. Interne kennisbank
+    // 2. Interne bronnen
     if (faqKnowledge.length > 0) {
-      sections.push(`## Interne kennisbank\n${faqKnowledge.map(k => `- ${k}`).join("\n")}`);
+      sections.push(`## Interne bronnen\n${faqKnowledge.map(k => `- ${k}`).join("\n")}`);
     }
+
     // 3. Basiskennis — alleen als fallback / context
     if (ssotKnowledge.length > 0) {
       sections.push(`## Basiskennis (fallback, gebruik alleen als hierboven niets staat)\n${ssotKnowledge.map(k => `- ${k}`).join("\n")}`);
@@ -699,12 +700,14 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 - Verwijs NOOIT naar UI-elementen in je tekst: niet naar "suggesties", "het menu", "chips", "de knop", "het overzicht hieronder", "via de tegel", "klik op", "kies hieronder", "zie linkjes onder". De gebruiker ziet die elementen al; benoem ze niet.
 - Schrijf NOOIT een intern pad zichtbaar in de tekst (geen "/opleidingen", "/vacatures", "/events", "/kennisbank", "/profile", "/dashboard"), ook niet tussen haakjes.
 - De volgende termen of frasen mag je nooit gebruiken (interne labels of cliché's): ${FORBIDDEN_TERMS.map(t => `"${t}"`).join(", ")}.
+- Noem NOOIT content-vormen als "ervaringsverhalen", "podcasts", "video's", "webinars", "blogs" of vergelijkbaar tenzij een concrete titel of URL voor die vorm letterlijk in de bronnen hieronder staat. Bij twijfel: weglaten.
 
 ## Bronnen en actualiteit (anti-bias)
-- Kennisbronnen krijg je in een vaste volgorde: verse externe bronnen > interne kennisbank > basiskennis. Behandel ze ook in die volgorde.
+- Kennisbronnen krijg je in een vaste volgorde: verse externe bronnen > interne bronnen > basiskennis. Behandel ze ook in die volgorde.
 - Bij tegenspraak: kies de meest recente bron. Verse externe bronnen winnen altijd van basiskennis.
 - Een fragment met "(mogelijk verouderd, ...)" mag je niet als hard feit brengen. Noem dan een range, verwijs door naar de externe bron, of zeg dat het verschilt per moment.
 - Noem nooit interne sectienamen, peildatums of brontypes in je antwoord.
+
 
 ## Links
 - Linkchips verschijnen automatisch onder je antwoord. Herhaal ze NOOIT in de lopende tekst.
