@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, GraduationCap, Calendar, BookOpen, ClipboardCheck, FileUp } from "lucide-react";
+import { Briefcase, GraduationCap, Calendar, BookOpen, ClipboardCheck, FileUp, ArrowUpRight, MessageCircleQuestion } from "lucide-react";
 
 interface ChatAction {
   label: string;
