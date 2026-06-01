@@ -31,6 +31,33 @@ const INTERNAL_HEADER_RE = /^#{1,6}\s*BEKENDE\s+\w+.*$/gim;
 // Firecrawl/markdown artefacts that may pass through when raw markdown is injected.
 const TABLE_PIPE_RE = /\|\s*-{3,}\s*\|/g;
 
+// Interne route-paden die NOOIT als zichtbare prose-tekst mogen lekken.
+// Linkchips renderen die paden al; in de lopende tekst zijn ze altijd ruis.
+const INTERNAL_PATH_SLUGS = [
+  "opleidingen",
+  "vacatures",
+  "events",
+  "kennisbank",
+  "profile",
+  "dashboard",
+  "backoffice",
+  "auth",
+];
+const INTERNAL_PATH_GROUP = `(?:${INTERNAL_PATH_SLUGS.join("|")})`;
+// "(/opleidingen)" of "( /opleidingen?x=1 )" → leeg
+const PARENTHETICAL_PATH_RE = new RegExp(
+  `\\s*\\(\\s*\\/${INTERNAL_PATH_GROUP}\\b[^)]*\\)`,
+  "gi",
+);
+// "op /opleidingen", " via /vacatures" → strip pad (laat voorzetsel staan)
+const BARE_PATH_RE = new RegExp(`\\s+\\/${INTERNAL_PATH_GROUP}\\b`, "gi");
+// [/opleidingen](/opleidingen) of [opleidingen](/opleidingen) → leeg
+// Behoud beschrijvende anchors zoals [Routes bekijken](/opleidingen).
+const SLUG_LABEL_LINK_RE = new RegExp(
+  `\\[\\/?${INTERNAL_PATH_GROUP}\\]\\(\\/${INTERNAL_PATH_GROUP}[^)]*\\)`,
+  "gi",
+);
+
 function stripPhraseCaseInsensitive(text: string, phrase: string): string {
   if (!phrase) return text;
   // Escape regex specials, then match as a whole word where possible.
