@@ -175,7 +175,11 @@ export function InterestTest({
 
       if (error) throw error;
 
+      const { notifyProfileUpdated } = await import("@/hooks/useLiveProfile");
+      notifyProfileUpdated();
+
       onTestComplete(results);
+
       setIsOpen(false);
       toast({
         title: "Test voltooid!",

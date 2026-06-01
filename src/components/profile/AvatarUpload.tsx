@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyProfileUpdated } from "@/hooks/useLiveProfile";
+
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Loader2, User, X } from "lucide-react";
 
@@ -93,7 +95,9 @@ export function AvatarUpload({
       if (updateError) throw updateError;
 
       onAvatarChange(publicUrl);
+      notifyProfileUpdated();
       toast({
+
         title: "Profielfoto geüpload",
         description: "Je nieuwe profielfoto is opgeslagen.",
       });
@@ -126,8 +130,10 @@ export function AvatarUpload({
       if (error) throw error;
 
       onAvatarChange(null);
+      notifyProfileUpdated();
       setPreviewUrl(null);
       toast({
+
         title: "Profielfoto verwijderd",
         description: "Je profielfoto is verwijderd.",
       });

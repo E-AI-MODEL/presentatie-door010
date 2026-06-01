@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyProfileUpdated } from "@/hooks/useLiveProfile";
+
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Upload, Loader2, Check, X, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -99,6 +101,8 @@ export function CVUpload({ userId, currentCVUrl, onCVChange }: CVUploadProps) {
       if (updateError) throw updateError;
 
       onCVChange(publicUrl);
+      notifyProfileUpdated();
+
       toast({
         title: "CV geüpload",
         description: "Je CV is succesvol opgeslagen.",
@@ -131,6 +135,8 @@ export function CVUpload({ userId, currentCVUrl, onCVChange }: CVUploadProps) {
       if (error) throw error;
 
       onCVChange(null);
+      notifyProfileUpdated();
+
       toast({
         title: "CV verwijderd",
         description: "Je CV is verwijderd.",
