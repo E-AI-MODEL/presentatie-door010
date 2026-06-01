@@ -29,7 +29,7 @@ export function HeroSection() {
             transition={{ duration: 0.4 }}
             className="inline-flex items-center gap-2 bg-white/95 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-5"
           >
-            Onderwijsregio Rotterdam
+            ​
           </motion.div>
 
           {/* Main headline - styled like onderwijsloketrotterdam.nl */}
