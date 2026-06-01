@@ -52,6 +52,9 @@ export function sanitizeClientText(text: string): string {
     const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "giu");
     out = out.replace(re, "");
   }
+  out = out.replace(SLUG_LABEL_LINK_RE, "");
+  out = out.replace(PARENTHETICAL_PATH_RE, "");
+  out = out.replace(BARE_PATH_RE, "");
   out = out.replace(/ {2,}/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim();
   return out;
 }
