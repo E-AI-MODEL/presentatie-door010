@@ -949,13 +949,51 @@ Deno.serve(async (req) => {
 
   try {
     const body: RequestBody = await req.json();
-    const { messages, userPhase, userSector, detector, phase_transition, profileMeta } = body;
+    const { messages, userPhase, userSector, detector, phase_transition } = body;
+    let { profileMeta } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const phase = detector?.phase_current || userPhase || "interesseren";
-    const slots = normalizeSlots(detector?.known_slots || {}, userSector);
+    // ── Server-side verse profile fetch ──
+    // Client kan profileMeta meesturen voor latency, maar server overschrijft
+    // altijd met verse DB-data zodat AI nooit op een stale snapshot werkt
+    // (test net afgerond, sector net gewijzigd, fase door advisor aangepast).
+    try {
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      if (jwt) {
+        const adminClient = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        );
+        const { data: userData } = await adminClient.auth.getUser(jwt);
+        const uid = userData?.user?.id;
+        if (uid) {
+          const { data: fresh } = await adminClient
+            .from("profiles")
+            .select("first_name, bio, test_completed, test_results, preferred_sector, current_phase, known_slots")
+            .eq("user_id", uid)
+            .maybeSingle();
+          if (fresh) {
+            profileMeta = {
+              ...(profileMeta ?? {}),
+              first_name: fresh.first_name ?? profileMeta?.first_name ?? null,
+              bio: fresh.bio ?? profileMeta?.bio ?? null,
+              test_completed: fresh.test_completed ?? profileMeta?.test_completed ?? null,
+              test_results: (fresh.test_results as Record<string, unknown> | null) ?? profileMeta?.test_results ?? null,
+              preferred_sector: fresh.preferred_sector ?? profileMeta?.preferred_sector ?? null,
+              current_phase: fresh.current_phase ?? profileMeta?.current_phase ?? null,
+            };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[doorai-chat] server-side profile fetch skipped:", (e as Error).message);
+    }
+
+    const phase = detector?.phase_current || userPhase || profileMeta?.current_phase || "interesseren";
+    const slots = normalizeSlots(detector?.known_slots || {}, userSector || profileMeta?.preferred_sector || undefined);
     const lastUserMessage = truncateInput(
       [...messages].reverse().find(m => m.role === "user")?.content ?? "",
       2000,
