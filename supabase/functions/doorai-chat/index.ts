@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 // ══════════════════════════════════════════════════════════════════════
-// DoorAI CHAT ORCHESTRA v3 — fase-doorstroom + webfallback + SSOT kennis
+// DoorAI CHAT ORCHESTRA v3: orientatie-doorstroom, webfallback, SSOT kennis
 // ══════════════════════════════════════════════════════════════════════
 
 // ─────────────────────────────────────────────────────────────────────

@@ -142,8 +142,7 @@ const INTERNAL_LINKS: Array<VerifiedLink & { keywords: string[] }> = [
   { label: "Routes en opleidingen", href: "/opleidingen", keywords: ["route", "opleiding", "pabo", "zij-instroom", "pdg", "leraar", "studie", "hbo", "wo", "master"] },
   { label: "Vacatures bekijken", href: "/vacatures", keywords: ["vacature", "baan", "werk", "sollicit", "school"] },
   { label: "Events en meelopen", href: "/events", keywords: ["event", "open dag", "webinar", "meelopen", "informatie"] },
-  { label: "Inloggen of registreren", href: "/auth", keywords: ["account", "inlog", "registr", "aanmeld"] },
-  { label: "Dashboard", href: "/dashboard", keywords: ["dashboard", "voortgang", "profiel"] },
+  { label: "Inloggen of registreren", href: "/auth", keywords: ["account", "inlog", "registr", "aanmeld", "dashboard", "voortgang", "profiel"] },
 ];
 
 // Category-to-keyword mapping for intent-based trusted source selection
