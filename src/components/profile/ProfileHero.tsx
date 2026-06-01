@@ -81,9 +81,9 @@ export function ProfileHero(props: ProfileHeroProps) {
               {props.firstName || "Nieuw"} {props.lastName || "Profiel"}
             </h1>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {props.currentPhase && (
+              {props.currentPhase && phaseLabels[props.currentPhase] && (
                 <Badge className="bg-primary/15 text-primary border-0 text-[10px]">
-                  {phaseLabels[props.currentPhase] || props.currentPhase}
+                  {phaseLabels[props.currentPhase]}
                 </Badge>
               )}
               {props.preferredSector && props.preferredSector !== "onbekend" && (
