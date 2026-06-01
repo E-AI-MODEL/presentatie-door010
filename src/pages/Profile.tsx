@@ -182,6 +182,8 @@ export default function Profile() {
 
       if (error) throw error;
 
+      notifyProfileUpdated();
+
       toast({
         title: "Profiel opgeslagen",
         description: "Je wijzigingen zijn succesvol opgeslagen.",
