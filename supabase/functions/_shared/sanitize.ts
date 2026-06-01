@@ -101,6 +101,19 @@ export function stripInternalHeaders(text: string): string {
  * whitelist. Markdown links to whitelisted domains stay intact.
  * Lifted from homepage-coach so doorai-chat can use the same logic.
  */
+export function stripInternalPaths(text: string): string {
+  let out = text;
+  out = out.replace(SLUG_LABEL_LINK_RE, "");
+  out = out.replace(PARENTHETICAL_PATH_RE, "");
+  out = out.replace(BARE_PATH_RE, "");
+  return out;
+}
+
+/**
+ * URL sanitizer — remove external URLs and bare domains that are not in the
+ * whitelist. Markdown links to whitelisted domains stay intact.
+ * Lifted from homepage-coach so doorai-chat can use the same logic.
+ */
 export function sanitizeUrls(text: string, whitelistedDomains: Set<string>): string {
   let result = text.replace(/\(https?:\/\/[^\s)]+\)/g, "");
 
