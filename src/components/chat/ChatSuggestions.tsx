@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, GraduationCap, Calendar, BookOpen, ClipboardCheck, FileUp } from "lucide-react";
+import { Briefcase, GraduationCap, Calendar, BookOpen, ClipboardCheck, FileUp, ArrowUpRight, MessageCircleQuestion } from "lucide-react";
 
 interface ChatAction {
   label: string;
@@ -64,53 +64,69 @@ export function ChatSuggestions({ actions, onActionClick, disabled }: ChatSugges
 
 
       {cards.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {cards.map((card, i) => {
-            const Icon = "icon" in card ? card.icon : null;
-            const isLink = card.type === "link";
+        <div className="space-y-1.5">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Direct naar
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {cards.map((card, i) => {
+              const Icon = "icon" in card ? card.icon : null;
+              const isLink = card.type === "link";
 
-            return (
-              <button
-                key={i}
-                disabled={disabled}
-                onClick={() => {
-                  if (isLink && "path" in card) {
-                    navigate(card.path);
-                  } else if ("value" in card) {
-                    onActionClick(card.value);
-                  }
-                }}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-muted/50 px-4 py-3 text-left transition-colors hover:bg-primary/5 hover:border-primary/30 disabled:opacity-50 group"
-              >
-                {Icon && (
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{card.label}</p>
-                  {"description" in card && (
-                    <p className="text-xs text-muted-foreground truncate">{card.description}</p>
+              return (
+                <button
+                  key={i}
+                  disabled={disabled}
+                  title={isLink ? "Open pagina" : "Start"}
+                  onClick={() => {
+                    if (isLink && "path" in card) {
+                      navigate(card.path);
+                    } else if ("value" in card) {
+                      onActionClick(card.value);
+                    }
+                  }}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-muted/50 px-4 py-3 text-left transition-colors hover:bg-primary/5 hover:border-primary/30 disabled:opacity-50 group"
+                >
+                  {Icon && (
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                      <Icon className="h-4 w-4" />
+                    </div>
                   )}
-                </div>
-              </button>
-            );
-          })}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{card.label}</p>
+                    {"description" in card && (
+                      <p className="text-xs text-muted-foreground truncate">{card.description}</p>
+                    )}
+                  </div>
+                  {isLink && (
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" aria-hidden />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
       {pills.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {pills.map((pill, i) => (
-            <button
-              key={i}
-              onClick={() => "value" in pill && onActionClick(pill.value)}
-              disabled={disabled}
-              className="px-4 py-2 text-sm rounded-full transition-colors border h-10 inline-flex items-center justify-center bg-background border-primary/30 text-primary hover:bg-primary/10 disabled:opacity-50"
-            >
-              <span className="max-w-[260px] truncate">{pill.label}</span>
-            </button>
-          ))}
+        <div className="space-y-1.5">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Vraag verder over…
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {pills.map((pill, i) => (
+              <button
+                key={i}
+                onClick={() => "value" in pill && onActionClick(pill.value)}
+                disabled={disabled}
+                title="Vraag verder"
+                className="px-4 py-2 text-sm rounded-full transition-colors border h-10 inline-flex items-center justify-center gap-1.5 bg-background border-primary/30 text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <MessageCircleQuestion className="h-3.5 w-3.5 opacity-70 shrink-0" aria-hidden />
+                <span className="max-w-[260px] truncate">{pill.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </motion.div>
