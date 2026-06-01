@@ -12,7 +12,8 @@ const PHASE_SUFFIX_RE =
 const PHASE_LABEL_RE = /\bfase\s*[:=]\s*[a-zA-ZëéèáâüöïíÉ\-]+/gi;
 const SCORE_PAREN_RE = /\s*\(\s*score[:\s]*[\d.,]+\s*\)/gi;
 const VERIFICATION_DATE_RE =
-  /,?\s*\(?\s*geverifieerd\s+(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)\s+\d{4}\s*\)?/gi;
+  /,?\s*\(?\s*(?:geverifieerd|laatst gecheckt|mogelijk verouderd,?\s*laatst gecheckt)\s+[^)]*?\d{4}\s*\)?/gi;
+
 const INTERNAL_HEADER_RE = /^#{1,6}\s*BEKENDE\s+\w+.*$/gim;
 const FORBIDDEN_BARE = [
   "peildatum",
@@ -20,7 +21,13 @@ const FORBIDDEN_BARE = [
   "achtergrondinformatie",
   "dynamische context",
   "bekende profieldata",
+  "fase",
+  "intake",
+  "slot",
+  "detector",
+  "scenario",
 ];
+
 
 const INTERNAL_PATH_SLUGS = [
   "opleidingen",
