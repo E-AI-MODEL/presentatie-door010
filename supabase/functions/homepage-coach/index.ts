@@ -477,7 +477,7 @@ Deno.serve(async (req) => {
         { label: "Bevoegdheid", value: "Welk papiertje heb ik nodig om voor de klas te staan?" },
         { label: "Eerste stap", value: "Waar zou ik moeten beginnen?" },
       ];
-      return [...fallbackPool].sort(() => Math.random() - 0.5).slice(0, 2);
+      return [...fallbackPool].sort(() => Math.random() - 0.5).slice(0, 1);
     }
 
     const actions = buildActions();
