@@ -56,37 +56,13 @@ const sectorLabels: Record<string, string> = {
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { profile: rawProfile, loading } = useLiveProfile<any>(user?.id, "*");
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth?redirect=dashboard");
     }
   }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-
-      if (error) console.error("Error fetching profile:", error);
-      setProfile(data ? { ...data, known_slots: parseKnownSlots(data.known_slots) } : null);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (authLoading || loading) {
     return (
@@ -100,6 +76,10 @@ export default function Dashboard() {
   }
 
   if (!user) return null;
+
+  const profile: Profile | null = rawProfile
+    ? { ...rawProfile, known_slots: parseKnownSlots(rawProfile.known_slots) }
+    : null;
 
   const currentPhase = profile?.current_phase || "interesseren";
   const phaseInfo = phaseData[currentPhase];
