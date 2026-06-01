@@ -213,7 +213,7 @@ async function computePublicLinks(
     matched.push({ label: "Routes en opleidingen", href: "/opleidingen" });
   }
 
-  return matched.slice(0, 3);
+  return matched.slice(0, 1);
 }
 
 // ── URL sanitizer for answer text ─────────────────────────────
@@ -461,12 +461,13 @@ Deno.serve(async (req) => {
         ];
         // shuffle + pak 2 → varieert per begroeting
         const shuffled = [...greetingPool].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 2);
+        return shuffled.slice(0, 1);
       }
 
       const currentKeys = detectCurrentThemeKeys(lastUserMsg);
       const themes = publicThemes(allUserMsgs, currentKeys);
-      const actions = themesToActions(themes, 2);
+      const actions = themesToActions(themes, 1);
+
 
       if (actions.length > 0) return actions;
 

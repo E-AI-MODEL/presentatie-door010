@@ -250,7 +250,7 @@ export function PublicChatWidget() {
               let pf: FollowUpAction | null = null;
               if (parsedMeta?.primary_followup) pf = parsedMeta.primary_followup;
               if (parsedMeta?.verifiedLinks?.length) {
-                setLatestLinks(parsedMeta.verifiedLinks.slice(0, 3).map((link) => ({ label: link.label, href: link.href })));
+                setLatestLinks(parsedMeta.verifiedLinks.slice(0, 1).map((link) => ({ label: link.label, href: link.href })));
                 turnHasLinks = true;
               }
 
@@ -265,9 +265,10 @@ export function PublicChatWidget() {
               }
               if (pf) turnHasActions = true;
               if (parsed.links && Array.isArray(parsed.links)) {
-                setLatestLinks(parsed.links.slice(0, 3));
+                setLatestLinks(parsed.links.slice(0, 1));
                 turnHasLinks = parsed.links.length > 0;
               }
+
 
               setMessages((prev) => {
                 const updated = [...prev];

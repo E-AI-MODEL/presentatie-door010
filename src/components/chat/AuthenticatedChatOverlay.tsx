@@ -359,9 +359,10 @@ export function AuthenticatedChatOverlay() {
                 turnHasActions = parsed.actions.length > 0;
               }
               if (parsed.links && Array.isArray(parsed.links)) {
-                setLatestLinks(parsed.links.slice(0, 3));
+                setLatestLinks(parsed.links.slice(0, 1));
                 turnHasLinks = parsed.links.length > 0;
               }
+
               if (parsed.mode) turnBackendMode = parsed.mode;
 
               // Handle corrected_slots
@@ -529,13 +530,14 @@ export function AuthenticatedChatOverlay() {
             // Meta payload from homepage-coach (first event)
             if (parsed.meta) {
               if (parsed.meta.actions) {
-                setGeneralActions(parsed.meta.actions.slice(0, 2));
+                setGeneralActions(parsed.meta.actions.slice(0, 1));
                 genHasActions = parsed.meta.actions.length > 0;
               }
               if (parsed.meta.verified_links) {
-                setGeneralLinks(parsed.meta.verified_links.slice(0, 3));
+                setGeneralLinks(parsed.meta.verified_links.slice(0, 1));
                 genHasLinks = parsed.meta.verified_links.length > 0;
               }
+
               genOffersExternalSearch = genOffersExternalSearch || parsed.meta.offers_external_search === true || parsed.meta.external_search_offer === true;
               genHasExternalResults = genHasExternalResults || parsed.meta.has_external_results === true || (typeof parsed.meta.external_results_count === "number" && parsed.meta.external_results_count > 0);
               continue;
