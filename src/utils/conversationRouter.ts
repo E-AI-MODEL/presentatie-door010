@@ -1,19 +1,9 @@
-// ═══════════════════════════════════════════════════════════════════
-// Conversation Router — per-turn mode decision + visibility rules
-// Keeps one dominant mode per assistant turn to prevent UI stacking
-// ═══════════════════════════════════════════════════════════════════
-
-// ── Personal pipeline modes ──────────────────────────────────────
+// Per-turn mode decision + visibility rules.
+// This file stays backward-compatible while chat rendering moves to turn artifacts.
 
 export type PersonalMode = "answer" | "clarify" | "guide" | "phase_transition";
-
-// ── General pipeline modes ───────────────────────────────────────
-
 export type GeneralMode = "internal_answer" | "offer_external_search" | "external_result" | "clarify";
-
 export type ConversationMode = PersonalMode | GeneralMode;
-
-// ── Visibility output ────────────────────────────────────────────
 
 export interface TurnVisibility {
   mode: ConversationMode;
@@ -23,17 +13,13 @@ export interface TurnVisibility {
   showReflectionWarning: boolean;
 }
 
-// ── Signals from the current turn ────────────────────────────────
-
 export interface PersonalTurnSignals {
   pipeline: "personal";
   hasActions: boolean;
   hasLinks: boolean;
   hasPhaseSuggestion: boolean;
   hasReflectionWarning: boolean;
-  /** The backend-returned answer_type or mode hint, if any */
   backendMode?: string;
-  /** Whether the assistant content looks like a short clarifying question */
   assistantContentShort: boolean;
 }
 
@@ -41,43 +27,27 @@ export interface GeneralTurnSignals {
   pipeline: "general";
   hasActions: boolean;
   hasLinks: boolean;
-  /** Whether the response includes external/local results */
   hasExternalResults: boolean;
-  /** Whether the backend signalled an external search offer */
   offersExternalSearch: boolean;
   assistantContentShort: boolean;
 }
 
 export type TurnSignals = PersonalTurnSignals | GeneralTurnSignals;
 
-// ── Classify personal mode ───────────────────────────────────────
-
 function classifyPersonalMode(s: PersonalTurnSignals): PersonalMode {
-  // Phase transition takes full priority
   if (s.hasPhaseSuggestion) return "phase_transition";
-
-  // Backend explicitly said clarify / handoff
   if (s.backendMode === "clarify_batch" || s.backendMode === "handoff") return "clarify";
-
-  // Has actions but no links → guide
   if (s.hasActions && !s.hasLinks) return "guide";
-
-  // Short assistant reply with no actions/links = likely clarification
   if (s.assistantContentShort && !s.hasActions && !s.hasLinks) return "clarify";
-
   return "answer";
 }
 
-// ── Classify general mode ────────────────────────────────────────
-
 function classifyGeneralMode(s: GeneralTurnSignals): GeneralMode {
-  if (s.assistantContentShort && !s.hasLinks && !s.hasExternalResults) return "clarify";
   if (s.offersExternalSearch) return "offer_external_search";
   if (s.hasExternalResults) return "external_result";
+  if (s.assistantContentShort && !s.hasActions && !s.hasLinks && !s.hasExternalResults) return "clarify";
   return "internal_answer";
 }
-
-// ── Visibility rules per mode ────────────────────────────────────
 
 const PERSONAL_RULES: Record<PersonalMode, Omit<TurnVisibility, "mode">> = {
   answer: {
@@ -114,7 +84,7 @@ const GENERAL_RULES: Record<GeneralMode, Omit<TurnVisibility, "mode">> = {
     showReflectionWarning: false,
   },
   offer_external_search: {
-    showActionChip: true,   // the offer itself is the action
+    showActionChip: true,
     showLinkChip: false,
     showPhaseSuggestion: false,
     showReflectionWarning: false,
@@ -133,14 +103,11 @@ const GENERAL_RULES: Record<GeneralMode, Omit<TurnVisibility, "mode">> = {
   },
 };
 
-// ── Main entry point ─────────────────────────────────────────────
-
 export function decideConversationMode(signals: TurnSignals): TurnVisibility {
   if (signals.pipeline === "personal") {
     const mode = classifyPersonalMode(signals);
     return { mode, ...PERSONAL_RULES[mode] };
   }
-
   const mode = classifyGeneralMode(signals);
   return { mode, ...GENERAL_RULES[mode] };
 }
