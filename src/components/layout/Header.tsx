@@ -332,15 +332,7 @@ export function Header() {
                         className="px-4 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors flex items-center gap-2"
                       >
                         <User className="h-3.5 w-3.5" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        to="/profile"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="px-4 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors flex items-center gap-2"
-                      >
-                        <User className="h-3.5 w-3.5" />
-                        Mijn profiel
+                        Mijn hub
                       </Link>
                       <button
                         type="button"
