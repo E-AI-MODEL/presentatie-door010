@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PublicChatWidget } from "@/components/chat/PublicChatWidget";
-import { AuthenticatedChatOverlay } from "@/components/chat/AuthenticatedChatOverlay";
+import { AuthenticatedChatOverlayV2 as AuthenticatedChatOverlay } from "@/components/chat/AuthenticatedChatOverlayV2";
 import Index from "./pages/Index";
 import Demo from "./pages/Demo";
 import Vacatures from "./pages/Vacatures";
