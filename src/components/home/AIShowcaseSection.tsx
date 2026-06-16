@@ -9,7 +9,7 @@ const components = [
     title: "DOORai Coach",
     badge: "Direct antwoord",
     description:
-      "Stel je vraag over zij-instroom, opleidingen of salaris. Je krijgt meteen een persoonlijk antwoord met de juiste vervolgstap.",
+      "We begrijpen dat elke stap dichterbij het klaslokaal zijn eigen vragen heeft. Om beter te helpen kan DOORAI de meest gestelde vragen beantwoorden.\u00a0",
     cta: { label: "Open de coach", action: "chat" as const },
   },
   {
@@ -25,7 +25,7 @@ const components = [
     title: "Agenda & Vacatures",
     badge: "Altijd actueel",
     description:
-      "Events en vacatures worden automatisch opgehaald uit betrouwbare bronnen. Altijd vers, altijd relevant.",
+      "Events en vacatures worden automatisch opgehaald uit gecontroleerde bronnen. Zo blijf je altijd up to date.\u00a0",
     cta: { label: "Bekijk agenda", href: "/events" },
   },
 ];
@@ -39,7 +39,7 @@ export function AIShowcaseSection() {
             Alles wat je nodig hebt voor <span className="text-primary">jouw route</span>
           </h2>
           <p className="text-muted-foreground">
-            Drie sterke tools die samen werken om je stap voor stap te begeleiden naar een baan in het onderwijs.
+            De drie belangrijkste functies om je stap voor stap te begeleiden naar een baan in het onderwijs zijn hieronder te vinden.\u00a0
           </p>
         </div>
 

@@ -8,7 +8,6 @@ const footerLinks = {
     { name: "Events", href: "/events" },
   ],
   route: [
-    { name: "Account maken", href: "/auth" },
     { name: "Dashboard", href: "/dashboard" },
   ],
 };
@@ -33,7 +32,7 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-sm text-secondary-foreground/70 max-w-xs">
-              Van eerste oriëntatie tot instroom in het onderwijs — persoonlijk begeleid door AI.
+              {"\n"}
             </p>
           </div>
 
