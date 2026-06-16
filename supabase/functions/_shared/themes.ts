@@ -108,7 +108,7 @@ export function deriveThemes(opts: {
 export function detectCurrentThemeKeys(userMessage: string): string[] {
   const msg = userMessage.toLowerCase();
   const keys: string[] = [];
-  if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) keys.push("route");
+  if (/(route|traject|pad|opleiding|zij-instroom|zij instroom|hoe word|leraar word|eerste stap)/.test(msg)) keys.push("route");
   if (/(vacature|baan|werk|school)/.test(msg)) keys.push("vacatures");
   if (/(salaris|verdien|loon|cao)/.test(msg)) keys.push("salaris");
   if (/(kosten|collegegeld|subsidie|financier|gratis)/.test(msg)) keys.push("kosten");
@@ -135,7 +135,7 @@ export function publicThemes(userMessage: string, excludeKeys: string[] = []): T
   }
 
   if (DOUBT_RE.test(msg)) add("keuzehulp");
-  if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) add("route");
+  if (/(route|traject|pad|opleiding|zij-instroom|zij instroom|hoe word|leraar word|eerste stap)/.test(msg)) add("route");
   if (/(vacature|baan|werk|school)/.test(msg)) add("vacatures");
   if (/(salaris|verdien|loon|cao)/.test(msg)) add("salaris");
   if (/(kosten|collegegeld|subsidie|financier|gratis)/.test(msg)) add("kosten");

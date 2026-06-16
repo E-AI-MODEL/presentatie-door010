@@ -73,6 +73,16 @@ function clean(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function comparableText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function stableId(prefix: string, value: string): string {
   const slug = value
     .toLowerCase()
@@ -124,13 +134,13 @@ export function normalizeTurnArtifacts(meta: RawTurnMeta): ChatTurnArtifact[] {
     });
   } else {
     const questions: ChatQuestionArtifact[] = [];
-    const primary = normalizeAction(meta.primary_followup);
+    const primary = normalizeAction(meta.primary_followup, userMessage);
     if (primary) questions.push(primary);
-    const secondary = normalizeAction(meta.secondary_action);
+    const secondary = normalizeAction(meta.secondary_action, userMessage);
     if (secondary) questions.push(secondary);
     for (const raw of meta.actions ?? []) {
       if (questions.length >= 2) break;
-      const a = normalizeAction(raw);
+      const a = normalizeAction(raw, userMessage);
       if (a) questions.push(a);
     }
     artifacts.push(...questions.slice(0, 2));
@@ -152,12 +162,14 @@ export function normalizeTurnArtifacts(meta: RawTurnMeta): ChatTurnArtifact[] {
   return dedupeArtifacts(artifacts);
 }
 
-function normalizeAction(raw: unknown): ChatQuestionArtifact | null {
+function normalizeAction(raw: unknown, userMessage = ""): ChatQuestionArtifact | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
   const label = clean(obj.label);
   const value = clean(obj.value) || clean(obj.href);
   if (!label || !value) return null;
+  const asked = comparableText(userMessage);
+  if (asked && (comparableText(label) === asked || comparableText(value) === asked)) return null;
 
   return {
     kind: "question",
@@ -237,8 +249,10 @@ function dedupeArtifacts(artifacts: ChatTurnArtifact[]): ChatTurnArtifact[] {
   const questions: ChatQuestionArtifact[] = [];
   const sources: ChatSourceArtifact[] = [];
   for (const a of artifacts) {
-    if (a.kind === "question" && questions.length < 2 && !seen.has(a.id)) {
-      seen.add(a.id);
+    if (a.kind === "question" && questions.length < 2) {
+      const key = comparableText(a.value) || comparableText(a.label) || a.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
       questions.push(a);
     } else if (a.kind === "source" && sources.length < 2 && !seen.has(a.id)) {
       seen.add(a.id);
