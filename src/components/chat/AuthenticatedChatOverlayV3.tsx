@@ -61,7 +61,23 @@ const fallbackArtifacts = (userMessage: string) => normalizeTurnArtifacts({
   },
 });
 
-function metaToArtifacts(payload: unknown, userMessage: string): Partial<ChatMessage> {
+function collectExcludeTexts(history: ChatMessage[]): string[] {
+  const out: string[] = [];
+  for (const m of history) {
+    if (m.role === "user" && m.content) out.push(m.content);
+    if (m.role === "assistant" && Array.isArray(m.artifacts)) {
+      for (const a of m.artifacts) {
+        if (a.kind === "question") {
+          if (a.label) out.push(a.label);
+          if (a.value) out.push(a.value);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function metaToArtifacts(payload: unknown, userMessage: string, excludeTexts: string[] = []): Partial<ChatMessage> {
   if (!payload || typeof payload !== "object") return {};
   const parsed = payload as Record<string, unknown>;
   if (Array.isArray(parsed.artifacts)) return { artifacts: parsed.artifacts as ChatTurnArtifact[] };
@@ -70,6 +86,7 @@ function metaToArtifacts(payload: unknown, userMessage: string): Partial<ChatMes
   const structured = parseStructuredMeta(source);
   const artifacts = normalizeTurnArtifacts({
     user_message: userMessage,
+    exclude_texts: excludeTexts,
     actions: Array.isArray(source.actions) ? source.actions as Array<{ label?: string; value?: string; href?: string }> : undefined,
     links: Array.isArray(source.links) ? source.links as Array<{ label?: string; href?: string }> : undefined,
     verified_links: Array.isArray(source.verified_links)
@@ -83,6 +100,7 @@ function metaToArtifacts(payload: unknown, userMessage: string): Partial<ChatMes
   });
   return { structured, artifacts };
 }
+
 
 export function AuthenticatedChatOverlayV3() {
   const { user } = useAuth();
@@ -104,6 +122,11 @@ export function AuthenticatedChatOverlayV3() {
   ]);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [generalLoading, setGeneralLoading] = useState(false);
+  const personalMessagesRef = useRef<ChatMessage[]>(personalMessages);
+  const generalMessagesRef = useRef<ChatMessage[]>(generalMessages);
+  personalMessagesRef.current = personalMessages;
+  generalMessagesRef.current = generalMessages;
+
   // Topic-burgermenu — default open in persoonlijke chat (per project-memory).
   // Sessie-persistent zodat hij niet steeds terugkomt na sluiten.
   const [topicsOpen, setTopicsOpen] = useState<boolean>(() => {
@@ -218,7 +241,12 @@ export function AuthenticatedChatOverlayV3() {
           const parsed = JSON.parse(data);
           const isMeta = eventType === "turn_meta" || eventType === "ui" || eventType === "reflection" || parsed.meta || parsed.actions || parsed.links || parsed.artifacts;
           if (isMeta) {
-            const patch = metaToArtifacts(parsed, userMessage);
+            const history = mode === "personal" ? personalMessagesRef.current : generalMessagesRef.current;
+            // Sluit eerder getoonde chips én eerdere user-vragen uit zodat de AI niet
+            // dezelfde micro-vraag voor de tweede of derde keer voorstelt.
+            const excludeTexts = collectExcludeTexts(history.slice(0, -1));
+            const patch = metaToArtifacts(parsed, userMessage, excludeTexts);
+
             if (patch.artifacts && patch.artifacts.length > 0) hasArtifacts = true;
             if (patch.artifacts || patch.structured) patchLastAssistant(mode, patch);
             eventType = "";
