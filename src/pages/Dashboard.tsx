@@ -298,7 +298,7 @@ export default function Dashboard() {
                   <div className="rounded-2xl border border-border/40 bg-card/50 overflow-hidden">
                     <div className="px-4 pt-4 pb-2">
                       <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                        Onderwerpen
+                        PROMPT BIBLIOTHEEK
                       </h3>
                     </div>
                     <TopicMenu
