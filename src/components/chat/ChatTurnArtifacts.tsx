@@ -30,8 +30,8 @@ export function ChatTurnArtifacts({
   if (artifacts.length === 0) return null;
 
   const decision = artifacts.find((a): a is ChatDecisionArtifact => a.kind === "decision");
-  const question = artifacts.find((a): a is ChatQuestionArtifact => a.kind === "question");
-  const source = artifacts.find((a): a is ChatSourceArtifact => a.kind === "source");
+  const questions = artifacts.filter((a): a is ChatQuestionArtifact => a.kind === "question").slice(0, 2);
+  const sources = artifacts.filter((a): a is ChatSourceArtifact => a.kind === "source").slice(0, 2);
   const status = artifacts.find((a): a is ChatStatusArtifact => a.kind === "status");
 
   return (
@@ -46,10 +46,12 @@ export function ChatTurnArtifacts({
         />
       ) : (
         <div className="flex flex-wrap gap-1.5">
-          {question && (
-            <QuestionButton artifact={question} onAsk={onAsk} disabled={disabled} compact={compact} />
-          )}
-          {source && <SourceLink artifact={source} compact={compact} />}
+          {questions.map((q) => (
+            <QuestionButton key={q.id} artifact={q} onAsk={onAsk} disabled={disabled} compact={compact} />
+          ))}
+          {sources.map((s) => (
+            <SourceLink key={s.id} artifact={s} compact={compact} />
+          ))}
         </div>
       )}
 
