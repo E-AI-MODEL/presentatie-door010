@@ -434,11 +434,42 @@ export default function Backoffice() {
               </span>
             </div>
             <div className="ml-auto flex items-center gap-1">
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-2 h-7 rounded-md border border-border/60 bg-background/50"
+                title={
+                  liveStatus === 'live'
+                    ? 'Live — wijzigingen verschijnen automatisch'
+                    : liveStatus === 'connecting'
+                    ? 'Verbinden met live-stream…'
+                    : 'Live-verbinding verbroken — gebruik handmatig verversen'
+                }
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    liveStatus === 'live'
+                      ? 'bg-emerald-500 animate-pulse'
+                      : liveStatus === 'connecting'
+                      ? 'bg-amber-500'
+                      : 'bg-destructive'
+                  }`}
+                />
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                  {liveStatus === 'live' ? 'Live' : liveStatus === 'connecting' ? '…' : 'Off'}
+                </span>
+              </div>
               <Button variant="ghost" size="sm" onClick={() => setKpiOpen(v => !v)} className="h-7 text-xs gap-1 hidden sm:inline-flex">
                 {kpiOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 Overzicht
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-7 w-7" aria-label="Verversen">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="h-7 w-7 opacity-60 hover:opacity-100"
+                aria-label="Handmatig verversen"
+                title="Handmatig verversen (niet meer nodig zolang Live aanstaat)"
+              >
                 <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               </Button>
             </div>
