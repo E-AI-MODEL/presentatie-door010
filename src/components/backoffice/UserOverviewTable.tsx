@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,15 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PhaseStatusBar } from "./PhaseStatusBar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  Users, 
-  Search, 
-  Phone,
-  MessageCircle,
-  FileText,
-  Download,
-  ClipboardCheck,
-  User
+import {
+  Users, Search, Phone, MessageCircle, FileText, Download, ClipboardCheck, User,
+  ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
