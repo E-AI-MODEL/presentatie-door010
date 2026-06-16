@@ -504,7 +504,7 @@ function TopicGroupSection({ group, onSendMessage, defaultOpen }: { group: Topic
         <span className={`h-6 w-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${open ? "bg-primary/10 text-primary" : "bg-muted/60 text-muted-foreground"}`}>
           <Icon className="h-3 w-3" />
         </span>
-        <span className="flex-1 text-[13px] font-medium text-foreground leading-tight">{group.title}</span>
+        <span className="flex-1 text-[13px] font-medium text-foreground leading-tight">{group.title === "Jouw profiel" ? "Op basis van jouw profiel" : group.title}</span>
         <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground/60 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence initial={false}>
