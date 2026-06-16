@@ -105,11 +105,21 @@ function extractSlots(text: string, base: KnownSlots): KnownSlots {
   if (!next.duration_info && /(duur|hoe lang|tijd|looptijd|2 jaar|4 jaar)/.test(t)) next.duration_info = "asked";
   if (!next.admission_requirements && /(toelating|eisen|vooropleiding|diploma|geschiktheid)/.test(t)) next.admission_requirements = "asked";
 
-  // Interesse rol
+  // Interesse rol — accepteer zowel NL-prose als canonieke chip-codes
+  // (server normaliseert intern naar leraar/leerlingenzorg/instructeur,
+  // chips sturen die codes terug; client moet ze hier herkennen).
   if (!next.role_interest) {
-    if (/(lesgeven|voor de klas|docent|leraar)/.test(t)) next.role_interest = "lesgeven";
-    else if (/(begeleiden|mentor|coach|ondersteunen)/.test(t)) next.role_interest = "begeleiding";
-    else if (/(vak|expertise|instructeur|praktijk|specialist|vak inzetten)/.test(t)) next.role_interest = "vakexpertise";
+    if (/(lesgeven|voor de klas|docent|\bleraar\b)/.test(t)) next.role_interest = "lesgeven";
+    else if (/(begeleiden|mentor|coach|ondersteunen|leerlingbegeleiding|leerlingenzorg)/.test(t)) next.role_interest = "begeleiding";
+    else if (/(\bvak\b|expertise|instructeur|praktijk|specialist|vakexpertise)/.test(t)) next.role_interest = "vakexpertise";
+  }
+
+  // Credential goal — chip-codes po_bevoegdheid / verkennen + NL-vormen
+  if (!next.credential_goal) {
+    if (/(po[_\s-]?bevoegdheid|pabo|basisonderwijs.bevoeg)/.test(t)) next.credential_goal = "po_bevoegdheid";
+    else if (/(tweedegraads|\bvo\b.bevoeg)/.test(t)) next.credential_goal = "tweedegraads";
+    else if (/(eerstegraads|master.educatie)/.test(t)) next.credential_goal = "eerstegraads";
+    else if (/(verkennen|nog niet zeker|oriënteren|orienteren|weet ik nog niet)/.test(t)) next.credential_goal = "verkennen";
   }
 
   // Next step
