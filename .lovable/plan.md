@@ -1,66 +1,54 @@
 ## Doel
+De "Vernieuwen"-knop in /backoffice is nu nodig omdat alleen `profiles` realtime streamt. Appointments, conversations en messages updaten pas na een handmatige refresh. We maken alles auto-streamend zodat de knop overbodig wordt (we laten 'm wel staan als noodknop, maar discreet).
 
-`/backoffice` veel compacter en interactiever maken: alles inklapbaar, korter, en met de functies die nu ontbreken (afspraak inplannen vanuit advisor, vollere gesprekken-tab, dichtere bronnen-tab). Whitelist-koppeling met de persoonlijke chat ook expliciet zichtbaar.
+## Wat er nu wel/niet streamt
+- Streamt al: `profiles` (insert/update) in `Backoffice.tsx`, en `messages` per geopend gesprek in `AdvisorChatPanel.tsx`.
+- Streamt niet: `appointments` (KPI "openstaande afspraken", AppointmentsTab, kandidaat-detail), `conversations` / laatste-bericht-preview in de chatlijst, ongelezen-tellers, advisor notes op andere kandidaten dan de geopende.
 
-## Bevestigd uit codebase
+## Aanpak
 
-- `trusted_sources` wordt al actief gebruikt in `supabase/functions/doorai-chat/index.ts` (regel 330 = filter externe links; regel 523 = ophalen voor Firecrawl). Whitelist is dus écht aangesloten op de persoonlijke chat. We maken dit alleen zichtbaar in de UI.
-- `appointments`-tabel bestaat al met `user_id, subject, message, preferred_date, preferred_time, status` — nieuwe afspraak is een simpele `insert`.
-- Test-kandidaat = `test@doorai.nl` (huidig admin-login én demo-kandidaat). Voor "altijd in agenda van het gebruikersprofiel" matchen we op dat e-mailadres.
+### 1. Realtime aanzetten op de ontbrekende tabellen (migratie)
+Toevoegen aan `supabase_realtime` publication, en `REPLICA IDENTITY FULL` zodat updates volledige rijen meesturen:
+- `public.appointments`
+- `public.conversations`
+- `public.messages` (mocht 'ie er nog niet inzitten)
 
-## Wijzigingen
+Alleen toevoegen als ze er nog niet in zitten (idempotent via `pg_publication_tables`-check).
 
-### 1. Overzicht — kandidaten compact en groepeerbaar
-- `UserOverviewTable`: 
-  - Filters in `<details>` (default dichtgeklapt, opent met aantal actieve filters als badge).
-  - Tabel-rijen 32px hoog (was ~64): avatar 24px, één regel naam + email, fase-pill ipv volledige `PhaseStatusBar`, documenten als 2 dots.
-  - Nieuw: **groepeer-toggle** "Per fase" — toont 5 collapsible groepen (Interesseren, Oriënteren, Beslissen, Matchen, Voorbereiden) elk met count + chevron, default 1e groep open.
-  - "Compact / Comfort"-switch in de toolbar.
+### 2. Realtime-kanaal uitbreiden in `src/pages/Backoffice.tsx`
+Het bestaande `backoffice-profiles` kanaal uitbreiden met extra listeners:
+- `appointments` INSERT/UPDATE/DELETE -> `checkAccessAndFetchData()` (debounced ~400ms)
+- `conversations` INSERT/UPDATE -> idem
+- `messages` INSERT -> idem (voor ongelezen-tellers en laatste-bericht-preview in de chatlijst)
 
-### 2. Afspraken — advisor kan zelf inplannen
-- Nieuwe knop **"Afspraak inplannen"** rechtsboven in de Afspraken-sectie.
-- Dialog met: kandidaat-select (default = `test@doorai.nl`, zoekbaar), onderwerp, datum (Calendar popover), tijd (Input type=time), notitie. Status = `confirmed`.
-- `INSERT` in `appointments` met `user_id` van de gekozen kandidaat → realtime push zet hem direct in profile-agenda van die gebruiker. Optioneel: ook een advisor-message in de bestaande conversatie ("Ik heb een afspraak ingepland voor …").
-- Demo-toelichting boven de knop: *"Afspraken landen automatisch in het profiel van de gekozen kandidaat."*
+Debounce om burst-updates (bv. AI-stream die meerdere message-rows schrijft) niet 10x te laten refetchen.
 
-### 3. Gesprekken — uitgebreider en informatiever
-- Linker kandidatenlijst (1/4):
-  - Filter-strip: Zoek, "Alleen ongelezen", fase-dropdown.
-  - Elke rij toont: avatar + naam + fase-pill + ongelezen-badge + **preview van laatste bericht** (1 regel truncate) + tijd.
-  - Collapsible "Gearchiveerd / oud" sectie onderaan voor gesprekken > 30 dagen.
-- Rechter chatpaneel (3/4):
-  - Sticky header met naam + fase + snel-acties: **Afspraak inplannen** (opent dezelfde dialog, voor-ingevuld op deze kandidaat), **Bekijk profiel**, **Wijzig fase**.
-  - Onder de header een uitklapbare strip "Context" (default open): laatste 3 events uit de pipeline (fase-wijziging, CV-upload, test-resultaat).
-  - Berichten-stream blijft, maar advisor-bubbel krijgt een duidelijke "Advisor"-label en betere typografie.
+### 3. UI: refresh-knop herpositioneren
+- Knop blijft beschikbaar als fallback, maar krijgt een subtielere plek (icon-only in de topbar, tooltip "Handmatig verversen").
+- Kleine live-indicator (groene dot + "Live") naast de knop zodat de gebruiker ziet dat auto-streaming actief is. Wordt rood/grijs als het realtime-kanaal `CHANNEL_ERROR` of `CLOSED` rapporteert; dan is de refresh-knop wél nuttig.
 
-### 4. Bronnen (whitelist) — dichter, inline editable, getest
-- `TrustedSourcesTab`:
-  - Bovenin een **status-bar**: "✓ Whitelist actief in persoonlijke chat — externe links worden gefilterd, Firecrawl gebruikt alleen actieve bronnen." (statische tekst — koppeling bestaat al server-side).
-  - Add-form blijft maar wordt smaller in een 1-regel inline composer.
-  - Categorieën worden **collapsible** (`<details>` per categorie met count en chevron, default open voor "algemeen"/eerste).
-  - Rij compact: 28px, switch links + label inline-editable + URL (klikbaar in nieuwe tab) + categorie-badge + delete-icon. Toon ook `last_used_at` als beschikbaar (anders niets).
-  - Filter-tabs bovenaan: "Alles / Actief / Inactief" + zoekveld.
-  - Bulk-actie: meerdere selecteren → activeren/deactiveren/verwijderen.
+### 4. Verificatie
+- Tweede tab openen, daar een afspraak/bericht aanmaken, en checken dat de backoffice-lijst binnen ~1s update zonder klik op Vernieuwen.
+- Console-log van het kanaal-subscribe-status checken (`SUBSCRIBED`).
 
-### 5. Algemene collapsibles
-- KPI-strip krijgt al een toggle (bestaat). Toevoegen: per sectie een chevron-collapse boven de Card-titel zodat advisor zelf bepaalt wat zichtbaar is.
+## Technische details
+- Migratie:
+  ```sql
+  DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname='supabase_realtime' AND schemaname='public' AND tablename='appointments') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
+    END IF;
+    -- idem voor conversations, messages
+  END $$;
+  ALTER TABLE public.appointments REPLICA IDENTITY FULL;
+  ALTER TABLE public.conversations REPLICA IDENTITY FULL;
+  ALTER TABLE public.messages REPLICA IDENTITY FULL;
+  ```
+- Debounce via simpele `setTimeout` + ref, geen extra dependency.
+- Geen wijzigingen aan RLS nodig (advisors/admins hebben al leesrechten).
 
-## Niet-doen
-- Geen schema-wijzigingen (alle tabellen bestaan).
-- Geen wijziging aan `doorai-chat` / `homepage-coach` edge functions — whitelist-koppeling werkt al.
-- Geen e-mail-notificatie bij advisor-afspraak in deze ronde (kan later).
-
-## Bestanden
-
-- `src/pages/Backoffice.tsx` — collapsible-toggles per sectie.
-- `src/components/backoffice/UserOverviewTable.tsx` — compact mode + groepering per fase + collapsible filters.
-- `src/components/backoffice/AppointmentsTab.tsx` — "Plan afspraak"-knop + dialog (kandidaat-select, datum, tijd, onderwerp, notitie).
-- Nieuw: `src/components/backoffice/ScheduleAppointmentDialog.tsx` — herbruikbaar in Afspraken-tab én Gesprekken-tab.
-- `src/components/backoffice/AdvisorChatPanel.tsx` — sticky action-header + context-strip + snel-acties.
-- `src/components/backoffice/TrustedSourcesTab.tsx` — collapsible categorieën, dense rijen, filter-tabs, bulk-acties, whitelist-status-bar.
-
-## Verificatie
-
-- Plan afspraak voor test-kandidaat → verschijnt direct in `/profile` (AppointmentTile) van diezelfde gebruiker via realtime.
-- Whitelist toggle op `false` voor een bron → `doorai-chat` Firecrawl-bron-lijst neemt 'm niet meer mee (bestaande server-logica).
-- Kandidatenlijst < 50% van huidige hoogte na compact-toggle.
+## Wat ik NIET doe
+- Geen herontwerp van de backoffice-layout.
+- Geen functionele wijziging aan AdvisorChatPanel (die streamt al).
+- Refresh-knop niet verwijderen — alleen subtieler maken.
