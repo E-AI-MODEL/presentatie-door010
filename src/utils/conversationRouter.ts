@@ -38,7 +38,13 @@ function classifyPersonalMode(s: PersonalTurnSignals): PersonalMode {
   if (s.hasPhaseSuggestion) return "phase_transition";
   if (s.backendMode === "clarify_batch" || s.backendMode === "handoff") return "clarify";
   if (s.hasActions && !s.hasLinks) return "guide";
-  if (s.assistantContentShort && !s.hasActions && !s.hasLinks) return "clarify";
+  // Alleen "clarify" als er ÉCHT 0 chips zijn én backend niet expliciet "answer" zei.
+  if (
+    s.assistantContentShort &&
+    !s.hasActions &&
+    !s.hasLinks &&
+    s.backendMode !== "answer"
+  ) return "clarify";
   return "answer";
 }
 
