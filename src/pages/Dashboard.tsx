@@ -29,7 +29,6 @@ import {
   MessageCircle,
   Briefcase,
   Calendar,
-  ArrowRight,
   User,
   Mail,
   Phone,
@@ -309,29 +308,8 @@ export default function Dashboard() {
                   </div>
                 </aside>
 
-                {/* RIGHT: main — volgende stap + aanbevolen */}
+                {/* RIGHT: main */}
                 <section className="lg:col-span-8 space-y-6 md:space-y-8">
-                  <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 md:p-8 shadow-sm">
-                    <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/5" />
-                    <div className="relative">
-                      <div className="text-[10px] uppercase tracking-widest text-primary font-bold mb-2">
-                        Jouw volgende stap
-                      </div>
-                      <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-3">
-                        {phaseInfo.subtitle || "Ontdek wat bij je past"}
-                      </h2>
-                      <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg mb-6">
-                        Stel je vraag aan DoorAI. Hij denkt met je mee op basis van waar je nu staat in je oriëntatieproces.
-                      </p>
-                      <Button
-                        onClick={() => handleOpenChat()}
-                        className="rounded-full gap-2 px-6 py-3 h-auto font-bold"
-                      >
-                        Start gesprek
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
 
                   <div className="rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-sm">
                     <RecommendedContent
