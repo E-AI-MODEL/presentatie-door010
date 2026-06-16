@@ -1105,13 +1105,13 @@ Deno.serve(async (req) => {
       const status = llmResponse.status;
       if (status === 429) {
         await logPipelineEvent("doorai-chat", "llm_call", "warning", "Rate limit from AI gateway", { status: 429 });
-        return new Response(JSON.stringify({ error: "Te veel verzoeken, probeer het later opnieuw." }), {
+        return new Response(JSON.stringify({ error: "rate_limit", message: "Te veel verzoeken, probeer het later opnieuw." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (status === 402) {
         await logPipelineEvent("doorai-chat", "llm_call", "error", "Credits exhausted from AI gateway", { status: 402 });
-        return new Response(JSON.stringify({ error: "AI-credits zijn op, neem contact op met de beheerder." }), {
+        return new Response(JSON.stringify({ error: "credits_exhausted", message: "AI-credits zijn op, neem contact op met de beheerder." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -1121,7 +1121,7 @@ Deno.serve(async (req) => {
         error: errorText.slice(0, 300),
       });
       console.error("AI gateway error:", status, errorText);
-      return new Response(JSON.stringify({ error: "Er ging iets mis, probeer het opnieuw." }), {
+      return new Response(JSON.stringify({ error: "gateway_failure", message: "Er ging iets mis, probeer het opnieuw." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -1370,12 +1370,11 @@ Deno.serve(async (req) => {
       },
     });
   } catch (error) {
-    await logPipelineEvent("doorai-chat", "handler", "error", "Unhandled doorai-chat error", {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    const msg = error instanceof Error ? error.message : String(error);
+    await logPipelineEvent("doorai-chat", "handler", "error", "Unhandled doorai-chat error", { error: msg });
     console.error("DoorAI error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Onbekende fout" }),
+      JSON.stringify({ error: "internal_error", message: msg || "Onbekende fout" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
