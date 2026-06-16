@@ -117,7 +117,6 @@ export default function Dashboard() {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">
-                  <Sparkles className="h-3 w-3 text-primary" />
                   Welkom terug
                 </div>
                 <h1 className="text-lg md:text-2xl font-bold text-foreground truncate leading-tight">
