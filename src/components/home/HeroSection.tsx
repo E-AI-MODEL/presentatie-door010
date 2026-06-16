@@ -27,22 +27,12 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight uppercase tracking-tight"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-10 leading-tight uppercase tracking-tight"
           >
             <span className="bg-white text-foreground px-2 inline-block mb-2">ONTDEK</span>{" "}
             <span className="bg-primary text-primary-foreground px-2 inline-block mb-2">JOUW ROUTE</span>{" "}
             <span className="bg-white text-foreground px-2 inline-block">NAAR HET ONDERWIJS</span>
           </motion.h1>
-
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-lg md:text-xl text-white/90 max-w-2xl mb-8"
-          >
-            {"\n"}
-          </motion.p>
 
           {/* CTA Buttons - styled like onderwijsloketrotterdam.nl */}
           <motion.div
