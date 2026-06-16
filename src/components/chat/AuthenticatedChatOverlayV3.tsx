@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, MessageCircle, Send, Trash2, User, X } from "lucide-react";
+import { Globe, Menu, MessageCircle, Send, Trash2, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,11 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyProfileUpdated, useLiveProfile } from "@/hooks/useLiveProfile";
 import { CollapsibleAnswer } from "@/components/chat/CollapsibleAnswer";
 import { ChatTurnArtifacts } from "@/components/chat/ChatTurnArtifacts";
+import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { parseStructuredMeta } from "@/utils/responsePipeline";
 import type { StructuredResponse } from "@/utils/responsePipeline";
 import { sanitizeClientText } from "@/utils/sanitizeClient";
 import { normalizeTurnArtifacts } from "@/utils/chatTurnArtifacts";
 import type { ChatDecisionArtifact, ChatTurnArtifact } from "@/utils/chatTurnArtifacts";
+import type { OrientationPhase } from "@/data/dashboard-phases";
+import type { KnownSlots } from "@/utils/phaseDetectorParser";
 
 const DOORAI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/doorai-chat`;
 const HOMEPAGE_COACH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/homepage-coach`;
@@ -101,6 +104,16 @@ export function AuthenticatedChatOverlayV3() {
   ]);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [generalLoading, setGeneralLoading] = useState(false);
+  // Topic-burgermenu — default open in persoonlijke chat (per project-memory).
+  // Sessie-persistent zodat hij niet steeds terugkomt na sluiten.
+  const [topicsOpen, setTopicsOpen] = useState<boolean>(() => {
+    try {
+      const stored = sessionStorage.getItem("doorai-topics-open");
+      return stored === null ? true : stored === "1";
+    } catch {
+      return true;
+    }
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -109,6 +122,27 @@ export function AuthenticatedChatOverlayV3() {
   const messages = isPersonal ? personalMessages : generalMessages;
   const loading = isPersonal ? personalLoading : generalLoading;
   const visibleMessages = messages.slice(-10);
+  const showTopics = isPersonal && topicsOpen;
+
+  const knownSlots: KnownSlots = useMemo(() => {
+    const raw = profile?.known_slots;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof v === "string") out[k] = v;
+    }
+    return out;
+  }, [profile?.known_slots]);
+
+  const currentPhaseSafe: OrientationPhase = (profile?.current_phase as OrientationPhase) || "interesseren";
+
+  const toggleTopics = useCallback(() => {
+    setTopicsOpen((v) => {
+      const next = !v;
+      try { sessionStorage.setItem("doorai-topics-open", next ? "1" : "0"); } catch { /* noop */ }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
@@ -294,7 +328,20 @@ export function AuthenticatedChatOverlayV3() {
           <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="fixed z-50 bg-card border border-border overflow-hidden flex flex-col bottom-6 right-6 rounded-3xl shadow-2xl w-[min(420px,calc(100vw-3rem))] h-[min(620px,calc(100vh-6rem))]" role="dialog" aria-modal="true" aria-label="DOORai chat">
             <div className="flex flex-col border-b border-border shrink-0">
               <div className="flex items-center justify-between px-4 py-2.5">
-                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /><h3 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">DOORai</h3></div>
+                <div className="flex items-center gap-2">
+                  {isPersonal && (
+                    <button
+                      onClick={toggleTopics}
+                      className={`p-1.5 rounded-full transition-colors ${showTopics ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground"}`}
+                      aria-label={showTopics ? "Sluit onderwerpen" : "Bekijk onderwerpen"}
+                      aria-expanded={showTopics}
+                    >
+                      <Menu className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <h3 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">DOORai</h3>
+                </div>
                 <div className="flex items-center gap-0.5">
                   {messages.length > 1 && <button onClick={clearCurrent} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-destructive" aria-label="Gesprek wissen"><Trash2 className="h-3.5 w-3.5" /></button>}
                   <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground" aria-label="Sluit chat"><X className="h-3.5 w-3.5" /></button>
@@ -306,22 +353,46 @@ export function AuthenticatedChatOverlayV3() {
               </div>
             </div>
 
-            <div ref={chatRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5" aria-live="polite">
-              {visibleMessages.map((message, index) => (
-                <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${message.role === "user" ? "bg-primary text-primary-foreground" : message.role === "advisor" ? "bg-accent/15 border border-accent/30 text-foreground" : "bg-muted text-foreground"}`}>
-                    {message.role === "user" ? <p className="text-[13px]">{message.content}</p> : (
-                      <>
-                        {message.role === "advisor" && <span className="text-[10px] font-semibold text-accent-foreground uppercase tracking-wide mb-1 block">Adviseur</span>}
-                        <CollapsibleAnswer content={message.content} structured={message.structured} compact />
-                        <ChatTurnArtifacts artifacts={message.artifacts} onAsk={(value) => sendMessage(value, chatMode)} onDecisionAccept={handleDecisionAccept} onDecisionDecline={() => undefined} disabled={loading} compact />
-                      </>
-                    )}
-                  </div>
+            {/* Topic-paneel — vervangt berichten zolang open (overlay is compact) */}
+            {showTopics ? (
+              <div className="flex-1 overflow-y-auto">
+                <div className="px-3 py-2 flex items-center justify-between border-b border-border/60 sticky top-0 bg-card/95 backdrop-blur z-10">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Onderwerpen</span>
+                  <button
+                    onClick={toggleTopics}
+                    className="text-[11px] text-primary hover:underline font-medium"
+                  >
+                    Terug naar gesprek
+                  </button>
                 </div>
-              ))}
-              {loading && messages[messages.length - 1]?.role === "user" && <div className="flex justify-start"><div className="bg-muted rounded-2xl px-3.5 py-2.5"><div className="flex gap-1"><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} /><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} /></div></div></div>}
-            </div>
+                <TopicMenu
+                  currentPhase={currentPhaseSafe}
+                  knownSlots={knownSlots}
+                  onSendMessage={(msg) => {
+                    setTopicsOpen(false);
+                    try { sessionStorage.setItem("doorai-topics-open", "0"); } catch { /* noop */ }
+                    sendMessage(msg, "personal");
+                  }}
+                />
+              </div>
+            ) : (
+              <div ref={chatRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5" aria-live="polite">
+                {visibleMessages.map((message, index) => (
+                  <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${message.role === "user" ? "bg-primary text-primary-foreground" : message.role === "advisor" ? "bg-accent/15 border border-accent/30 text-foreground" : "bg-muted text-foreground"}`}>
+                      {message.role === "user" ? <p className="text-[13px]">{message.content}</p> : (
+                        <>
+                          {message.role === "advisor" && <span className="text-[10px] font-semibold text-accent-foreground uppercase tracking-wide mb-1 block">Adviseur</span>}
+                          <CollapsibleAnswer content={message.content} structured={message.structured} compact />
+                          <ChatTurnArtifacts artifacts={message.artifacts} onAsk={(value) => sendMessage(value, chatMode)} onDecisionAccept={handleDecisionAccept} onDecisionDecline={() => undefined} disabled={loading} compact />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {loading && messages[messages.length - 1]?.role === "user" && <div className="flex justify-start"><div className="bg-muted rounded-2xl px-3.5 py-2.5"><div className="flex gap-1"><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} /><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} /></div></div></div>}
+              </div>
+            )}
 
             <div className="px-4 pb-3 pt-2 border-t border-border shrink-0">
               <form onSubmit={handleSubmit} className="flex gap-2 items-center">
