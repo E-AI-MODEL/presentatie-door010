@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, MessageCircle, Send, Trash2, User, X } from "lucide-react";
+import { Globe, Menu, MessageCircle, Send, Trash2, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,11 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyProfileUpdated, useLiveProfile } from "@/hooks/useLiveProfile";
 import { CollapsibleAnswer } from "@/components/chat/CollapsibleAnswer";
 import { ChatTurnArtifacts } from "@/components/chat/ChatTurnArtifacts";
+import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { parseStructuredMeta } from "@/utils/responsePipeline";
 import type { StructuredResponse } from "@/utils/responsePipeline";
 import { sanitizeClientText } from "@/utils/sanitizeClient";
 import { normalizeTurnArtifacts } from "@/utils/chatTurnArtifacts";
 import type { ChatDecisionArtifact, ChatTurnArtifact } from "@/utils/chatTurnArtifacts";
+import type { OrientationPhase } from "@/data/dashboard-phases";
+import type { KnownSlots } from "@/utils/phaseDetectorParser";
 
 const DOORAI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/doorai-chat`;
 const HOMEPAGE_COACH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/homepage-coach`;
