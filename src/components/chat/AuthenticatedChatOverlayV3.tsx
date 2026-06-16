@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Globe, Send, Sparkles, Trash2, User, X } from "lucide-react";
+import { ChevronDown, Globe, Send, Trash2, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -330,11 +330,6 @@ export function AuthenticatedChatOverlayV3() {
           >
             <span className="relative h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
               {firstInitial}
-              <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-card border-2 border-card flex items-center justify-center">
-                <span className="h-full w-full rounded-full bg-primary flex items-center justify-center">
-                  <Sparkles className="h-2 w-2 text-primary-foreground" />
-                </span>
-              </span>
             </span>
             <span className="flex flex-col items-start text-left leading-tight">
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Jouw coach</span>
