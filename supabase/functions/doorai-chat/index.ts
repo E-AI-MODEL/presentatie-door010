@@ -993,8 +993,9 @@ Deno.serve(async (req) => {
               test_results: (fresh.test_results as Record<string, unknown> | null) ?? profileMeta?.test_results ?? null,
               preferred_sector: fresh.preferred_sector ?? profileMeta?.preferred_sector ?? null,
               current_phase: fresh.current_phase ?? profileMeta?.current_phase ?? null,
+              known_slots: (fresh.known_slots as Record<string, string> | null) ?? profileMeta?.known_slots ?? null,
             };
-            console.log(`[doorai-chat] profile uid=${uid} first_name=${fresh.first_name ?? "∅"} phase=${fresh.current_phase ?? "∅"} sector=${fresh.preferred_sector ?? "∅"}`);
+            console.log(`[doorai-chat] profile uid=${uid} first_name=${fresh.first_name ?? "∅"} phase=${fresh.current_phase ?? "∅"} sector=${fresh.preferred_sector ?? "∅"} slots=${Object.keys((fresh.known_slots as Record<string, unknown>) ?? {}).length}`);
           }
         } else {
           console.warn("[doorai-chat] JWT present maar getUser gaf geen uid (mogelijk anon/publishable key)");
@@ -1007,7 +1008,12 @@ Deno.serve(async (req) => {
     }
 
     const phase = detector?.phase_current || userPhase || profileMeta?.current_phase || "interesseren";
-    const slots = normalizeSlots(detector?.known_slots || {}, userSector || profileMeta?.preferred_sector || undefined);
+    // Hydrate slots: DB-persisted known_slots as baseline, client detector payload wins per key.
+    // Zorgt dat slots cross-session/-refresh overleven zonder dat de client ze opnieuw moet sturen.
+    const persistedSlots = (profileMeta?.known_slots as Record<string, string> | null) ?? {};
+    const clientSlots = (detector?.known_slots as Record<string, string> | null) ?? {};
+    const mergedSlots = { ...persistedSlots, ...clientSlots };
+    const slots = normalizeSlots(mergedSlots, userSector || profileMeta?.preferred_sector || undefined);
     const lastUserMessage = truncateInput(
       [...messages].reverse().find(m => m.role === "user")?.content ?? "",
       2000,
