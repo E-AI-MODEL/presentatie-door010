@@ -11,7 +11,7 @@ import {
 
 export type OrientationPhase = 'interesseren' | 'orienteren' | 'beslissen' | 'matchen' | 'voorbereiden';
 
-export interface PhaseAction {
+interface PhaseAction {
   label: string;
   href: string;
   icon: React.ElementType;
@@ -117,10 +117,3 @@ export const phaseData: Record<OrientationPhase, PhaseInfo> = {
     ],
   },
 };
-
-export const quickLinks = [
-  { label: "Vacatures Rotterdam", href: "/vacatures", icon: Briefcase },
-  { label: "Agenda & Events", href: "/events", icon: Calendar },
-  { label: "Opleidingen", href: "/opleidingen", icon: GraduationCap },
-  { label: "Kennisbank", href: "/kennisbank", icon: BookOpen },
-];

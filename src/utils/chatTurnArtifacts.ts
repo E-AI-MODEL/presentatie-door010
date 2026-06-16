@@ -86,7 +86,7 @@ function isValidHref(href: string): boolean {
   return href.startsWith("/") || /^https?:\/\//i.test(href);
 }
 
-export function isDoubtMessage(message?: string): boolean {
+function isDoubtMessage(message?: string): boolean {
   const lower = (message || "").toLowerCase();
   return DOUBT_WORDS.some((word) => lower.includes(word));
 }
