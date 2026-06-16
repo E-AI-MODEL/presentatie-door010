@@ -295,9 +295,9 @@ export default function Dashboard() {
                     })}
                   </div>
 
-                  <div className="rounded-3xl border border-border/60 bg-card overflow-hidden shadow-sm">
-                    <div className="px-5 pt-5 pb-3 border-b border-border/50">
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <div className="rounded-2xl border border-border/40 bg-card/50 overflow-hidden">
+                    <div className="px-4 pt-4 pb-2">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
                         Onderwerpen
                       </h3>
                     </div>
