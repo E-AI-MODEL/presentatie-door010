@@ -388,26 +388,33 @@ export function AuthenticatedChatOverlayV3() {
 
             {/* Topic-paneel — vervangt berichten zolang open (overlay is compact) */}
             {showTopics ? (
-              <div className="flex-1 overflow-y-auto">
-                <div className="px-3 py-2 flex items-center justify-between border-b border-border/60 sticky top-0 bg-card/95 backdrop-blur z-10">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Onderwerpen</span>
+              <div className="flex-1 overflow-y-auto bg-muted/20">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-border/60 sticky top-0 bg-card/95 backdrop-blur z-10">
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Onderwerpen</span>
+                    <span className="text-sm font-bold text-foreground">Waar wil je over praten?</span>
+                  </div>
                   <button
                     onClick={toggleTopics}
-                    className="text-[11px] text-primary hover:underline font-medium"
+                    className="inline-flex items-center gap-1 text-[11px] text-primary hover:bg-primary/10 font-semibold px-2.5 py-1.5 rounded-full transition-colors"
                   >
-                    Terug naar gesprek
+                    <X className="h-3 w-3" />
+                    Sluit
                   </button>
                 </div>
-                <TopicMenu
-                  currentPhase={currentPhaseSafe}
-                  knownSlots={knownSlots}
-                  onSendMessage={(msg) => {
-                    setTopicsOpen(false);
-                    try { sessionStorage.setItem("doorai-topics-open", "0"); } catch { /* noop */ }
-                    sendMessage(msg, "personal");
-                  }}
-                />
+                <div className="bg-card">
+                  <TopicMenu
+                    currentPhase={currentPhaseSafe}
+                    knownSlots={knownSlots}
+                    onSendMessage={(msg) => {
+                      setTopicsOpen(false);
+                      try { sessionStorage.setItem("doorai-topics-open", "0"); } catch { /* noop */ }
+                      sendMessage(msg, "personal");
+                    }}
+                  />
+                </div>
               </div>
+
             ) : (
               <div ref={chatRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5" aria-live="polite">
                 {visibleMessages.map((message, index) => (
