@@ -407,7 +407,7 @@ export default function Backoffice() {
                     selectedUserId={selectedUser?.user_id}
                   />
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     <div className="lg:col-span-2">
                       <UserOverviewTable 
                         profiles={profiles} 
@@ -455,7 +455,7 @@ export default function Backoffice() {
                     }}
                   />
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     <div className="lg:col-span-2">
                       <BackofficeAlerts 
                         alerts={alerts}
@@ -591,7 +591,7 @@ export default function Backoffice() {
                   )
                 ) : (
                   // Desktop: side by side
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
                     <div className="lg:col-span-1">
                       <Card>
                         <CardHeader className="pb-2">
