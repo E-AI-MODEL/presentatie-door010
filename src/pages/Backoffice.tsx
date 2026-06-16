@@ -457,46 +457,109 @@ function ChatList({ profiles, chatSearch, setChatSearch, selectedUser, onSelect 
   profiles: ProfileWithEmail[]; chatSearch: string; setChatSearch: (v: string) => void;
   selectedUser: ProfileWithEmail | null; onSelect: (p: ProfileWithEmail) => void;
 }) {
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [phaseFilter, setPhaseFilter] = useState<string>("all");
+
+  const visible = profiles.filter(p => {
+    if (unreadOnly && !(p.unread_messages && p.unread_messages > 0)) return false;
+    if (phaseFilter !== "all" && p.current_phase !== phaseFilter) return false;
+    return true;
+  });
+
+  const now = Date.now();
+  const recent = visible.filter(p => !p.last_message_at || (now - new Date(p.last_message_at).getTime()) < 30 * 86400000);
+  const older = visible.filter(p => p.last_message_at && (now - new Date(p.last_message_at).getTime()) >= 30 * 86400000);
+  const [showOlder, setShowOlder] = useState(false);
+
+  const phaseLabels: Record<string, string> = {
+    interesseren: 'Inter.', orienteren: 'Orient.', beslissen: 'Besl.', matchen: 'Match.', voorbereiden: 'Voorb.',
+  };
+
+  const renderRow = (profile: ProfileWithEmail) => {
+    const unread = profile.unread_messages ?? 0;
+    const initials = `${profile.first_name?.charAt(0) || ''}${profile.last_name?.charAt(0) || ''}`.toUpperCase() || '?';
+    return (
+      <button key={profile.id} onClick={() => onSelect(profile)}
+        className={`w-full text-left px-2 py-1.5 rounded-md hover:bg-muted transition-colors border-l-2 ${
+          selectedUser?.user_id === profile.user_id ? 'bg-primary/10 border-primary' : unread > 0 ? 'border-accent' : 'border-transparent'
+        }`}>
+        <div className="flex items-start gap-2">
+          <div className="relative shrink-0">
+            <div className="bg-primary/15 text-primary rounded-full h-7 w-7 flex items-center justify-center text-[10px] font-bold">
+              {initials}
+            </div>
+            {unread > 0 && (
+              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[9px] rounded-full h-3.5 w-3.5 flex items-center justify-center font-bold">
+                {unread}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1 justify-between">
+              <p className={`text-xs truncate ${unread > 0 ? 'font-bold' : 'font-medium'}`}>
+                {profile.first_name || profile.email?.split('@')[0] || 'Onbekend'}
+              </p>
+              {profile.last_message_at && (
+                <span className="text-[9px] text-muted-foreground shrink-0 tabular-nums">
+                  {format(new Date(profile.last_message_at), 'd MMM', { locale: nl })}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 mt-0.5">
+              {profile.current_phase && (
+                <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{phaseLabels[profile.current_phase] || profile.current_phase}</span>
+              )}
+              <span className="text-[10px] text-muted-foreground truncate">
+                {profile.conversation_count ? `${profile.conversation_count} gesprek(ken)` : 'Nog geen gesprek'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </button>
+    );
+  };
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Kandidaten</CardTitle>
-        <div className="relative mt-2">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input placeholder="Zoek..." value={chatSearch} onChange={(e) => setChatSearch(e.target.value)} className="pl-8 h-8 text-xs" />
+    <Card className="overflow-hidden flex flex-col">
+      <CardHeader className="pb-1.5 p-2 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xs font-semibold">Kandidaten</CardTitle>
+          <Badge variant="outline" className="h-4 text-[10px]">{visible.length}</Badge>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+          <Input placeholder="Zoek..." value={chatSearch} onChange={(e) => setChatSearch(e.target.value)} className="pl-7 h-7 text-xs" />
+        </div>
+        <div className="flex gap-1">
+          <button onClick={() => setUnreadOnly(v => !v)}
+            className={`px-1.5 py-0.5 rounded text-[10px] border ${unreadOnly ? 'bg-accent/15 border-accent text-accent' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+            Ongelezen
+          </button>
+          <select value={phaseFilter} onChange={e => setPhaseFilter(e.target.value)}
+            className="text-[10px] border border-border rounded px-1 py-0.5 bg-card text-muted-foreground">
+            <option value="all">Alle fases</option>
+            {Object.entries(phaseLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
         </div>
       </CardHeader>
-      <CardContent className="p-2">
-        <div className="space-y-1 max-h-[600px] overflow-y-auto">
-          {profiles.map((profile) => (
-            <button key={profile.id} onClick={() => onSelect(profile)}
-              className={`w-full text-left p-2 rounded-lg hover:bg-muted transition-colors ${selectedUser?.user_id === profile.user_id ? 'bg-primary/10' : ''}`}>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <div className="bg-primary/10 rounded-full p-1.5"><Users className="h-3 w-3 text-primary" /></div>
-                  {(profile.unread_messages ?? 0) > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[9px] rounded-full h-3.5 w-3.5 flex items-center justify-center font-bold">
-                      {profile.unread_messages}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{profile.first_name || 'Onbekend'}</p>
-                  <div className="flex items-center gap-1">
-                    <p className="text-xs text-muted-foreground truncate">{profile.current_phase || 'Geen fase'}</p>
-                    {profile.last_message_at && (
-                      <span className="text-[10px] text-muted-foreground/60 shrink-0">
-                        • {format(new Date(profile.last_message_at), 'd MMM', { locale: nl })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
-          {profiles.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Geen kandidaten</p>}
+      <CardContent className="p-1.5 flex-1 overflow-hidden">
+        <div className="space-y-0.5 max-h-[600px] overflow-y-auto">
+          {recent.length === 0 && older.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-4">Geen kandidaten</p>
+          )}
+          {recent.map(renderRow)}
+          {older.length > 0 && (
+            <>
+              <button onClick={() => setShowOlder(v => !v)}
+                className="w-full text-left text-[10px] text-muted-foreground hover:text-foreground py-1 px-2 mt-1 border-t border-border">
+                {showOlder ? '▾' : '▸'} Ouder dan 30 dagen ({older.length})
+              </button>
+              {showOlder && older.map(renderRow)}
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
   );
 }
+
