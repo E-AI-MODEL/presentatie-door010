@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,15 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PhaseStatusBar } from "./PhaseStatusBar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  Users, 
-  Search, 
-  Phone,
-  MessageCircle,
-  FileText,
-  Download,
-  ClipboardCheck,
-  User
+import {
+  Users, Search, Phone, MessageCircle, FileText, Download, ClipboardCheck, User,
+  ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -114,25 +108,70 @@ interface UserOverviewTableProps {
   selectedUserId?: string;
 }
 
+type SortKey = 'name' | 'contact' | 'phase' | 'activity' | null;
+type SortDir = 'asc' | 'desc';
+
+const PHASE_ORDER = ['interesseren', 'orienteren', 'beslissen', 'matchen', 'voorbereiden'];
+
 export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: UserOverviewTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [phaseFilter, setPhaseFilter] = useState<string>("all");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<SortKey>('activity');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const isMobile = useIsMobile();
 
-  const filteredProfiles = profiles.filter((profile) => {
-    const matchesSearch = 
-      !searchQuery ||
-      profile.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      profile.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      profile.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      profile.phone?.includes(searchQuery);
-    
-    const matchesPhase = phaseFilter === "all" || profile.current_phase === phaseFilter;
-    const matchesSector = sectorFilter === "all" || profile.preferred_sector === sectorFilter;
-    
-    return matchesSearch && matchesPhase && matchesSector;
-  });
+  const toggleSort = (key: NonNullable<SortKey>) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const filteredProfiles = useMemo(() => {
+    const list = profiles.filter((profile) => {
+      const matchesSearch =
+        !searchQuery ||
+        profile.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        profile.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        profile.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        profile.phone?.includes(searchQuery);
+      const matchesPhase = phaseFilter === "all" || profile.current_phase === phaseFilter;
+      const matchesSector = sectorFilter === "all" || profile.preferred_sector === sectorFilter;
+      return matchesSearch && matchesPhase && matchesSector;
+    });
+
+    if (!sortKey) return list;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      let av: string | number = '';
+      let bv: string | number = '';
+      switch (sortKey) {
+        case 'name':
+          av = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase() || (a.email || '').toLowerCase();
+          bv = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase() || (b.email || '').toLowerCase();
+          break;
+        case 'contact':
+          av = (a.email || a.phone || '').toLowerCase();
+          bv = (b.email || b.phone || '').toLowerCase();
+          break;
+        case 'phase':
+          av = PHASE_ORDER.indexOf(a.current_phase || 'interesseren');
+          bv = PHASE_ORDER.indexOf(b.current_phase || 'interesseren');
+          break;
+        case 'activity':
+          av = new Date(a.last_message_at || a.updated_at || a.created_at).getTime();
+          bv = new Date(b.last_message_at || b.updated_at || b.created_at).getTime();
+          break;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }, [profiles, searchQuery, phaseFilter, sectorFilter, sortKey, sortDir]);
+
+  const SortIcon = ({ k }: { k: NonNullable<SortKey> }) =>
+    sortKey !== k ? <ArrowUpDown className="h-3 w-3 opacity-40" /> :
+      sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-primary" /> : <ArrowDown className="h-3 w-3 text-primary" />;
+
 
   return (
     <div className="space-y-4">
@@ -267,11 +306,27 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Us
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Kandidaat</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Fase</TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Kandidaat <SortIcon k="name" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('contact')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Contact <SortIcon k="contact" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('phase')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Fase <SortIcon k="phase" />
+                    </button>
+                  </TableHead>
                   <TableHead>Documenten</TableHead>
-                  <TableHead>Laatste activiteit</TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('activity')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Laatste activiteit <SortIcon k="activity" />
+                    </button>
+                  </TableHead>
                   <TableHead className="text-right">Acties</TableHead>
                 </TableRow>
               </TableHeader>
