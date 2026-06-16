@@ -35,7 +35,7 @@ export function ChatTurnArtifacts({
   const status = artifacts.find((a): a is ChatStatusArtifact => a.kind === "status");
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mt-3 space-y-2">
       {decision ? (
         <DecisionCard
           artifact={decision}
