@@ -418,7 +418,7 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* === DOCUMENTEN === */}
-            <TabsContent value="documenten" className="mt-4">
+            <TabsContent value="documenten" className="mt-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InterestTest
                   userId={user.id}
@@ -441,7 +441,7 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* === ACTIVITEIT === */}
-            <TabsContent value="activiteit" className="mt-4">
+            <TabsContent value="activiteit" className="mt-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <AppointmentTile userId={user.id} />
                 <SavedVacanciesTile userId={user.id} />
