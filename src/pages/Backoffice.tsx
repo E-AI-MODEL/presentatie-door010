@@ -277,14 +277,32 @@ export default function Backoffice() {
     setRefreshing(true); checkAccessAndFetchData();
   }, [checkAccessAndFetchData]);
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleRefetch = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => { checkAccessAndFetchData(); }, 400);
+  }, [checkAccessAndFetchData]);
+
+  const [liveStatus, setLiveStatus] = useState<'connecting' | 'live' | 'offline'>('connecting');
+
   useEffect(() => {
     if (!hasAccess) return;
-    const channel = supabase.channel("backoffice-profiles")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => checkAccessAndFetchData())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "profiles" }, () => checkAccessAndFetchData())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [hasAccess, checkAccessAndFetchData]);
+    const channel = supabase.channel("backoffice-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, scheduleRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, scheduleRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, scheduleRefetch)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, scheduleRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "advisor_notes" }, scheduleRefetch)
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setLiveStatus('live');
+        else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') setLiveStatus('offline');
+        else setLiveStatus('connecting');
+      });
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      supabase.removeChannel(channel);
+    };
+  }, [hasAccess, scheduleRefetch]);
 
   const handleSignOut = async () => { await signOut(); navigate("/"); };
   const handleSelectUser = (profile: ProfileWithEmail, panel: 'detail' | 'chat' = 'detail') => {
