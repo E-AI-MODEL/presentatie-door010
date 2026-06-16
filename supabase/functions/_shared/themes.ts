@@ -51,10 +51,6 @@ function pickPrompt(t: ThemeSignal): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-/**
- * Derive themes based on phase + known/missing slots.
- * Used by personal pipeline (doorai-chat).
- */
 export function deriveThemes(opts: {
   phase: string;
   knownSlots: Record<string, string>;
@@ -109,14 +105,9 @@ export function deriveThemes(opts: {
   return selected.slice(0, maxThemes);
 }
 
-/**
- * Detect which theme keys the user message already covers,
- * so we can exclude them from follow-up actions.
- */
 export function detectCurrentThemeKeys(userMessage: string): string[] {
   const msg = userMessage.toLowerCase();
   const keys: string[] = [];
-  if (DOUBT_RE.test(msg)) keys.push("keuzehulp");
   if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) keys.push("route");
   if (/(vacature|baan|werk|school)/.test(msg)) keys.push("vacatures");
   if (/(salaris|verdien|loon|cao)/.test(msg)) keys.push("salaris");
@@ -163,9 +154,6 @@ export function publicThemes(userMessage: string, excludeKeys: string[] = []): T
   return selected.slice(0, 3);
 }
 
-/**
- * Convert ThemeSignals to UI actions (label + value).
- */
 export function themesToActions(themes: ThemeSignal[], max = 2): Array<{ label: string; value: string }> {
   return themes.slice(0, max).map(t => ({ label: t.label, value: pickPrompt(t) }));
 }
