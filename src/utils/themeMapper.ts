@@ -3,7 +3,7 @@
  * from phase + known/missing slots + SSOT signals.
  *
  * Used by: TopicMenu, phaseDetectorEngine, responsePipeline, PublicChatWidget
- * NOT used by edge functions (they inline similar logic).
+ * NOT used by edge functions (they use supabase/functions/_shared/themes.ts).
  */
 
 export interface ThemeSignal {
@@ -13,8 +13,12 @@ export interface ThemeSignal {
   chatPromptVariants?: string[];
 }
 
+const DOUBT_RE = /\b(twijfel|ik twijfel|weet niet|ik weet het niet|lastig kiezen|keuze maken|past dit|wel of niet|onzeker)\b/i;
+
 // Meerdere varianten per thema → chips/suggesties roteren en voelen niet stug.
 const ALL_THEMES: ThemeSignal[] = [
+  { key: "keuzehulp", label: "Help me kiezen", chatPrompt: "Kun je mijn opties rustig naast elkaar zetten?",
+    chatPromptVariants: ["Kun je mijn opties rustig naast elkaar zetten?", "Help me kiezen tussen de mogelijkheden.", "Wat past beter bij mijn situatie?"] },
   { key: "route", label: "Routes en opleidingen", chatPrompt: "Welke routes zijn er om in het onderwijs te werken?",
     chatPromptVariants: ["Welke routes zijn er om in het onderwijs te werken?", "Hoe ziet zo'n traject naar het onderwijs er voor mij uit?", "Welke wegen leiden naar de klas?"] },
   { key: "bevoegdheid", label: "Bevoegdheden", chatPrompt: "Welke bevoegdheid heb ik nodig?",
@@ -65,7 +69,6 @@ export function deriveThemes(opts: {
     if (t) { selected.push(t); used.add(key); }
   }
 
-  // Phase-driven priorities
   if (p === "interesseren") {
     if (!knownSlots.school_type) add("sector");
     if (!knownSlots.role_interest) add("functie");
@@ -77,6 +80,7 @@ export function deriveThemes(opts: {
     add("toelating");
     add("kosten");
   } else if (p === "beslissen") {
+    add("keuzehulp");
     add("kosten");
     add("subsidie");
     add("salaris");
@@ -91,7 +95,6 @@ export function deriveThemes(opts: {
     add("regio");
   }
 
-  // Slot-driven additions
   if (knownSlots.region_preference && !used.has("regio")) add("regio");
   if (missingSlots.includes("admission_requirements") && !used.has("toelating")) add("toelating");
   if ((missingSlots.includes("salary_info") || knownSlots.salary_info) && !used.has("salaris")) add("salaris");
@@ -101,10 +104,6 @@ export function deriveThemes(opts: {
   return selected.slice(0, maxThemes);
 }
 
-/**
- * Pick a short, human-readable hint for a phase transition suggestion.
- * Uses the TARGET phase themes (what's coming next).
- */
 export function themeHintForTransition(
   targetPhase: string,
   knownSlots: Record<string, string>,
@@ -116,10 +115,6 @@ export function themeHintForTransition(
   return `Wil je meer weten over ${labels[0]} of ${labels[1]}?`;
 }
 
-/**
- * Get theme signals suitable for public/anonymous widget context.
- * Lighter than the full deriveThemes — no slot awareness.
- */
 export function publicThemes(userMessage: string): ThemeSignal[] {
   const msg = userMessage.toLowerCase();
   const selected: ThemeSignal[] = [];
@@ -131,6 +126,7 @@ export function publicThemes(userMessage: string): ThemeSignal[] {
     if (t) { selected.push(t); used.add(key); }
   }
 
+  if (DOUBT_RE.test(msg)) add("keuzehulp");
   if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) add("route");
   if (/(vacature|baan|werk|school)/.test(msg)) add("vacatures");
   if (/(salaris|verdien|loon|cao)/.test(msg)) add("salaris");
@@ -141,7 +137,6 @@ export function publicThemes(userMessage: string): ThemeSignal[] {
   if (/(functie|rol|lesgeven|begeleid)/.test(msg)) add("functie");
   if (/(toelating|eisen|diploma|vooropleiding)/.test(msg)) add("toelating");
 
-  // If nothing matched, offer exploration themes
   if (selected.length === 0) {
     add("route");
     add("sector");
