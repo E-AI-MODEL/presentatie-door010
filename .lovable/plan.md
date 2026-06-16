@@ -1,110 +1,70 @@
-# Fix-plan: AI bugs + warning duplicatie + lege placeholders
+# Herstelplan: verloren functies in persoonlijke chat
 
-Aanpak in 6 stappen. Elke stap heeft een **harde exit-voorwaarde** die ik verifieer voor ik doorga.
-
----
-
-## Stap 1 — Zichtbare leaks naar kandidaat (Critical 3 + 4 + warning-duplicatie)
-
-**Wat:**
-- `src/components/profile/ProfileTimeline.tsx`: herschrijf alle `description` strings die "fase" bevatten (regels 32, 48, 64, …) naar handelingsgerichte tekst zonder fase-woord.
-- Idem: hernoem alle `label: "Kennisbank"` / `"Subsidie-info"` etc. die naar `/kennisbank` linken (regels 61, 75, 92, 106) — labels worden "Meer informatie", "Routegids", "Sollicitatietips", "Praktische zaken"; href blijft maar label bevat geen verboden term.
-- `src/components/chat/AuthenticatedChatOverlay.tsx` regels 908-939: **merge** de twee waarschuwingen. Bij low confidence (<0.55) toon alleen één element (de "Twijfel"-chip krijgt subtitel "antwoord mogelijk onvolledig"); de aparte ⚠️-balk vervalt. Bij medium/high alleen confidence chip zonder warning.
-- Verwijder of hernoem "Twijfel" naar neutrale tekst ("Nog niet zeker") want het is een verboden-term-buurt en oogt als alarm.
-
-**Exit-voorwaarde:**
-- `rg -n "fase|Kennisbank|kennisbank" src/components/profile/ProfileTimeline.tsx` → 0 hits in zichtbare tekstvelden.
-- Visuele check screenshot: chat met low-confidence antwoord toont **één** subtiele indicator, geen dubbele warning.
-- `rg -n "Twijfel" src/components/chat` → 0 hits.
+Op basis van de deepdive zijn er 4 echte regressies + 1 false alarm. Aanpak: 5 stappen, elk met een harde exit-voorwaarde voordat ik doorga.
 
 ---
 
-## Stap 2 — Chip-limieten (Critical 1 + 2)
+## Stap 1 — Topic/burger-menu zichtbaar in de persoonlijke chat
 
-**Wat:**
-- `supabase/functions/doorai-chat/index.ts:1056` → `uiLinks.slice(0, 1)`
-- `supabase/functions/doorai-chat/index.ts:1278` → `themesToActions(themes, 1)`
-- `supabase/functions/homepage-coach/index.ts:216` → `.slice(0, 1)`
-- `supabase/functions/homepage-coach/index.ts:469` → `themesToActions(themes, 1)`
-- `src/components/chat/AuthenticatedChatOverlay.tsx:362, 532` → `.slice(0, 1)`
-- `src/components/chat/PublicChatWidget.tsx:253, 268` → `.slice(0, 1)`
+**Probleem:** In `AuthenticatedChatOverlay.tsx:70` staat `showTopicPanel = useState(false)`. Het menu bestaat nog (regels 785–819), maar zit verstopt achter een toggle. Voor de demo voelt het als "weg".
 
-**Exit-voorwaarde:**
-- Live test in preview: stel een vraag, screenshot het antwoord, tel chips → exact ≤1 action + ≤1 link.
-- `rg -n "slice\(0, [2-9]" supabase/functions src/components/chat` → 0 hits voor chip-arrays.
+**Fix:**
+- Default openen: `useState(true)` zodra de overlay opent in persoonlijke modus.
+- Burger-icoon blijft zichtbaar als sluit/open-knop.
+
+**Exit-voorwaarde:** Bij openen van de persoonlijke chat is het persoonlijke topic-menu direct zichtbaar (zonder extra klik). Burger-icoon werkt nog steeds als toggle.
 
 ---
 
-## Stap 3 — Live state gaps (High 4 + 5)
+## Stap 2 — Doorklikken/chips komen weer betrouwbaar door (Router-fix)
 
-**Wat:** voeg `notifyProfileUpdated()` toe na elke succesvolle `profiles.update()` in:
-- `src/components/chat/AuthenticatedChatOverlay.tsx` regels 214, 266, 371
-- `src/components/profile/InterestTest.tsx:168`
-- `src/components/profile/AvatarUpload.tsx:89, 122`
-- `src/components/profile/CVUpload.tsx:95, 127`
+**Probleem:** `conversationRouter.ts:41` zet de modus op `"clarify"` zodra het antwoord ≤2 zinnen is én er (toevallig) geen action/link is. In `"clarify"` én `"phase_transition"` worden ALLE chips verborgen, óók wanneer er wél een action of link is teruggekomen.
 
-**Exit-voorwaarde:**
-- `rg -n "profiles.*\.update\(" src/components | xargs rg -lL "notifyProfileUpdated"` → 0 (alle update-files importeren de helper).
-- Manuele test: upload avatar → Dashboard avatar update binnen 1s zonder reload.
+**Fix:**
+- Render-gate in `AuthenticatedChatOverlay.tsx`: als `currentActions.length > 0` of `currentLinks.length > 0` → altijd tonen, ongeacht `mode`.
+- `conversationRouter.ts:41`: alleen "clarify" als er ook écht 0 chips zijn.
+
+**Exit-voorwaarde:** Bij een kort antwoord met 1 action/link verschijnt die chip altijd. Bij phase-transition met link verschijnt de link-chip. Geverifieerd via live-test in preview met een korte vraag.
 
 ---
 
-## Stap 4 — known_slots persistentie + sanitizer-gaps (High 1 + 6, Medium 3 + 4)
+## Stap 3 — Sanitizer stript geen legitieme link-labels meer
 
-**Wat:**
-- `supabase/functions/doorai-chat/index.ts` na regel 1288: schrijf `correctedSlots` terug naar DB met `adminClient.from("profiles").update({ known_slots: mergedSlots }).eq("user_id", uid)`. Merge met server-side verse `known_slots` zodat client niet kan overschrijven.
-- `src/utils/sanitizeClient.ts:22-28`: vul `FORBIDDEN_BARE` aan met `fase`, `intake`, `slot`, `detector`, `scenario` (5 ontbrekende).
-- `doorai-chat/index.ts:1306-1311`: sanitize `phaseSuggestion?.message` met `sanitizeAssistantText()` voor het in `uiPayload` gaat.
-- `doorai-chat/index.ts` `resolveSystemPrompt` (~895-918): run `sanitizeAssistantText()` over elke DB `prompt_override` vóór concatenatie.
+**Probleem:** `FORBIDDEN_BARE` in `sanitizeClient.ts:23` en `_shared/sanitize.ts` bevat `"kennisbank"` en `"slot"`. Word-boundary replace strikt deze ook in `[Kennisbank](/kennisbank)` → leeg label, en `"slot"` botst met normaal Nederlands.
 
-**Exit-voorwaarde:**
-- Chat-turn met sector-keuze → reload pagina → `known_slots` in DB bevat de waarde (verifieer via `supabase--read_query`).
-- `rg -n "FORBIDDEN_TERMS|FORBIDDEN_BARE" src/utils/sanitizeClient.ts` toont alle 12 termen.
+**Fix:**
+- `slot` verwijderen uit `FORBIDDEN_BARE` (te generiek). Vervangen door specifieke compound `known_slots`/`slot_key` indien nodig.
+- Replace alleen toepassen op text-segmenten buiten markdown-anchor `[...]`. Bracket-inhoud overslaan via split-en-rejoin op markdown-link-regex.
+- Zelfde aanpak in server-side `_shared/sanitize.ts`.
 
----
-
-## Stap 5 — Lege placeholders & hallucinaties (ervaringsverhalen / podcasts) + High 2 + 3
-
-**Wat:**
-- `supabase/functions/doorai-chat/index.ts` `DOORAI_CORE` (~666): voeg harde regel toe: *"Noem nooit content-vormen als 'ervaringsverhalen', 'podcasts', 'video's' of vergelijkbaar tenzij een concrete titel/URL voor die vorm in de bronnen staat. Bij twijfel: weglaten."*
-- Idem in `homepage-coach/index.ts` `SITE_GUIDE_PROMPT` (~280).
-- Vervang "fase" in `homepage-coach:295, 297` door "orientatiestadium".
-- Vervang `## Interne kennisbank` in `doorai-chat:231, 305` door `## Interne bronnen`.
-- Voeg in `_shared/sanitize.ts` een regex toe die zinnen verwijdert met `\b(ervaringsverhalen|podcasts?|video['']?s)\b` waarvoor geen URL of `[…]` in dezelfde zin staat (defensive net).
-- Peildatum-string `mogelijk verouderd, laatst gecheckt …`: voeg regex toe aan sanitizer.
-
-**Exit-voorwaarde:**
-- 3 testvragen die historisch "ervaringsverhalen/podcasts" triggerden: geen van die woorden in output tenzij links/titel meegegeven.
-- `rg -n '"fase"|## Interne kennisbank' supabase/functions` → 0 hits.
+**Exit-voorwaarde:** `[Kennisbank](/kennisbank)` blijft intact in render. Zin "slot van de avond" blijft intact. Forbidden bare woorden (fase, intake, scenario, detector) buiten link-labels worden nog wel geneutraliseerd.
 
 ---
 
-## Stap 6 — Medium/Low restjes (M2, L1, L2, L3)
+## Stap 4 — Chip-limiet ophogen naar 2 zodat demo niet "leeg" voelt
 
-**Wat:**
-- Verwijder `/dashboard` uit `homepage-coach` `INTERNAL_LINKS` (publiek bezoeker heeft daar niets te zoeken).
-- `doorai-chat:13` comment opschonen (em-dash + "fase" eruit).
-- `src/components/profile/ProfileHero.tsx:86` fallback: `phaseLabels[…] || "Aan het ontdekken"`.
-- `AuthenticatedChatOverlay.tsx:491-495`: verwijder client-side `profileContext` uit homepage-coach request body (server haalt zelf op).
+**Probleem:** `.slice(0, 1)` op zowel action- als link-chips in `AuthenticatedChatOverlay.tsx` (regels ~365/369/420/421), `PublicChatWidget.tsx`, `doorai-chat/index.ts:1061`, `homepage-coach/index.ts:541/545`. Bij greetings/phase-transition is dat ene slot vaak leeg → niets klikbaar.
 
-**Exit-voorwaarde:**
-- Code-review pass: `rg` op alle low-bug-files toont geen restklacht.
-- Volledige smoke-test: login als test-user, chat 3 vragen, edit profile, herlaad → geen warnings, geen leaks, één chip-max gerespecteerd.
+**Fix:** Limiet ophogen naar `slice(0, 2)` op alle 6 locaties. Memory-regel "max 1 action chip, 1 link chip" wordt aangepast naar "max 2 action chips, 2 link chips".
+
+**Exit-voorwaarde:** In live preview tonen normale turns 1–2 action-chips én 1–2 link-chips. Layout breekt niet (chips wrap netjes).
 
 ---
 
-## Technical notes
-- Geen DB migraties nodig.
-- Geen nieuwe packages.
-- Geen wijzigingen aan `client.ts`, `themes.ts` of SSOT-JSONs.
-- `_shared/sanitize.ts` wordt door zowel `doorai-chat` als `homepage-coach` geïmporteerd; één edit dekt beide.
-- Edge functions worden automatisch gedeployed.
+## Stap 5 — Live smoke-test in de preview
 
-## Out of scope
-- Geen UI re-design.
-- Geen wijziging aan FAQ-DB inhoud of trusted_sources.
-- Geen wijziging aan phase-detector scoring.
+Met `admin010` inloggen via browser-preview en testen:
+1. Dashboard → "Stel vraag" op een topic → chat opent met topic-menu zichtbaar (Stap 1).
+2. Korte vraag stellen → chip(s) verschijnen en zijn klikbaar (Stap 2 + 4).
+3. Link-chip klikken → navigeert naar `/opleidingen` of `/kennisbank` (Stap 2).
+4. Antwoord met `[Kennisbank](/kennisbank)` in tekst → label staat er nog (Stap 3).
+5. Burger-icoon klikt menu dicht/open.
+
+**Exit-voorwaarde:** Alle 5 testen slagen. Geen console-errors. Pas dan klaarmelden.
 
 ---
 
-**Werkwijze:** ik doe Stap 1 → verifieer exit → Stap 2 → enz. Bij elke stap meld ik kort "exit OK" met bewijs (rg-output of screenshot), pas dan ga ik door.
+## Niet aangeraakt (bewust)
+
+- `Dashboard.tsx` → `AuthenticatedChatOverlay` handoff via `doorai-send-message` event werkt nog correct (geverifieerd, geen regressie).
+- Memory-bestand `mem://design/chat-ui` wordt na Stap 4 bijgewerkt naar "max 2/2" om consistent te blijven.

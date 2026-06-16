@@ -241,7 +241,7 @@ export function AuthenticatedChatOverlayV3() {
     if (user && artifact.to) {
       const { data } = await supabase
         .from("profiles")
-        .update({ current_phase: artifact.to })
+        .update({ current_phase: artifact.to as "beslissen" | "interesseren" | "matchen" | "orienteren" | "voorbereiden" })
         .eq("user_id", user.id)
         .select("current_phase, preferred_sector, first_name, bio, test_completed, test_results, known_slots")
         .single();

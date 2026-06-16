@@ -67,7 +67,7 @@ export function AuthenticatedChatOverlay() {
   const [pendingPhaseSuggestion, setPendingPhaseSuggestion] = useState<{ from: string; to: string; message: string } | null>(null);
   const [reflectionWarning, setReflectionWarning] = useState<string[] | null>(null);
   const [lastConfidence, setLastConfidence] = useState<number | null>(null);
-  const [showTopicPanel, setShowTopicPanel] = useState(false);
+  const [showTopicPanel, setShowTopicPanel] = useState(true);
   const [personalVisibility, setPersonalVisibility] = useState<TurnVisibility | null>(null);
   const [generalVisibility, setGeneralVisibility] = useState<TurnVisibility | null>(null);
   // Separate message histories per mode
@@ -362,11 +362,11 @@ export function AuthenticatedChatOverlay() {
             // Handle event: ui
             if (currentEventType === "ui") {
               if (parsed.actions && Array.isArray(parsed.actions)) {
-                setLatestActions(parsed.actions.slice(0, 1));
+                setLatestActions(parsed.actions.slice(0, 2));
                 turnHasActions = parsed.actions.length > 0;
               }
               if (parsed.links && Array.isArray(parsed.links)) {
-                setLatestLinks(parsed.links.slice(0, 1));
+                setLatestLinks(parsed.links.slice(0, 2));
                 turnHasLinks = parsed.links.length > 0;
               }
 
@@ -417,8 +417,8 @@ export function AuthenticatedChatOverlay() {
 
             // Legacy fallback
             if (parsed.actions && Array.isArray(parsed.actions)) {
-              setLatestActions(parsed.actions.slice(0, 1));
-              if (parsed.links) setLatestLinks((parsed.links as Array<{ label: string; href: string }>).slice(0, 1));
+              setLatestActions(parsed.actions.slice(0, 2));
+              if (parsed.links) setLatestLinks((parsed.links as Array<{ label: string; href: string }>).slice(0, 2));
               continue;
             }
 
@@ -538,11 +538,11 @@ export function AuthenticatedChatOverlay() {
             // Meta payload from homepage-coach (first event)
             if (parsed.meta) {
               if (parsed.meta.actions) {
-                setGeneralActions(parsed.meta.actions.slice(0, 1));
+                setGeneralActions(parsed.meta.actions.slice(0, 2));
                 genHasActions = parsed.meta.actions.length > 0;
               }
               if (parsed.meta.verified_links) {
-                setGeneralLinks(parsed.meta.verified_links.slice(0, 1));
+                setGeneralLinks(parsed.meta.verified_links.slice(0, 2));
                 genHasLinks = parsed.meta.verified_links.length > 0;
               }
 
@@ -873,8 +873,8 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
-            {/* Actions — only when router allows */}
-            {currentActions.length > 0 && (turnVisibility?.showActionChip !== false) && (
+            {/* Actions — render ALTIJD als er chips zijn (router-flag is hint, geen gate) */}
+            {currentActions.length > 0 && (
               <div className="px-4 pb-2 shrink-0">
                 <ResponseActions
                   primaryFollowup={currentActions[0] ? { label: currentActions[0].label, value: currentActions[0].value } : null}
@@ -885,8 +885,8 @@ export function AuthenticatedChatOverlay() {
               </div>
             )}
 
-            {/* Link chips — only when router allows */}
-            {currentLinks.length > 0 && !currentLoading && (turnVisibility?.showLinkChip !== false) && (
+            {/* Link chips — render ALTIJD als er links zijn */}
+            {currentLinks.length > 0 && !currentLoading && (
               <div className="px-4 pb-2 shrink-0 flex flex-wrap gap-1.5">
             {currentLinks
                   .filter(link => link.href.startsWith("/") || /^https?:\/\//i.test(link.href))

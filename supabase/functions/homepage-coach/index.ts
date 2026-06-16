@@ -212,7 +212,7 @@ async function computePublicLinks(
     matched.push({ label: "Routes en opleidingen", href: "/opleidingen" });
   }
 
-  return matched.slice(0, 1);
+  return matched.slice(0, 2);
 }
 
 // ── URL sanitizer for answer text ─────────────────────────────
@@ -462,12 +462,12 @@ Deno.serve(async (req) => {
         ];
         // shuffle + pak 2 → varieert per begroeting
         const shuffled = [...greetingPool].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 1);
+        return shuffled.slice(0, 2);
       }
 
       const currentKeys = detectCurrentThemeKeys(lastUserMsg);
       const themes = publicThemes(allUserMsgs, currentKeys);
-      const actions = themesToActions(themes, 1);
+      const actions = themesToActions(themes, 2);
 
 
       if (actions.length > 0) return actions;
@@ -478,7 +478,7 @@ Deno.serve(async (req) => {
         { label: "Bevoegdheid", value: "Welk papiertje heb ik nodig om voor de klas te staan?" },
         { label: "Eerste stap", value: "Waar zou ik moeten beginnen?" },
       ];
-      return [...fallbackPool].sort(() => Math.random() - 0.5).slice(0, 1);
+      return [...fallbackPool].sort(() => Math.random() - 0.5).slice(0, 2);
     }
 
     const actions = buildActions();

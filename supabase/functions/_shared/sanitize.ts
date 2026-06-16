@@ -73,14 +73,35 @@ function stripPhraseCaseInsensitive(text: string, phrase: string): string {
   return text.replace(re, "");
 }
 
+const MARKDOWN_LINK_RE_FT = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+function transformOutsideMarkdownLinks(text: string, fn: (s: string) => string): string {
+  let out = "";
+  let lastIndex = 0;
+  const re = new RegExp(MARKDOWN_LINK_RE_FT.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    out += fn(text.slice(lastIndex, m.index));
+    out += m[0];
+    lastIndex = m.index + m[0].length;
+  }
+  out += fn(text.slice(lastIndex));
+  return out;
+}
+
 export function stripForbiddenTerms(text: string): string {
   let out = text;
   // Suffix-vormen eerst (langer = specifieker), zodat we niet eerst "fase" weghalen.
   out = out.replace(PHASE_SUFFIX_RE, "richting");
   out = out.replace(PHASE_LABEL_RE, "");
-  for (const term of FORBIDDEN_TERMS) {
-    out = stripPhraseCaseInsensitive(out, term);
-  }
+  // Forbidden terms alleen buiten markdown-link-labels strippen.
+  out = transformOutsideMarkdownLinks(out, (segment) => {
+    let s = segment;
+    for (const term of FORBIDDEN_TERMS) {
+      s = stripPhraseCaseInsensitive(s, term);
+    }
+    return s;
+  });
   return out;
 }
 
