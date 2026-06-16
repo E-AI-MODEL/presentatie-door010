@@ -104,6 +104,16 @@ export function AuthenticatedChatOverlayV3() {
   ]);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [generalLoading, setGeneralLoading] = useState(false);
+  // Topic-burgermenu — default open in persoonlijke chat (per project-memory).
+  // Sessie-persistent zodat hij niet steeds terugkomt na sluiten.
+  const [topicsOpen, setTopicsOpen] = useState<boolean>(() => {
+    try {
+      const stored = sessionStorage.getItem("doorai-topics-open");
+      return stored === null ? true : stored === "1";
+    } catch {
+      return true;
+    }
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +122,27 @@ export function AuthenticatedChatOverlayV3() {
   const messages = isPersonal ? personalMessages : generalMessages;
   const loading = isPersonal ? personalLoading : generalLoading;
   const visibleMessages = messages.slice(-10);
+  const showTopics = isPersonal && topicsOpen;
+
+  const knownSlots: KnownSlots = useMemo(() => {
+    const raw = profile?.known_slots;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof v === "string") out[k] = v;
+    }
+    return out;
+  }, [profile?.known_slots]);
+
+  const currentPhaseSafe: OrientationPhase = (profile?.current_phase as OrientationPhase) || "interesseren";
+
+  const toggleTopics = useCallback(() => {
+    setTopicsOpen((v) => {
+      const next = !v;
+      try { sessionStorage.setItem("doorai-topics-open", next ? "1" : "0"); } catch { /* noop */ }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
