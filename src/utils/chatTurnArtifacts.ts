@@ -41,7 +41,7 @@ export interface ChatDecisionArtifact {
   to?: string;
 }
 
-export interface RawTurnMeta {
+interface RawTurnMeta {
   actions?: Array<{ label?: string; value?: string; href?: string }>;
   links?: Array<{ label?: string; href?: string; external?: boolean }>;
   verified_links?: Array<{ label?: string; href?: string; external?: boolean }>;
@@ -86,7 +86,7 @@ function isValidHref(href: string): boolean {
   return href.startsWith("/") || /^https?:\/\//i.test(href);
 }
 
-export function isDoubtMessage(message?: string): boolean {
+function isDoubtMessage(message?: string): boolean {
   const lower = (message || "").toLowerCase();
   return DOUBT_WORDS.some((word) => lower.includes(word));
 }
