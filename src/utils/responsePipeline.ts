@@ -201,52 +201,11 @@ const FORBIDDEN_PATTERNS: RegExp[] = [
   /\[\/?(opleidingen|vacatures|events|kennisbank|profile|dashboard|backoffice|auth)\]\(\/(opleidingen|vacatures|events|kennisbank|profile|dashboard|backoffice|auth)/i,
 ];
 
+// (reflectOnDraft verwijderd — reflection draait server-side in doorai-chat;
+//  client-versie was nooit aangeroepen en hield een tweede forbidden-list in sync.)
 export interface ReflectionResult {
   pass: boolean;
   issues: string[];
-}
-
-export function reflectOnDraft(
-  draft: string,
-  question: string,
-  answerType: AnswerType,
-  verifiedLinks: VerifiedLink[],
-): ReflectionResult {
-  const issues: string[] = [];
-  const lower = draft.toLowerCase();
-  const rules = ANSWER_TYPE_RULES[answerType];
-
-  for (const phrase of FORBIDDEN_PHRASES) {
-    if (lower.includes(phrase)) {
-      issues.push(`Bevat verboden term: "${phrase}"`);
-    }
-  }
-  for (const pattern of FORBIDDEN_PATTERNS) {
-    const m = draft.match(pattern);
-    if (m) {
-      issues.push(`Bevat verboden patroon: "${m[0]}"`);
-    }
-  }
-
-  const sentences = draft.split(/[.!?]+/).filter((s) => s.trim().length > 5);
-  if (sentences.length > rules.maxSentences * 1.5) {
-    issues.push(`Te lang: ${sentences.length} zinnen (max ~${rules.maxSentences})`);
-  }
-
-  if (/[\u2014\u2013]/.test(draft)) {
-    issues.push("Bevat em-dash of en-dash");
-  }
-
-  if (rules.requiresVerifiedSource && verifiedLinks.length === 0) {
-    issues.push("Bronplichtig antwoord zonder geverifieerde link");
-  }
-
-  const questionMarks = draft.split(/[.!]\s/).filter((s) => s.trim().endsWith("?"));
-  if (questionMarks.length > 1) {
-    issues.push(`Meer dan 1 vervolgvraag (${questionMarks.length})`);
-  }
-
-  return { pass: issues.length === 0, issues };
 }
 
 // ── Parse Structured Meta from SSE ───────────────────────────────
