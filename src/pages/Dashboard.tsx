@@ -229,7 +229,7 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
       <main className="flex-1">
-        <div className="container max-w-6xl py-4 md:py-8 space-y-6 md:space-y-8">
+        <div className="container max-w-7xl py-3 md:py-4 space-y-3">
           <HubHero
             firstName={firstName}
             lastName={lastName}
@@ -243,7 +243,7 @@ export default function Dashboard() {
           />
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="flex w-full justify-start gap-0 rounded-none border-b border-border bg-transparent p-0 h-auto">
+            <TabsList className="inline-flex h-8 gap-1 rounded-full bg-muted p-0.5">
               {[
                 { v: "vandaag", l: "Vandaag" },
                 { v: "profiel", l: "Profiel" },
@@ -253,7 +253,7 @@ export default function Dashboard() {
                 <TabsTrigger
                   key={t.v}
                   value={t.v}
-                  className="rounded-none border-b-2 border-transparent bg-transparent px-5 md:px-7 py-3 text-sm font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent transition-colors"
+                  className="rounded-full px-3 py-1 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
                 >
                   {t.l}
                 </TabsTrigger>
@@ -261,23 +261,22 @@ export default function Dashboard() {
             </TabsList>
 
             {/* === VANDAAG === */}
-            <TabsContent value="vandaag" className="mt-6 md:mt-8">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
-                {/* LEFT: sidebar — quick actions + topic menu */}
-                <aside className="lg:col-span-4 space-y-6">
-                  <div className="grid grid-cols-2 gap-3">
+            <TabsContent value="vandaag" className="mt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+                <aside className="lg:col-span-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
                     {quickActions.map((a) => {
                       const Icon = a.icon;
-                      const cls = `group flex flex-col items-center justify-center gap-2 rounded-3xl border p-4 md:p-5 transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                      const cls = `group flex items-center gap-2 rounded-xl border p-2.5 transition-all hover:-translate-y-0.5 hover:shadow-md ${
                         a.primary
                           ? "bg-primary text-primary-foreground border-primary shadow-door"
                           : "bg-card border-border/60 hover:border-primary/40"
                       }`;
-                      const chipCls = `h-10 w-10 rounded-2xl flex items-center justify-center ${
+                      const chipCls = `h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${
                         a.primary ? "bg-white/20" : "bg-primary/10"
                       }`;
-                      const iconCls = `h-5 w-5 ${a.primary ? "text-primary-foreground" : "text-primary"}`;
-                      const labelCls = `text-xs font-bold text-center leading-tight ${
+                      const iconCls = `h-3.5 w-3.5 ${a.primary ? "text-primary-foreground" : "text-primary"}`;
+                      const labelCls = `text-xs font-bold leading-tight ${
                         a.primary ? "text-primary-foreground" : "text-foreground"
                       }`;
                       const inner = (
@@ -295,8 +294,8 @@ export default function Dashboard() {
                   </div>
 
                   <div className="rounded-2xl border border-border/40 bg-card/50 overflow-hidden">
-                    <div className="px-4 pt-4 pb-2">
-                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                    <div className="px-3 pt-2.5 pb-1">
+                      <h3 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/80">
                         PROMPT BIBLIOTHEEK
                       </h3>
                     </div>
@@ -308,17 +307,14 @@ export default function Dashboard() {
                   </div>
                 </aside>
 
-                {/* RIGHT: main */}
-                <section className="lg:col-span-8 space-y-6 md:space-y-8">
-
-                  <div className="rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-sm">
+                <section className="lg:col-span-8">
+                  <div className="rounded-2xl border border-border/60 bg-card p-3 md:p-4 shadow-sm">
                     <RecommendedContent
                       currentPhase={currentPhase}
                       knownSlots={knownSlots}
                       onOpenChat={handleOpenChat}
                     />
                   </div>
-
                 </section>
               </div>
             </TabsContent>
