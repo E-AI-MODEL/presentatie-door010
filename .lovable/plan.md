@@ -1,55 +1,66 @@
-## 1. Demo pagina verwijderen
+## Doel
 
-- Controleer of scr/pages/demo.tsx "zomaar weg kan" zonder andere functionaliteiten te beschadigen. Is dit veilig dan ;   
-`src/pages/Demo.tsx` verwijderen
-- Route `/demo` uit `src/App.tsx` halen + import weg
-- Eventuele links naar `/demo` opruimen (Header, Footer, HeroSection)
-- `useDemoLogin` in HeroSection blijft werken voor de bestaande "Je eerste stap…" knop (kandidaat-login)
+`/backoffice` veel compacter en interactiever maken: alles inklapbaar, korter, en met de functies die nu ontbreken (afspraak inplannen vanuit advisor, vollere gesprekken-tab, dichtere bronnen-tab). Whitelist-koppeling met de persoonlijke chat ook expliciet zichtbaar.
 
-## 2. Admin-login in burgermenu
+## Bevestigd uit codebase
 
-- In `Header.tsx` (burgermenu / mobile nav) extra item **"Inloggen als admin"** toevoegen
-- Klik → roept een nieuwe `loginAsAdmin()` hook aan (analoog aan `useDemoLogin`) die inlogt met `test@doorai.nl` / `admin010`-account dat reeds admin-rol heeft, en doorstuurt naar `/backoffice`
-- Migration: borg dat `test@doorai.nl` zowel `candidate` als `admin` rol heeft in `user_roles` (nu alleen candidate). Zonder dit werkt de redirect maar zou backoffice-link in header niet verschijnen.
-- `/auth` blijft ongewijzigd (gewone email/password login)
+- `trusted_sources` wordt al actief gebruikt in `supabase/functions/doorai-chat/index.ts` (regel 330 = filter externe links; regel 523 = ophalen voor Firecrawl). Whitelist is dus écht aangesloten op de persoonlijke chat. We maken dit alleen zichtbaar in de UI.
+- `appointments`-tabel bestaat al met `user_id, subject, message, preferred_date, preferred_time, status` — nieuwe afspraak is een simpele `insert`.
+- Test-kandidaat = `test@doorai.nl` (huidig admin-login én demo-kandidaat). Voor "altijd in agenda van het gebruikersprofiel" matchen we op dat e-mailadres.
 
-## 3. Drastische compacte redesign — Dashboard & Backoffice
+## Wijzigingen
 
-Kleuren, fonts, design tokens, en alle functionaliteit blijven exact gelijk. Alleen layout/dichtheid verandert.
+### 1. Overzicht — kandidaten compact en groepeerbaar
+- `UserOverviewTable`: 
+  - Filters in `<details>` (default dichtgeklapt, opent met aantal actieve filters als badge).
+  - Tabel-rijen 32px hoog (was ~64): avatar 24px, één regel naam + email, fase-pill ipv volledige `PhaseStatusBar`, documenten als 2 dots.
+  - Nieuw: **groepeer-toggle** "Per fase" — toont 5 collapsible groepen (Interesseren, Oriënteren, Beslissen, Matchen, Voorbereiden) elk met count + chevron, default 1e groep open.
+  - "Compact / Comfort"-switch in de toolbar.
 
-### Dashboard (`src/pages/Dashboard.tsx` + onderdelen)
+### 2. Afspraken — advisor kan zelf inplannen
+- Nieuwe knop **"Afspraak inplannen"** rechtsboven in de Afspraken-sectie.
+- Dialog met: kandidaat-select (default = `test@doorai.nl`, zoekbaar), onderwerp, datum (Calendar popover), tijd (Input type=time), notitie. Status = `confirmed`.
+- `INSERT` in `appointments` met `user_id` van de gekozen kandidaat → realtime push zet hem direct in profile-agenda van die gebruiker. Optioneel: ook een advisor-message in de bestaande conversatie ("Ik heb een afspraak ingepland voor …").
+- Demo-toelichting boven de knop: *"Afspraken landen automatisch in het profiel van de gekozen kandidaat."*
 
-Doel: alles boven de vouw, één blik = volledig overzicht.
+### 3. Gesprekken — uitgebreider en informatiever
+- Linker kandidatenlijst (1/4):
+  - Filter-strip: Zoek, "Alleen ongelezen", fase-dropdown.
+  - Elke rij toont: avatar + naam + fase-pill + ongelezen-badge + **preview van laatste bericht** (1 regel truncate) + tijd.
+  - Collapsible "Gearchiveerd / oud" sectie onderaan voor gesprekken > 30 dagen.
+- Rechter chatpaneel (3/4):
+  - Sticky header met naam + fase + snel-acties: **Afspraak inplannen** (opent dezelfde dialog, voor-ingevuld op deze kandidaat), **Bekijk profiel**, **Wijzig fase**.
+  - Onder de header een uitklapbare strip "Context" (default open): laatste 3 events uit de pipeline (fase-wijziging, CV-upload, test-resultaat).
+  - Berichten-stream blijft, maar advisor-bubbel krijgt een duidelijke "Advisor"-label en betere typografie.
 
-- Vervang de huidige verticale stack door een **bento-grid** (12-koloms desktop, 2-koloms mobiel):
-  - Linksboven (compact): begroeting + voortgangsbalk in één regel
-  - Hoofdtegel midden: chat-CTA / actieve gespreksstatus
-  - Rechts: kleine tegels voor opgeslagen vacatures, events, opleidingen (compacte counters i.p.v. lijsten)
-  - Onder: 1 rij "Aanbevolen voor jou" als horizontaal scrollende mini-cards (60-80px hoog)
-- Padding terug naar `p-4` / `gap-3`, kaarten van `p-8` naar `p-4`, headings van text-3xl naar text-lg
-- Topic-burgermenu wordt compacte tag-rij bovenaan i.p.v. accordion
-- Behoud: `useLiveProfile`, chat-overlay, alle bestaande acties/links
+### 4. Bronnen (whitelist) — dichter, inline editable, getest
+- `TrustedSourcesTab`:
+  - Bovenin een **status-bar**: "✓ Whitelist actief in persoonlijke chat — externe links worden gefilterd, Firecrawl gebruikt alleen actieve bronnen." (statische tekst — koppeling bestaat al server-side).
+  - Add-form blijft maar wordt smaller in een 1-regel inline composer.
+  - Categorieën worden **collapsible** (`<details>` per categorie met count en chevron, default open voor "algemeen"/eerste).
+  - Rij compact: 28px, switch links + label inline-editable + URL (klikbaar in nieuwe tab) + categorie-badge + delete-icon. Toon ook `last_used_at` als beschikbaar (anders niets).
+  - Filter-tabs bovenaan: "Alles / Actief / Inactief" + zoekveld.
+  - Bulk-actie: meerdere selecteren → activeren/deactiveren/verwijderen.
 
-### Backoffice (`src/pages/Backoffice.tsx`)
+### 5. Algemene collapsibles
+- KPI-strip krijgt al een toggle (bestaat). Toevoegen: per sectie een chevron-collapse boven de Card-titel zodat advisor zelf bepaalt wat zichtbaar is.
 
-Doel: command-center stijl, alle tabs vervangen door dense single-screen layout.
+## Niet-doen
+- Geen schema-wijzigingen (alle tabellen bestaan).
+- Geen wijziging aan `doorai-chat` / `homepage-coach` edge functions — whitelist-koppeling werkt al.
+- Geen e-mail-notificatie bij advisor-afspraak in deze ronde (kan later).
 
-- Vervang tabs door **sticky linker rail** (icon + label, 48px breed collapsable) met secties: Overzicht, Chat, Afspraken, Bronnen, Prompts, Detector
-- Hoofd-canvas: 2-koloms split — links lijst (compacte rijen, 36px hoog, geen kaarten), rechts detail-paneel
-- Overzicht-tab: KPI-strip bovenaan (6 cijfers naast elkaar, niet als grote kaarten) + dense table
-- Tabellen: rij-hoogte 32-36px, monospace voor IDs/tijden, sticky headers
-- Mobiel: rail wordt bottom-tab; lijst-detail wordt sheet (huidige mobile-pattern blijft)
-- Alle bestaande functies (prompt overrides, pipeline events, appointments etc.) blijven werken — alleen verpakt in compactere componenten
+## Bestanden
 
-## 4. Veiligheid van functionaliteit
+- `src/pages/Backoffice.tsx` — collapsible-toggles per sectie.
+- `src/components/backoffice/UserOverviewTable.tsx` — compact mode + groepering per fase + collapsible filters.
+- `src/components/backoffice/AppointmentsTab.tsx` — "Plan afspraak"-knop + dialog (kandidaat-select, datum, tijd, onderwerp, notitie).
+- Nieuw: `src/components/backoffice/ScheduleAppointmentDialog.tsx` — herbruikbaar in Afspraken-tab én Gesprekken-tab.
+- `src/components/backoffice/AdvisorChatPanel.tsx` — sticky action-header + context-strip + snel-acties.
+- `src/components/backoffice/TrustedSourcesTab.tsx` — collapsible categorieën, dense rijen, filter-tabs, bulk-acties, whitelist-status-bar.
 
-- Geen wijzigingen aan edge functions, RLS, data-flows of hooks
-- Per scherm: bestaande handlers en data-fetches behouden, alleen presentation-laag herschrijven
-- Na implementatie: handmatige check via preview op /dashboard en /backoffice (login als kandidaat resp. admin)
+## Verificatie
 
-## Technische details
-
-- Nieuwe hook `src/hooks/useAdminLogin.ts` (mirror van `useDemoLogin`)
-- Migration: `INSERT INTO user_roles (user_id, role) SELECT id, 'admin' FROM auth.users WHERE email='test@doorai.nl' ON CONFLICT DO NOTHING;`
-- Nieuwe componenten: `src/components/dashboard/BentoGrid.tsx`, `src/components/backoffice/SideRail.tsx`, `src/components/backoffice/DenseTable.tsx`
-- Bestaande tegel/tab-componenten worden ingepakt of vervangen, niet verwijderd zolang ze elders gebruikt worden
+- Plan afspraak voor test-kandidaat → verschijnt direct in `/profile` (AppointmentTile) van diezelfde gebruiker via realtime.
+- Whitelist toggle op `false` voor een bron → `doorai-chat` Firecrawl-bron-lijst neemt 'm niet meer mee (bestaande server-logica).
+- Kandidatenlijst < 50% van huidige hoogte na compact-toggle.
