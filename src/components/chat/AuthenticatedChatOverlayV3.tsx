@@ -138,7 +138,9 @@ export function AuthenticatedChatOverlayV3() {
     let hasArtifacts = false;
     let doneSeen = false;
 
-    while (!doneSeen) {
+    // Lees door tot reader echt klaar is; server stuurt meta-events (ui/reflection)
+    // ná [DONE], die we anders missen waardoor de chip-fallback ten onrechte triggert.
+    while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
