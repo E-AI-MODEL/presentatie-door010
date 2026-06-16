@@ -313,12 +313,34 @@ export function AuthenticatedChatOverlayV3() {
 
   if (!user || isBackoffice) return null;
 
+  const firstInitial = (profile?.first_name?.trim()?.[0] || user.email?.[0] || "?").toUpperCase();
+
   return (
     <>
       <AnimatePresence>
         {!isOpen && (
-          <motion.button initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} onClick={() => setIsOpen(true)} className="fixed bottom-6 right-6 z-50 bg-primary text-primary-foreground rounded-full p-4 shadow-lg hover:bg-primary/90 transition-colors" aria-label="Open DOORai chat">
-            <MessageCircle className="h-6 w-6" />
+          <motion.button
+            initial={{ scale: 0.9, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 10 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 z-50 group flex items-center gap-3 rounded-full bg-card border border-border/70 pl-1.5 pr-4 py-1.5 shadow-xl shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all"
+            aria-label="Open jouw persoonlijke DoorAI coach"
+          >
+            <span className="relative h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
+              {firstInitial}
+              <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-card border-2 border-card flex items-center justify-center">
+                <span className="h-full w-full rounded-full bg-primary flex items-center justify-center">
+                  <Sparkles className="h-2 w-2 text-primary-foreground" />
+                </span>
+              </span>
+            </span>
+            <span className="flex flex-col items-start text-left leading-tight">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Jouw coach</span>
+              <span className="text-sm font-bold text-foreground">DoorAI</span>
+            </span>
+            <span className="ml-1 h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" aria-hidden />
           </motion.button>
         )}
       </AnimatePresence>
@@ -327,24 +349,34 @@ export function AuthenticatedChatOverlayV3() {
         {isOpen && (
           <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="fixed z-50 bg-card border border-border overflow-hidden flex flex-col bottom-6 right-6 rounded-3xl shadow-2xl w-[min(420px,calc(100vw-3rem))] h-[min(620px,calc(100vh-6rem))]" role="dialog" aria-modal="true" aria-label="DOORai chat">
             <div className="flex flex-col border-b border-border shrink-0">
-              <div className="flex items-center justify-between px-4 py-2.5">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between px-4 py-2.5 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="relative h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
+                    {isPersonal ? firstInitial : <Globe className="h-4 w-4" />}
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-card animate-pulse" />
+                  </span>
+                  <div className="flex flex-col leading-tight min-w-0">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                      {isPersonal ? "Jouw coach" : "Algemeen"}
+                    </span>
+                    <span className="text-sm font-bold text-foreground truncate">DoorAI</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-0.5 shrink-0">
                   {isPersonal && (
                     <button
                       onClick={toggleTopics}
-                      className={`p-1.5 rounded-full transition-colors ${showTopics ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground"}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors ${showTopics ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary hover:bg-primary/15"}`}
                       aria-label={showTopics ? "Sluit onderwerpen" : "Bekijk onderwerpen"}
                       aria-expanded={showTopics}
                     >
-                      <Menu className="h-3.5 w-3.5" />
+                      <ChevronDown className={`h-3 w-3 transition-transform ${showTopics ? "" : "-rotate-90"}`} />
+                      Onderwerpen
                     </button>
                   )}
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <h3 className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">DOORai</h3>
-                </div>
-                <div className="flex items-center gap-0.5">
                   {messages.length > 1 && <button onClick={clearCurrent} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-destructive" aria-label="Gesprek wissen"><Trash2 className="h-3.5 w-3.5" /></button>}
-                  <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground" aria-label="Sluit chat"><X className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground" aria-label="Minimaliseer chat" title="Minimaliseer"><ChevronDown className="h-4 w-4" /></button>
+                  <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground" aria-label="Sluit chat" title="Sluit"><X className="h-3.5 w-3.5" /></button>
                 </div>
               </div>
               <div className="flex items-center gap-1 px-4 pb-2">
@@ -352,6 +384,7 @@ export function AuthenticatedChatOverlayV3() {
                 <button onClick={() => setChatMode("general")} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${!isPersonal ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}><Globe className="h-3 w-3" /> Algemeen</button>
               </div>
             </div>
+
 
             {/* Topic-paneel — vervangt berichten zolang open (overlay is compact) */}
             {showTopics ? (
