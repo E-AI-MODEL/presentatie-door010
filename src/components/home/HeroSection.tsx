@@ -41,7 +41,7 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg md:text-xl text-white/90 max-w-2xl mb-8"
           >
-            Van eerste oriëntatie tot instroom in het onderwijs. Persoonlijk begeleid, met slimme tools die je verder helpen.
+            {"\n"}
           </motion.p>
 
           {/* CTA Buttons - styled like onderwijsloketrotterdam.nl */}
@@ -58,7 +58,7 @@ export function HeroSection() {
               onClick={() => loginAsDemo("/dashboard")}
             >
               <Play className="mr-2 h-5 w-5" />
-              {demoLoading ? "Bezig..." : "Je eerste stap richting het Rotterdamse onderwijs, start hier\u00a0"}
+              {demoLoading ? "Bezig..." : "Je eerste stap richting het Rotterdamse onderwijs\u00a0"}
             </Button>
           </motion.div>
         </div>
