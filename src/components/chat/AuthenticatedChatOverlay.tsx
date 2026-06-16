@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Trash2, ExternalLink, MessageCircle, X, Minimize2, Maximize2, Globe, User, Menu, Square } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatConversation } from "@/hooks/useChatConversation";
 import { supabase } from "@/integrations/supabase/client";
@@ -821,32 +822,45 @@ export function AuthenticatedChatOverlay() {
 
             {/* Messages */}
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5" aria-live="polite">
-              {visibleMessages.map((message, index) => (
-                <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : message.role === "advisor"
-                        ? "bg-accent/15 border border-accent/30 text-foreground"
-                        : "bg-muted text-foreground"
-                    }`}
-                  >
-                    {message.role === "advisor" && (
-                      <span className="text-[10px] font-semibold text-accent-foreground uppercase tracking-wide mb-1 block">Adviseur</span>
-                    )}
-                    {message.role === "user" ? (
-                      <p className="text-[13px]">{message.content}</p>
-                    ) : (
-                      <CollapsibleAnswer
-                        content={message.content}
-                        structured={(message as ChatMessageExt).structured}
-                        compact
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
+              {(() => {
+                // Index van het laatste assistant-bericht — alleen daar ambient bubble-tint.
+                let lastAssistantIdx = -1;
+                visibleMessages.forEach((m, i) => { if (m.role === "assistant") lastAssistantIdx = i; });
+                return visibleMessages.map((message, index) => {
+                  const isLastAssistant = index === lastAssistantIdx && isPersonal && lastConfidence !== null;
+                  let assistantBubble = "bg-muted text-foreground";
+                  if (isLastAssistant && lastConfidence !== null) {
+                    if (lastConfidence < 0.55) assistantBubble = "bg-amber-50 border border-amber-200 text-foreground";
+                    else if (lastConfidence < 0.75) assistantBubble = "bg-primary/5 border border-primary/15 text-foreground";
+                  }
+                  return (
+                    <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm transition-colors ${
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : message.role === "advisor"
+                            ? "bg-accent/15 border border-accent/30 text-foreground"
+                            : assistantBubble
+                        }`}
+                      >
+                        {message.role === "advisor" && (
+                          <span className="text-[10px] font-semibold text-accent-foreground uppercase tracking-wide mb-1 block">Adviseur</span>
+                        )}
+                        {message.role === "user" ? (
+                          <p className="text-[13px]">{message.content}</p>
+                        ) : (
+                          <CollapsibleAnswer
+                            content={message.content}
+                            structured={(message as ChatMessageExt).structured}
+                            compact
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
               {currentLoading && currentMessages[currentMessages.length - 1]?.role === "user" && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-2xl px-3.5 py-2.5">
