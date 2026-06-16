@@ -284,76 +284,82 @@ export function Header() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden border-t border-border bg-background"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="lg:hidden border-t border-border/60 bg-background/95 backdrop-blur"
           >
-            <div className="container py-4 space-y-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="block px-3 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded uppercase tracking-wide"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              {isAdvisorOrAdmin && (
-                <Link
-                  to="/backoffice"
-                  className="block px-3 py-3 text-sm font-medium text-accent hover:text-accent/80 hover:bg-muted rounded uppercase tracking-wide flex items-center gap-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Shield className="h-4 w-4" />
-                  Backoffice
-                </Link>
-              )}
-              <div className="pt-4 border-t border-border space-y-2">
-                {!loading && (
-                  user ? (
-                    <>
-                    <Button className="w-full" asChild>
-                        <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                          <User className="mr-2 h-4 w-4" />
-                          Dashboard
-                        </Link>
-                      </Button>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
-                          <User className="mr-2 h-4 w-4" />
-                          Mijn profiel
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full text-muted-foreground hover:text-foreground hover:bg-muted"
-                        onClick={async () => { await signOut(); navigate("/"); setMobileMenuOpen(false); }}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Uitloggen
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        className="w-full"
-                        disabled={demoLoading}
-                        onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        {demoLoading ? "Bezig..." : "Inloggen"}
-                      </Button>
-                    </>
-
-                  )
+            <div className="container py-2">
+              <nav className="flex flex-col">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="px-2 py-2 text-sm text-foreground/80 hover:text-primary transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+                {isAdvisorOrAdmin && (
+                  <Link
+                    to="/backoffice"
+                    className="px-2 py-2 text-sm text-accent hover:text-accent/80 transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="h-3.5 w-3.5" />
+                    Backoffice
+                  </Link>
                 )}
-              </div>
+              </nav>
+              {!loading && (
+                <div className="mt-2 pt-2 border-t border-border/60">
+                  {user ? (
+                    <div className="flex flex-col">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="px-2 py-2 text-sm text-foreground/80 hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="px-2 py-2 text-sm text-foreground/80 hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        Mijn profiel
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={async () => { await signOut(); navigate("/"); setMobileMenuOpen(false); }}
+                        className="px-2 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 text-left"
+                      >
+                        <LogOut className="h-3.5 w-3.5" />
+                        Uitloggen
+                      </button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      disabled={demoLoading}
+                      onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      {demoLoading ? "Bezig..." : "Inloggen"}
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
       
     </header>
   );
