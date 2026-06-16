@@ -393,40 +393,54 @@ export function AuthenticatedChatOverlayV3() {
       <AnimatePresence>
         {isOpen && (
           <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="fixed z-50 bg-card border border-border overflow-hidden flex flex-col bottom-6 right-6 rounded-3xl shadow-2xl w-[min(420px,calc(100vw-3rem))] h-[min(620px,calc(100vh-6rem))]" role="dialog" aria-modal="true" aria-label="DOORai chat">
-            <div className="flex flex-col border-b border-border shrink-0">
-              <div className="flex items-center justify-between px-4 py-2.5 gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="relative h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
-                    {isPersonal ? firstInitial : <Globe className="h-4 w-4" />}
-                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-card animate-pulse" />
-                  </span>
-                  <div className="flex flex-col leading-tight min-w-0">
-                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
-                      {isPersonal ? "Jouw coach" : "Algemeen"}
-                    </span>
-                    <span className="text-sm font-bold text-foreground truncate">DoorAI</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-0.5 shrink-0">
-                  {isPersonal && (
-                    <button
-                      onClick={toggleTopics}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors ${showTopics ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary hover:bg-primary/15"}`}
-                      aria-label={showTopics ? "Sluit onderwerpen" : "Bekijk onderwerpen"}
-                      aria-expanded={showTopics}
-                    >
-                      <ChevronDown className={`h-3 w-3 transition-transform ${showTopics ? "" : "-rotate-90"}`} />
-                      Onderwerpen
-                    </button>
-                  )}
-                  {messages.length > 1 && <button onClick={clearCurrent} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-destructive" aria-label="Gesprek wissen"><Trash2 className="h-3.5 w-3.5" /></button>}
-                  <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground" aria-label="Minimaliseer chat" title="Minimaliseer"><ChevronDown className="h-4 w-4" /></button>
-                  <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-full transition-colors text-muted-foreground" aria-label="Sluit chat" title="Sluit"><X className="h-3.5 w-3.5" /></button>
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="relative h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold shrink-0">
+                  {isPersonal ? firstInitial : <Globe className="h-3.5 w-3.5" />}
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 border-2 border-card" />
+                </span>
+                <div className="flex flex-col leading-tight min-w-0">
+                  <span className="text-sm font-bold text-foreground truncate">DoorAI</span>
+                  <span className="text-[10px] text-muted-foreground">{isPersonal ? "Persoonlijk" : "Algemeen"}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 px-4 pb-2">
-                <button onClick={() => setChatMode("personal")} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${isPersonal ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}><User className="h-3 w-3" /> Persoonlijk</button>
-                <button onClick={() => setChatMode("general")} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${!isPersonal ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}><Globe className="h-3 w-3" /> Algemeen</button>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button
+                  onClick={() => setChatMode("personal")}
+                  className={`p-1.5 rounded-md transition-colors ${isPersonal ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                  title="Persoonlijk"
+                  aria-label="Persoonlijk"
+                >
+                  <User className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => setChatMode("general")}
+                  className={`p-1.5 rounded-md transition-colors ${!isPersonal ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                  title="Algemeen"
+                  aria-label="Algemeen"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                </button>
+                <div className="w-px h-4 bg-border mx-0.5" />
+                {isPersonal && (
+                  <button
+                    onClick={toggleTopics}
+                    className={`p-1.5 rounded-md transition-colors ${showTopics ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                    aria-label={showTopics ? "Sluit onderwerpen" : "Bekijk onderwerpen"}
+                    aria-expanded={showTopics}
+                    title="Onderwerpen"
+                  >
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showTopics ? "" : "-rotate-90"}`} />
+                  </button>
+                )}
+                {messages.length > 1 && (
+                  <button onClick={clearCurrent} className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-destructive" aria-label="Gesprek wissen" title="Wissen">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground" aria-label="Sluit chat" title="Sluiten">
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
