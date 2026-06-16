@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Globe, Send, Trash2, User, X } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { ChevronDown, Globe, Minimize2, Send, Trash2, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -116,6 +116,19 @@ export function AuthenticatedChatOverlayV3() {
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const wasDraggedRef = useRef(false);
+
+  const [launcherMinimized, setLauncherMinimized] = useState(() => {
+    try { return localStorage.getItem("doorai-launcher-min") === "1"; } catch { return false; }
+  });
+  const savedPos = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("doorai-launcher-pos");
+      return raw ? JSON.parse(raw) : { x: 0, y: 0 };
+    } catch { return { x: 0, y: 0 }; }
+  }, []);
+  const launcherX = useMotionValue(savedPos.x);
+  const launcherY = useMotionValue(savedPos.y);
 
   const isBackoffice = location.pathname.startsWith("/backoffice");
   const isPersonal = chatMode === "personal";
@@ -320,22 +333,59 @@ export function AuthenticatedChatOverlayV3() {
       <AnimatePresence>
         {!isOpen && (
           <motion.button
-            initial={{ scale: 0.9, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 10 }}
+            key={launcherMinimized ? "min" : "full"}
+            style={{ x: launcherX, y: launcherY, position: "fixed", bottom: 24, right: 24, zIndex: 50 }}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", stiffness: 320, damping: 24 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 group flex items-center gap-3 rounded-full bg-card border border-border/70 pl-1.5 pr-4 py-1.5 shadow-xl shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all"
-            aria-label="Open jouw persoonlijke DoorAI coach"
+            drag
+            dragMomentum={false}
+            onDragStart={() => { wasDraggedRef.current = false; }}
+            onDrag={() => { wasDraggedRef.current = true; }}
+            onDragEnd={() => {
+              try { localStorage.setItem("doorai-launcher-pos", JSON.stringify({ x: launcherX.get(), y: launcherY.get() })); } catch {}
+            }}
+            onClick={() => {
+              if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
+              if (launcherMinimized) {
+                setLauncherMinimized(false);
+                try { localStorage.setItem("doorai-launcher-min", "0"); } catch {}
+              }
+              setIsOpen(true);
+            }}
+            className="group select-none cursor-grab active:cursor-grabbing"
+            aria-label={launcherMinimized ? "Open DoorAI coach" : "Open jouw persoonlijke DoorAI coach"}
           >
-            <span className="relative h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
-              {firstInitial}
-            </span>
-            <span className="flex flex-col items-start text-left leading-tight">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Jouw coach</span>
-              <span className="text-sm font-bold text-foreground">DoorAI</span>
-            </span>
-            <span className="ml-1 h-2 w-2 rounded-full bg-primary animate-pulse shrink-0" aria-hidden />
+            {launcherMinimized ? (
+              <span className="relative flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-lg shadow-primary/20 border-2 border-primary/30">
+                {firstInitial}
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 border-2 border-card" aria-hidden />
+              </span>
+            ) : (
+              <span className="flex items-center gap-2 rounded-full bg-card border border-border/70 pl-1 pr-2.5 py-1 shadow-lg shadow-primary/10 hover:shadow-xl hover:shadow-primary/15 transition-shadow">
+                <span className="relative h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
+                  {firstInitial}
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 border-2 border-card" aria-hidden />
+                </span>
+                <span className="flex flex-col items-start text-left leading-tight">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Jouw coach</span>
+                  <span className="text-sm font-bold text-foreground">DoorAI</span>
+                </span>
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLauncherMinimized(true);
+                    try { localStorage.setItem("doorai-launcher-min", "1"); } catch {}
+                  }}
+                  className="ml-0.5 p-1 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                  aria-label="Minimaliseer launcher"
+                  title="Minimaliseer"
+                >
+                  <Minimize2 className="h-3 w-3" />
+                </span>
+              </span>
+            )}
           </motion.button>
         )}
       </AnimatePresence>
