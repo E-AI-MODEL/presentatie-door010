@@ -114,6 +114,7 @@ export function AuthenticatedChatOverlayV3() {
       return true;
     }
   });
+  const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const wasDraggedRef = useRef(false);
 
