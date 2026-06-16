@@ -264,8 +264,6 @@ export default function Auth() {
 
               <div className="mt-6 text-center text-sm text-muted-foreground px-4">
                 <p>
-                  Na registratie word je begeleid door <strong className="text-foreground">DoorAI</strong>, jouw
-                  persoonlijke wegwijzer in het onderwijs.
                 </p>
               </div>
             </div>
