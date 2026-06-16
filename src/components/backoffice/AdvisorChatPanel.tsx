@@ -23,13 +23,17 @@ import {
   Clock,
   GraduationCap,
   Loader2,
-  Trash2
+  Trash2,
+  CalendarPlus,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ProfileWithEmail } from "./UserOverviewTable";
+import { ScheduleAppointmentDialog } from "./ScheduleAppointmentDialog";
 
 interface Message {
   id: string;
@@ -50,6 +54,7 @@ export function AdvisorChatPanel({ selectedUser, onClose }: AdvisorChatPanelProp
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load real messages when user is selected
