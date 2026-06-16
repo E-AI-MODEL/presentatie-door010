@@ -35,7 +35,7 @@ export function ChatTurnArtifacts({
   const status = artifacts.find((a): a is ChatStatusArtifact => a.kind === "status");
 
   return (
-    <div className="mt-2 space-y-2">
+    <div className="mt-3 space-y-2">
       {decision ? (
         <DecisionCard
           artifact={decision}
@@ -92,15 +92,15 @@ function QuestionButton({
       onClick={handleClick}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full font-medium transition-colors disabled:opacity-50",
-        "bg-primary text-primary-foreground hover:bg-primary/90",
-        compact ? "text-[11px] px-2.5 py-1.5" : "text-xs px-3 py-1.5",
+        "inline-flex items-start gap-1.5 rounded-full font-normal transition-colors disabled:opacity-50 text-left",
+        "bg-transparent border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:border-border",
+        compact ? "text-[11px] px-2.5 py-1" : "text-xs px-3 py-1.5",
       )}
       aria-label={`Vervolgvraag: ${artifact.label}`}
       title="Stel vervolgvraag"
     >
-      <MessageCircleQuestion className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-      <span className="truncate max-w-[220px]">{artifact.label}</span>
+      <MessageCircleQuestion className="h-3 w-3 shrink-0 opacity-50 mt-0.5" aria-hidden />
+      <span className="leading-snug">{artifact.label}</span>
     </button>
   );
 }

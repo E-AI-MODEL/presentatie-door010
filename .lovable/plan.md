@@ -1,56 +1,43 @@
-## Achtergrond
+## Wat ik zag
 
-De hub-merge is af. Nu twee vervolgvragen uit jouw bericht:
+In je screenshot:
+- De AI-bubble heeft de standaard grijze `bg-muted` — er is geen ambient kleur-indicator op basis van begripszekerheid, terwijl in core-memory staat dat de laatste AI-bubble een tint moet krijgen (amber <0.55, groen-licht 0.55-0.74, neutraal ≥0.75).
+- De vervolgvraag-chips ("Routes", "Verdienen") zijn felgroen `bg-primary` met witte tekst en tonen alleen een topic-keyword — geen echte micro-vraag, en visueel even prominent als jouw eigen verzonden bericht.
 
-1. **Waarom kan ik in chat geen topics (via burgermenu zoals voorheen) of andere "back-end" structuren meer aanklikken?**
-2. **Stijl & toon van DoorAI** — context die toch al in de prompt zit, subtiel verwerken in het antwoord.
+## Wijzigingen
 
-## Wat ik heb gevonden
+### 1. Ambient zekerheids-tint op laatste AI-bubble
+**Bestand:** `src/components/chat/AuthenticatedChatOverlayV3.tsx` (renderlus rond regel 463-475)
 
-- `TopicMenu` bestaat alleen op `/dashboard` (tab Vandaag). In de chat-overlay (`AuthenticatedChatOverlayV3.tsx`, `PublicChatWidget.tsx`) is geen verwijzing meer naar TopicMenu of een burger-icoon.
-- Memory zegt expliciet: *"Topic-burgermenu default OPEN in persoonlijke chat"*. Dat is dus regressie — het hoort in de chat-overlay te zitten, niet alleen op de hub.
-- Chips renderen wél nog (`ChatTurnArtifacts`), maar de inline topic-launcher binnen het gesprek mist.
+- Bepaal index van laatste assistant-message en lees `message.structured?.meta?.confidence` (of het confidence-veld dat al in turn-meta zit).
+- Vervang de hardcoded `bg-muted` klasse op alleen die laatste bubble door een tint-tabel:
+  - `< 0.55` → zachte amber tint (`bg-amber-50 dark:bg-amber-950/20 border-amber-200/40`)
+  - `0.55 – 0.74` → licht-groen (`bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200/40`)
+  - `≥ 0.75` of `undefined` → huidige neutrale `bg-muted`
+- Subtiel, géén harde rand of badge — puur achtergrond-tint zoals afgesproken.
+- Oudere AI-bubbles blijven neutraal (anders wordt de chat te druk).
 
-Voor de toon-vraag heb ik nog niet gemeten — dat doe ik bij de exploratie van stap 2.
+### 2. Subtielere chips als échte micro-vraag
+**Bestanden:** `src/components/chat/ChatTurnArtifacts.tsx` + label-generatie server-side
 
-## Plan
+**Visueel (`QuestionButton`, regel 89-105):**
+- Weg met `bg-primary text-primary-foreground`.
+- Nieuw: ghost-stijl, `bg-transparent border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-full`.
+- Icoon `MessageCircleQuestion` blijft maar lichter (`opacity-50`).
+- Geen `max-w-[220px]` truncate: laat hele micro-vraag zien (max ~60 tekens), wrap toegestaan.
+- Plaats chips iets onder de bubble met meer `mt-3` zodat ze los van de antwoord-tekst hangen.
 
-### Deel 1 — Topic-menu terug in chat
+**Inhoud (server, `supabase/functions/doorai-chat/index.ts` waar `actions`/questions worden gevormd):**
+- Huidige labels zijn topic-keywords ("Routes", "Verdienen"). Pas de prompt/builder aan zodat elk question-artifact een korte, concrete vervolgvraag is in de ik-vorm of jij-vorm, max ~8 woorden, geen hoofdletter-keyword. Voorbeelden:
+  - i.p.v. "Verdienen" → "Wat verdient een startende leraar?"
+  - i.p.v. "Routes" → "Welke routes passen bij jou?"
+- Behoud limiet van 2 question-chips (core memory) en 2 link-chips.
+- Sanitizer/forbidden-terms-lijst blijft gerespecteerd; labels mogen geen verboden termen of interne paden bevatten.
 
-1. **Inventariseer** wat er beschikbaar is in de chat-overlay: header-slot, side-panel, of bottom-sheet op mobiel.
-2. **Voeg een topic-trigger toe** in de chat-overlay header:
-   - Desktop: linker burger-icoon (☰) dat een **side-panel** opent met `TopicMenu` (zelfde component als op hub — single source).
-   - Mobiel: zelfde icoon, opent een `Sheet` (bottom-sheet) met TopicMenu.
-   - Default OPEN bij eerste keer chat openen (volgens memory). State per sessie.
-3. **Click op een topic** stuurt `doorai-send-message` event (zoals nu) en sluit het paneel op mobiel; blijft open op desktop.
-4. **"Back-end" structuren** — context-bronnen die DoorAI gebruikt (FAQ, vacatures, opleidingen, events) krijgen onder TopicMenu een sectie "Verken bronnen" met directe in-chat links (geen path-strings, gewoon nette labels) die een gestructureerde vraag triggeren.
+### 3. Verificatie
+- Preview op `/dashboard` openen, persoonlijke chat starten, dezelfde vraag stellen.
+- Controleren: bubble heeft amber/groen-licht/neutraal afhankelijk van confidence; chips zijn outline-stijl met volzin-micro-vragen.
 
-### Deel 2 — Stijl & toon van DoorAI
-
-5. **Audit huidige prompt-templates** (`supabase/functions/doorai-chat/...` of equivalent): welke profile-context wordt al meegestuurd (naam, fase, sector, recente acties)?
-6. **Voeg een "natuurlijke verwijzing"-richtlijn toe** aan de system prompt:
-   - Als er een naam in context zit: noem die max 1x per gesprek, niet in elke beurt.
-   - Als sector bekend is: verwerk subtiel ("voor het basisonderwijs...") zonder de woorden "sector" of "fase".
-   - Als recente actie bekend is (bv. CV geüpload, test afgerond): verwijs max 1x als dat antwoord-relevant is ("nu je je CV hebt klaarstaan...").
-   - Strikt: nooit context dumpen, nooit metadata-taal ("ik zie in je profiel dat..."), nooit forbidden terms.
-7. **Toon-regels** scherper: warm, action-first, korte zinnen. Geen emoji, geen em-dash (al in memory). Toevoegen: geen "Geweldig!", "Wat leuk!" openers.
-8. **Test-fixtures**: 3 voorbeeldvragen per fase met verwachte tone-markers, run via een korte script-check tegen de edge function in dev.
-
-## Technisch
-
-- Topic-menu in chat: nieuwe wrapper `ChatTopicPanel.tsx` + integratie in `AuthenticatedChatOverlayV3.tsx`. Hergebruikt bestaande `TopicMenu` component.
-- Prompt-aanpassingen: alleen system-prompt fragmenten, geen schema/edge-function logica.
-- Geen backend changes, geen nieuwe tabellen.
-
-## Out of scope
-
-- Stem-input, file-upload binnen chat
-- Nieuwe topic-categorieën (gebruikt huidige `getPhaseTopics`/`getSSOTTopics`)
-- Volledige prompt-rewrite
-
-## Risico's
-
-- Topic-panel in mobile chat mag de typing-area niet verbergen → state moet sluiten bij focus op input.
-- Subtiele context-verwerking is makkelijk te ver door te slaan ("Hé Jan, fijn dat je..."). Strikte voorbeelden in prompt zijn essentieel.
-
-Geef GO en ik begin met Deel 1 (topic-menu in chat).
+## Technische notitie
+- Confidence is al beschikbaar via `turn_meta` events (`src/utils/chatTurnArtifacts.ts` regel 188-223 toont dat het al uit meta gelezen wordt voor de StatusLine). We hergebruiken dezelfde waarde — geen nieuwe SSE-velden nodig.
+- Geen wijzigingen aan phase detector, RAG of orchestratie. Alleen UI + label-tekstgeneratie.

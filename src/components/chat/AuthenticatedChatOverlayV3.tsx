@@ -460,19 +460,39 @@ export function AuthenticatedChatOverlayV3() {
 
             ) : (
               <div ref={chatRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5" aria-live="polite">
-                {visibleMessages.map((message, index) => (
-                  <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${message.role === "user" ? "bg-primary text-primary-foreground" : message.role === "advisor" ? "bg-accent/15 border border-accent/30 text-foreground" : "bg-muted text-foreground"}`}>
-                      {message.role === "user" ? <p className="text-[13px]">{message.content}</p> : (
-                        <>
-                          {message.role === "advisor" && <span className="text-[10px] font-semibold text-accent-foreground uppercase tracking-wide mb-1 block">Adviseur</span>}
-                          <CollapsibleAnswer content={message.content} structured={message.structured} compact />
-                          <ChatTurnArtifacts artifacts={message.artifacts} onAsk={(value) => sendMessage(value, chatMode)} onDecisionAccept={handleDecisionAccept} onDecisionDecline={() => undefined} disabled={loading} compact />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                {(() => {
+                  const lastAssistantIdx = (() => {
+                    for (let i = visibleMessages.length - 1; i >= 0; i--) {
+                      if (visibleMessages[i].role === "assistant") return i;
+                    }
+                    return -1;
+                  })();
+                  return visibleMessages.map((message, index) => {
+                    const isLastAssistant = index === lastAssistantIdx;
+                    let assistantTint = "bg-muted text-foreground";
+                    if (isLastAssistant) {
+                      const statusArtifact = message.artifacts?.find((a) => a.kind === "status") as { confidence?: number } | undefined;
+                      const conf = statusArtifact?.confidence;
+                      if (typeof conf === "number") {
+                        if (conf < 0.55) assistantTint = "bg-amber-50 dark:bg-amber-950/20 text-foreground";
+                        else if (conf < 0.75) assistantTint = "bg-emerald-50 dark:bg-emerald-950/20 text-foreground";
+                      }
+                    }
+                    return (
+                      <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${message.role === "user" ? "bg-primary text-primary-foreground" : message.role === "advisor" ? "bg-accent/15 border border-accent/30 text-foreground" : assistantTint}`}>
+                          {message.role === "user" ? <p className="text-[13px]">{message.content}</p> : (
+                            <>
+                              {message.role === "advisor" && <span className="text-[10px] font-semibold text-accent-foreground uppercase tracking-wide mb-1 block">Adviseur</span>}
+                              <CollapsibleAnswer content={message.content} structured={message.structured} compact />
+                              <ChatTurnArtifacts artifacts={message.artifacts} onAsk={(value) => sendMessage(value, chatMode)} onDecisionAccept={handleDecisionAccept} onDecisionDecline={() => undefined} disabled={loading} compact />
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
                 {loading && messages[messages.length - 1]?.role === "user" && <div className="flex justify-start"><div className="bg-muted rounded-2xl px-3.5 py-2.5"><div className="flex gap-1"><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" /><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} /><span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} /></div></div></div>}
               </div>
             )}
