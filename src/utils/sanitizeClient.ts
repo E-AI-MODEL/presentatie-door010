@@ -15,16 +15,26 @@ const VERIFICATION_DATE_RE =
   /,?\s*\(?\s*(?:geverifieerd|laatst gecheckt|mogelijk verouderd,?\s*laatst gecheckt)\s+[^)]*?\d{4}\s*\)?/gi;
 
 const INTERNAL_HEADER_RE = /^#{1,6}\s*BEKENDE\s+\w+.*$/gim;
+// Houd in sync met supabase/functions/_shared/constants.ts → FORBIDDEN_TERMS.
+// Extra client-only termen (achtergrondinformatie, dynamische context,
+// bekende profieldata) zijn artefacten die alleen het model echoed.
 const FORBIDDEN_BARE = [
-  "peildatum",
-  "kennisbank",
-  "achtergrondinformatie",
-  "dynamische context",
-  "bekende profieldata",
+  // ── server FORBIDDEN_TERMS ──
   "fase",
   "intake",
   "detector",
+  "peildatum",
+  "kennisbank",
   "scenario",
+  "als ai",
+  "goed dat je dit vraagt",
+  "ik begrijp je helemaal",
+  "je moet",
+  "globaal zo uit",
+  // ── client-only extras ──
+  "achtergrondinformatie",
+  "dynamische context",
+  "bekende profieldata",
 ];
 // "slot" verwijderd: te generiek in Nederlands ("slot van de avond").
 
@@ -70,6 +80,8 @@ function transformOutsideMarkdownLinks(text: string, fn: (s: string) => string):
 export function sanitizeClientText(text: string): string {
   if (!text) return text;
   let out = text;
+  // C5: em-dash en en-dash naar gewone streep (consistent met server replaceDashes).
+  out = out.replace(/[\u2014\u2013]/g, "-");
   out = out.replace(INTERNAL_HEADER_RE, "");
   out = out.replace(VERIFICATION_DATE_RE, "");
   out = out.replace(SCORE_PAREN_RE, "");
@@ -79,7 +91,14 @@ export function sanitizeClientText(text: string): string {
   out = transformOutsideMarkdownLinks(out, (segment) => {
     let s = segment;
     for (const term of FORBIDDEN_BARE) {
-      const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "giu");
+      // Multi-word phrases: flexibele whitespace; word boundary alleen aan
+      // alfanumerieke randen (matched server-side stripPhraseCaseInsensitive).
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+      const startsAlnum = /^[\p{L}\p{N}]/u.test(term);
+      const endsAlnum = /[\p{L}\p{N}]$/u.test(term);
+      const left = startsAlnum ? "\\b" : "";
+      const right = endsAlnum ? "\\b" : "";
+      const re = new RegExp(`${left}${escaped}${right}`, "giu");
       s = s.replace(re, "");
     }
     return s;

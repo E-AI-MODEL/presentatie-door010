@@ -657,7 +657,11 @@ function assembleContext(
   }
 
   const assembled = parts.join("\n");
-  if (assembled.length > 3600) return parts.slice(0, 4).join("\n");
+  // C6: harde limiet 3000 tekens om token-overschrijding te voorkomen.
+  if (assembled.length > 3000) {
+    const head = parts.slice(0, 3).join("\n");
+    return head.length > 3000 ? head.slice(0, 3000) : head;
+  }
   return assembled;
 }
 
@@ -1009,20 +1013,26 @@ Deno.serve(async (req) => {
       2000,
     );
 
-    // Step 1: Intent classification
-    const intent = await classifyIntent(messages, LOVABLE_API_KEY);
+    // C2: Step 1+2 parallel. Intent, trusted sources én FAQ-retrieval
+    // gelijktijdig om TTFT te verlagen. Bij greeting gooien we faq-resultaat weg.
+    const lastForFaq = lastUserMessage || "x";
+    const [intent, trustedSources, faqResultMaybe] = await Promise.all([
+      classifyIntent(messages, LOVABLE_API_KEY),
+      fetchTrustedSources(),
+      retrieveFaqKnowledge(lastForFaq, LOVABLE_API_KEY).catch(() => ({
+        fragments: [] as string[],
+        sourceLinks: [] as UiLink[],
+        oldestPeildatumMonths: 0,
+      })),
+    ]);
+    console.log(`[doorai-chat] trustedSources active=${trustedSources.length}`);
 
-    // Step 2: FAQ retrieval + web fallback (parallel, for non-greetings)
     let faqKnowledge: string[] = [];
     let faqSourceLinks: UiLink[] = [];
     let webKnowledge: string[] = [];
 
-    // Always fetch trusted sources (needed for link filtering)
-    const trustedSources = await fetchTrustedSources();
-    console.log(`[doorai-chat] trustedSources active=${trustedSources.length}`);
-
     if (intent !== "greeting") {
-      const faqResult = await retrieveFaqKnowledge(lastUserMessage, LOVABLE_API_KEY);
+      const faqResult = faqResultMaybe;
       faqKnowledge = faqResult.fragments;
       faqSourceLinks = faqResult.sourceLinks;
 
