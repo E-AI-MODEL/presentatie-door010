@@ -25,7 +25,6 @@ const SCORE_INLINE_RE = /\bscore[:\s]+[\d.,]+%?/gi;
 const VERIFICATION_DATE_RE =
   /,?\s*\(?\s*(?:geverifieerd|laatst gecheckt|mogelijk verouderd,?\s*laatst gecheckt)\s+[^)]*?\d{4}\s*\)?/gi;
 
-
 // "## BEKENDE PROFIELDATA" or similar internal headers the model may echo.
 const INTERNAL_HEADER_RE = /^#{1,6}\s*BEKENDE\s+\w+.*$/gim;
 
@@ -110,31 +109,38 @@ export function stripInternalPaths(text: string): string {
   return out;
 }
 
+function hostFromUrl(rawUrl: string): string | null {
+  try {
+    return new URL(rawUrl).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function stripParenthesizedBareUrls(text: string): string {
+  // Remove loose parenthesized URLs, but keep markdown links intact.
+  return text.replace(/(^|[^\]])\((https?:\/\/[^\s)]+)\)/g, (_match, prefix) => prefix);
+}
+
 /**
  * URL sanitizer — remove external URLs and bare domains that are not in the
  * whitelist. Markdown links to whitelisted domains stay intact.
- * Lifted from homepage-coach so doorai-chat can use the same logic.
  */
 export function sanitizeUrls(text: string, whitelistedDomains: Set<string>): string {
-  let result = text.replace(/\(https?:\/\/[^\s)]+\)/g, "");
+  let result = text;
 
+  // Markdown links must be handled before parenthesized URL cleanup.
   result = result.replace(/\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, (_match, label, url) => {
-    try {
-      const hostname = new URL(url).hostname.replace(/^www\./, "");
-      if (whitelistedDomains.has(hostname)) return `[${label}](${url})`;
-    } catch {
-      /* drop */
-    }
+    const hostname = hostFromUrl(url);
+    if (hostname && whitelistedDomains.has(hostname)) return `[${label}](${url})`;
     return label;
   });
 
+  result = stripParenthesizedBareUrls(result);
+
   result = result.replace(/(^|[\s(])(https?:\/\/[^\s<)\]]+)/gm, (match, prefix, url) => {
-    try {
-      const hostname = new URL(url).hostname.replace(/^www\./, "");
-      if (whitelistedDomains.has(hostname)) return match;
-    } catch {
-      /* drop */
-    }
+    const hostname = hostFromUrl(url);
+    if (hostname && whitelistedDomains.has(hostname)) return match;
     return prefix;
   });
 
