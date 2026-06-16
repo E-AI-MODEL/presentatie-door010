@@ -60,14 +60,6 @@ export function HeroSection() {
               <Play className="mr-2 h-5 w-5" />
               {demoLoading ? "Bezig..." : "Start als kandidaat"}
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="bg-white hover:bg-white/90 text-foreground border-white font-semibold px-6"
-              asChild
-            >
-              <Link to="/vacatures">Bekijk vacatures</Link>
-            </Button>
           </motion.div>
         </div>
       </div>
