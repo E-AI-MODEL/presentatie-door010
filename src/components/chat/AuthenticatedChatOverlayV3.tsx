@@ -241,7 +241,12 @@ export function AuthenticatedChatOverlayV3() {
           const parsed = JSON.parse(data);
           const isMeta = eventType === "turn_meta" || eventType === "ui" || eventType === "reflection" || parsed.meta || parsed.actions || parsed.links || parsed.artifacts;
           if (isMeta) {
-            const patch = metaToArtifacts(parsed, userMessage);
+            const history = mode === "personal" ? personalMessagesRef.current : generalMessagesRef.current;
+            // Sluit eerder getoonde chips én eerdere user-vragen uit zodat de AI niet
+            // dezelfde micro-vraag voor de tweede of derde keer voorstelt.
+            const excludeTexts = collectExcludeTexts(history.slice(0, -1));
+            const patch = metaToArtifacts(parsed, userMessage, excludeTexts);
+
             if (patch.artifacts && patch.artifacts.length > 0) hasArtifacts = true;
             if (patch.artifacts || patch.structured) patchLastAssistant(mode, patch);
             eventType = "";
