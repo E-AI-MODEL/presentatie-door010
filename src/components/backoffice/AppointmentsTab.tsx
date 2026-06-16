@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, User, CheckCircle, XCircle, Loader2, MessageSquare } from "lucide-react";
+import { Calendar, Clock, User, CheckCircle, XCircle, Loader2, MessageSquare, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ProfileWithEmail, Appointment } from "./UserOverviewTable";
+import { ScheduleAppointmentDialog } from "./ScheduleAppointmentDialog";
 
 interface AppointmentsTabProps {
   profiles: ProfileWithEmail[];
