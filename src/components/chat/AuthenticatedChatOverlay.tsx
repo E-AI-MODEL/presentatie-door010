@@ -542,7 +542,7 @@ export function AuthenticatedChatOverlay() {
                 genHasActions = parsed.meta.actions.length > 0;
               }
               if (parsed.meta.verified_links) {
-                setGeneralLinks(parsed.meta.verified_links.slice(0, 1));
+                setGeneralLinks(parsed.meta.verified_links.slice(0, 2));
                 genHasLinks = parsed.meta.verified_links.length > 0;
               }
 
