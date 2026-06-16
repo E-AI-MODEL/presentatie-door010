@@ -107,6 +107,15 @@ function isDoubtMessage(message?: string): boolean {
 export function normalizeTurnArtifacts(meta: RawTurnMeta): ChatTurnArtifact[] {
   const artifacts: ChatTurnArtifact[] = [];
   const userMessage = meta.user_message ?? "";
+  const excludeSet = new Set<string>();
+  for (const t of meta.exclude_texts ?? []) {
+    const k = comparableText(t);
+    if (k) excludeSet.add(k);
+  }
+  if (userMessage) {
+    const k = comparableText(userMessage);
+    if (k) excludeSet.add(k);
+  }
 
   if (meta.phase_suggestion?.message) {
     artifacts.push({
@@ -137,13 +146,13 @@ export function normalizeTurnArtifacts(meta: RawTurnMeta): ChatTurnArtifact[] {
     });
   } else {
     const questions: ChatQuestionArtifact[] = [];
-    const primary = normalizeAction(meta.primary_followup, userMessage);
+    const primary = normalizeAction(meta.primary_followup, excludeSet);
     if (primary) questions.push(primary);
-    const secondary = normalizeAction(meta.secondary_action, userMessage);
+    const secondary = normalizeAction(meta.secondary_action, excludeSet);
     if (secondary) questions.push(secondary);
     for (const raw of meta.actions ?? []) {
       if (questions.length >= 2) break;
-      const a = normalizeAction(raw, userMessage);
+      const a = normalizeAction(raw, excludeSet);
       if (a) questions.push(a);
     }
     artifacts.push(...questions.slice(0, 2));
@@ -165,14 +174,19 @@ export function normalizeTurnArtifacts(meta: RawTurnMeta): ChatTurnArtifact[] {
   return dedupeArtifacts(artifacts);
 }
 
-function normalizeAction(raw: unknown, userMessage = ""): ChatQuestionArtifact | null {
+function normalizeAction(raw: unknown, excludeSet?: Set<string>): ChatQuestionArtifact | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
   const label = clean(obj.label);
   const value = clean(obj.value) || clean(obj.href);
   if (!label || !value) return null;
-  const asked = comparableText(userMessage);
-  if (asked && (comparableText(label) === asked || comparableText(value) === asked)) return null;
+  if (excludeSet && excludeSet.size > 0) {
+    const labelKey = comparableText(label);
+    const valueKey = comparableText(value);
+    if ((labelKey && excludeSet.has(labelKey)) || (valueKey && excludeSet.has(valueKey))) {
+      return null;
+    }
+  }
 
   return {
     kind: "question",
@@ -182,6 +196,7 @@ function normalizeAction(raw: unknown, userMessage = ""): ChatQuestionArtifact |
     source: "ai",
   };
 }
+
 
 function normalizeSource(raw: unknown): ChatSourceArtifact | null {
   if (!raw || typeof raw !== "object") return null;
