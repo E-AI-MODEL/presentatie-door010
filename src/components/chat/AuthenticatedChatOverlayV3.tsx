@@ -162,7 +162,7 @@ export function AuthenticatedChatOverlayV3() {
         const data = line.slice(6).trim();
         if (data === "[DONE]") {
           doneSeen = true;
-          break;
+          continue;
         }
 
         try {
