@@ -236,7 +236,7 @@ export function Header() {
                 <Button size="sm" className="font-medium relative" asChild>
                   <Link to="/dashboard">
                     <User className="mr-2 h-4 w-4" />
-                    Dashboard
+                    Mijn hub
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
                         {unreadCount > 9 ? '9+' : unreadCount}
@@ -332,15 +332,7 @@ export function Header() {
                         className="px-4 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors flex items-center gap-2"
                       >
                         <User className="h-3.5 w-3.5" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        to="/profile"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="px-4 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-primary/5 transition-colors flex items-center gap-2"
-                      >
-                        <User className="h-3.5 w-3.5" />
-                        Mijn profiel
+                        Mijn hub
                       </Link>
                       <button
                         type="button"
