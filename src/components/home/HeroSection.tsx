@@ -23,16 +23,6 @@ export function HeroSection() {
 
       <div className="container py-20 md:py-28">
         <div className="max-w-3xl">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 bg-white/95 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-5"
-          >
-            ​
-          </motion.div>
-
-          {/* Main headline - styled like onderwijsloketrotterdam.nl */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
