@@ -306,11 +306,27 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Us
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Kandidaat</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Fase</TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Kandidaat <SortIcon k="name" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('contact')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Contact <SortIcon k="contact" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('phase')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Fase <SortIcon k="phase" />
+                    </button>
+                  </TableHead>
                   <TableHead>Documenten</TableHead>
-                  <TableHead>Laatste activiteit</TableHead>
+                  <TableHead>
+                    <button onClick={() => toggleSort('activity')} className="flex items-center gap-1 hover:text-foreground font-medium">
+                      Laatste activiteit <SortIcon k="activity" />
+                    </button>
+                  </TableHead>
                   <TableHead className="text-right">Acties</TableHead>
                 </TableRow>
               </TableHeader>
