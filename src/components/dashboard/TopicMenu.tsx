@@ -4,8 +4,7 @@ import { ChevronDown, ChevronRight, MessageCircle, ExternalLink, Send, BookOpen,
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { phaseData, type OrientationPhase } from "@/data/dashboard-phases";
-import type { KnownSlots } from "@/utils/phaseDetectorEngine";
-import { loadPhaseDetectorConfig, type DetectorPhaseCode } from "@/utils/phaseDetectorParser";
+import { loadPhaseDetectorConfig, type DetectorPhaseCode, type KnownSlots } from "@/utils/phaseDetectorParser";
 import { deriveThemes, pickThemePrompt } from "@/utils/themeMapper";
 
 interface SubTopic {

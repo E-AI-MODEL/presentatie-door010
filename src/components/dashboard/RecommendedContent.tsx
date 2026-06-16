@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { deriveThemes } from "@/utils/themeMapper";
 import type { OrientationPhase } from "@/data/dashboard-phases";
-import type { KnownSlots } from "@/utils/phaseDetectorEngine";
+import type { KnownSlots } from "@/utils/phaseDetectorParser";
 
 interface RecommendedContentProps {
   currentPhase: OrientationPhase;

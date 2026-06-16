@@ -61,6 +61,7 @@ interface ProfileMeta {
   test_results?: Record<string, unknown> | null;
   preferred_sector?: string | null;
   current_phase?: string | null;
+  known_slots?: Record<string, string> | null;
 }
 
 interface RequestBody {

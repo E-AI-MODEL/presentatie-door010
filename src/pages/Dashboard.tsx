@@ -8,7 +8,7 @@ import { PhaseProgress } from "@/components/dashboard/PhaseProgress";
 import { TopicMenu } from "@/components/dashboard/TopicMenu";
 import { RecommendedContent } from "@/components/dashboard/RecommendedContent";
 import { phaseData, type OrientationPhase } from "@/data/dashboard-phases";
-import type { KnownSlots } from "@/utils/phaseDetectorEngine";
+import type { KnownSlots } from "@/utils/phaseDetectorParser";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

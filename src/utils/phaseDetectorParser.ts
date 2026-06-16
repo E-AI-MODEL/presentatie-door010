@@ -20,6 +20,10 @@ export type SlotKey =
   | "region_preference"
   | "next_step";
 
+// Cross-module type: opgeslagen slot-state per gebruiker (uit profiles.known_slots JSONB).
+// Stond eerder in phaseDetectorEngine.ts; engine is verwijderd (phase-detectie is server-side).
+export type KnownSlots = Partial<Record<SlotKey, string>>;
+
 export type DetectorPhaseCode =
   | "interesse"
   | "orientatie"
