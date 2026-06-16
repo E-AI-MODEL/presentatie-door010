@@ -23,10 +23,10 @@ const FORBIDDEN_BARE = [
   "bekende profieldata",
   "fase",
   "intake",
-  "slot",
   "detector",
   "scenario",
 ];
+// "slot" verwijderd: te generiek in Nederlands ("slot van de avond").
 
 
 const INTERNAL_PATH_SLUGS = [
@@ -47,6 +47,26 @@ const SLUG_LABEL_LINK_RE = new RegExp(
   "gi",
 );
 
+const MARKDOWN_LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+/**
+ * Pas een transform alleen toe op tekst BUITEN markdown-link-constructies.
+ * Zo blijven legitieme labels als [Kennisbank](/kennisbank) intact.
+ */
+function transformOutsideMarkdownLinks(text: string, fn: (s: string) => string): string {
+  let out = "";
+  let lastIndex = 0;
+  const re = new RegExp(MARKDOWN_LINK_RE.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    out += fn(text.slice(lastIndex, m.index));
+    out += m[0];
+    lastIndex = m.index + m[0].length;
+  }
+  out += fn(text.slice(lastIndex));
+  return out;
+}
+
 export function sanitizeClientText(text: string): string {
   if (!text) return text;
   let out = text;
@@ -55,10 +75,15 @@ export function sanitizeClientText(text: string): string {
   out = out.replace(SCORE_PAREN_RE, "");
   out = out.replace(PHASE_SUFFIX_RE, "richting");
   out = out.replace(PHASE_LABEL_RE, "");
-  for (const term of FORBIDDEN_BARE) {
-    const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "giu");
-    out = out.replace(re, "");
-  }
+  // FORBIDDEN_BARE-woorden alleen buiten markdown-link-labels strippen.
+  out = transformOutsideMarkdownLinks(out, (segment) => {
+    let s = segment;
+    for (const term of FORBIDDEN_BARE) {
+      const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "giu");
+      s = s.replace(re, "");
+    }
+    return s;
+  });
   out = out.replace(SLUG_LABEL_LINK_RE, "");
   out = out.replace(PARENTHETICAL_PATH_RE, "");
   out = out.replace(BARE_PATH_RE, "");

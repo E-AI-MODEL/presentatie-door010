@@ -1058,7 +1058,7 @@ Deno.serve(async (req) => {
         existingHrefs.add(fl.href);
       }
     }
-    uiLinks = uiLinks.slice(0, 1);
+    uiLinks = uiLinks.slice(0, 2);
 
     // Step 4: Build text links
     const textLinks = computeTextLinks(faqSourceLinks);
@@ -1279,8 +1279,8 @@ Deno.serve(async (req) => {
             excludeKeys: currentKeys,
           });
 
-          // Convert themes to actions, max 1 (chip limit rule)
-          return themesToActions(themes, 1);
+          // Convert themes to actions, max 2 (chip limit rule)
+          return themesToActions(themes, 2);
 
         }
 

@@ -11,7 +11,6 @@ export const KNOWLEDGE_AS_OF = "mei 2026";
 export const FORBIDDEN_TERMS: readonly string[] = [
   "fase",
   "intake",
-  "slot",
   "detector",
   "peildatum",
   "kennisbank",
@@ -22,6 +21,7 @@ export const FORBIDDEN_TERMS: readonly string[] = [
   "je moet",
   "globaal zo uit",
 ];
+// "slot" verwijderd: te generiek in Nederlands ("slot van de avond").
 
 // Modelkeuze per use-case. Centraal zodat we niet per ongeluk preview-models laten staan.
 export const MODELS = {
