@@ -104,43 +104,9 @@ export function deriveThemes(opts: {
   return selected.slice(0, maxThemes);
 }
 
-export function themeHintForTransition(
-  targetPhase: string,
-  knownSlots: Record<string, string>,
-): string {
-  const themes = deriveThemes({ phase: targetPhase, knownSlots, maxThemes: 2 });
-  if (themes.length === 0) return "Zullen we verder kijken?";
-  const labels = themes.map(t => t.label.toLowerCase());
-  if (labels.length === 1) return `Wil je meer weten over ${labels[0]}?`;
-  return `Wil je meer weten over ${labels[0]} of ${labels[1]}?`;
-}
+// (themeHintForTransition + publicThemes verwijderd:
+//  - themeHintForTransition werd alleen door de inmiddels gesloopte
+//    phaseDetectorEngine gebruikt
+//  - publicThemes had geen call-sites; PublicChatWidget gebruikt
+//    server-side suggesties via _shared/themes.ts)
 
-export function publicThemes(userMessage: string): ThemeSignal[] {
-  const msg = userMessage.toLowerCase();
-  const selected: ThemeSignal[] = [];
-  const used = new Set<string>();
-
-  function add(key: string) {
-    if (used.has(key)) return;
-    const t = ALL_THEMES.find(th => th.key === key);
-    if (t) { selected.push(t); used.add(key); }
-  }
-
-  if (DOUBT_RE.test(msg)) add("keuzehulp");
-  if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) add("route");
-  if (/(vacature|baan|werk|school)/.test(msg)) add("vacatures");
-  if (/(salaris|verdien|loon|cao)/.test(msg)) add("salaris");
-  if (/(kosten|collegegeld|subsidie|financier|gratis)/.test(msg)) add("kosten");
-  if (/(bevoegdheid|eerste|tweede|graads)/.test(msg)) add("bevoegdheid");
-  if (/(event|open dag|meeloop)/.test(msg)) add("events");
-  if (/(regio|rotterdam|stad)/.test(msg)) add("regio");
-  if (/(functie|rol|lesgeven|begeleid)/.test(msg)) add("functie");
-  if (/(toelating|eisen|diploma|vooropleiding)/.test(msg)) add("toelating");
-
-  if (selected.length === 0) {
-    add("route");
-    add("sector");
-  }
-
-  return selected.slice(0, 3);
-}

@@ -41,7 +41,7 @@ export interface ChatDecisionArtifact {
   to?: string;
 }
 
-export interface RawTurnMeta {
+interface RawTurnMeta {
   actions?: Array<{ label?: string; value?: string; href?: string }>;
   links?: Array<{ label?: string; href?: string; external?: boolean }>;
   verified_links?: Array<{ label?: string; href?: string; external?: boolean }>;
