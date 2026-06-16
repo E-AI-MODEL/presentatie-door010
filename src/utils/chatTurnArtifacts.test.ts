@@ -58,4 +58,17 @@ describe("normalizeTurnArtifacts", () => {
     expect(artifacts.some((artifact) => artifact.kind === "status")).toBe(true);
     expect(artifacts.find((artifact) => artifact.kind === "status")).toMatchObject({ label: "Nog niet zeker" });
   });
+
+  it("does not suggest the exact question the user just asked", () => {
+    const artifacts = normalizeTurnArtifacts({
+      user_message: "Hoe ziet zo'n traject er voor mij uit?",
+      actions: [
+        { label: "Hoe ziet zo'n traject er voor mij uit?", value: "Hoe ziet zo'n traject er voor mij uit?" },
+        { label: "Wat kan ik straks ongeveer verdienen?", value: "Wat kan ik straks ongeveer verdienen?" },
+      ],
+    });
+
+    expect(artifacts).toHaveLength(1);
+    expect(artifacts[0]).toMatchObject({ kind: "question", label: "Wat kan ik straks ongeveer verdienen?" });
+  });
 });

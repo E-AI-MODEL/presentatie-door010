@@ -1300,8 +1300,13 @@ Deno.serve(async (req) => {
             if (v) slotsRecord[k] = v;
           }
 
-          // Detect what user already asked about, exclude those themes
-          const currentKeys = detectCurrentThemeKeys(userMsg);
+          // Detect what user already asked in this conversation, exclude those themes
+          // so chips do not repeat the same micro-questions turn after turn.
+          const askedContext = messages
+            .filter((m) => m.role === "user")
+            .map((m) => m.content)
+            .join(" ");
+          const currentKeys = detectCurrentThemeKeys(`${askedContext} ${userMsg}`);
 
           const themes = deriveThemes({
             phase,
