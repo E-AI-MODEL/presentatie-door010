@@ -155,5 +155,10 @@ export function publicThemes(userMessage: string, excludeKeys: string[] = []): T
 }
 
 export function themesToActions(themes: ThemeSignal[], max = 2): Array<{ label: string; value: string }> {
-  return themes.slice(0, max).map(t => ({ label: t.label, value: pickPrompt(t) }));
+  // Label = de échte micro-vraag (niet het topic-keyword), zodat de chip
+  // subtiel een vervolgvraag aanbiedt i.p.v. een schreeuwerig topic-label.
+  return themes.slice(0, max).map(t => {
+    const prompt = pickPrompt(t);
+    return { label: prompt, value: prompt };
+  });
 }
