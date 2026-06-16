@@ -1,35 +1,94 @@
-## Advies: verifiëren → polish → opruimen
+# Plan: Dead code wegsnijden + sterke functies benutten
 
-### 1. Verificatie (15 min)
-Voordat we verder gaan, moeten we zeker zijn dat de A1-A5 fixes echt werken in runtime.
+Twee scans afgerond. Conclusie: ~10 orphan files, ~27 unused exports, en 3 plekken waar al-bestaande sterke logica nét niet wordt gebruikt. Hieronder een minimaal-risico aanpak in drie tranches.
 
-- **A1 (JWT + profileMeta):** Login als kandidaat, start een chat. Controleer server-logs op `[doorai-chat] profile uid=… first_name=…` — dit bewijst dat de echte user-JWT aankomt en `profileMeta` correct wordt uitgelezen.
-- **A3 (slot chips):** Klik in de chat op een slot-chip (bv. "leerlingenzorg"). Controleer dat `extractSlots` de canonical code herkent en dat `known_slots` in de database wordt bijgewerkt.
-- **A5 (race condition):** Accepteer een voorgestelde fase. Controleer dat het profiel realtime update (via `useLiveProfile`) en dat `handlePhaseAccept` niet meer een losse `sendMessage("Ja, graag.")` triggert voordat de state is doorgestroomd.
+---
 
-Als een van deze drie faalt, fixen we direct voordat we verder gaan.
+## Tranche 1 — Veilig verwijderen (zero runtime impact)
 
-### 2. C-Polish (30 min)
-Alles wat de gesprekskwaliteit en robuustheid verbetert, maar geen demo-blocker is.
+Bestanden die nergens worden geïmporteerd:
 
-- **C1 Sanitizer sync:** Client `sanitizeClientText` en server `sanitizeForDisplay` moeten dezelfde `FORBIDDEN_PATTERNS` en regex-logica gebruiken. Nu lopen ze uit de pas.
-- **C2 Latency:** Start FAQ-zoeken en Firecrawl-verzoek parallel met `Promise.all`, in plaats van sequentieel. Eerste token komt dan sneller bij de gebruiker.
-- **C3 Error bodies:** Edge function mag nooit een lege HTTP 500 terugsturen. Altijd een JSON-body met `error` en `message`.
-- **C4 Reflection-chip:** Toon de chip "Mogelijk onvolledig" alleen wanneer de AI expliciet aangeeft dat het antwoord onzeker is (twee signalen: laatste bubble krijgt ambient tint + losse chip).
-- **C5 Em-dash strip:** Voeg em-dash (`—`) toe aan `sanitizeClientText` zodat deze wordt gestript of vervangen, consistent met andere leestekens.
-- **C6 assembleContext truncation:** Zet een harde limiet (bijv. 3000 tekens) op de geassembleerde context voordat deze naar het model gaat, om token-overschrijding te voorkomen.
-- **C7 previous_next_slot fix:** De parameter `previous_next_slot` wordt soms niet correct doorgegeven in de SSE-stream. Zorg dat deze altijd aanwezig is in de payload als er een volgende slot verwacht wordt.
+- `src/components/NavLink.tsx`
+- `src/components/home/JourneySection.tsx`
+- `src/components/home/TestimonialsSection.tsx`
+- `src/components/dashboard/DashboardCards.tsx`
+- `src/components/dashboard/PhaseCard.tsx` (Dashboard gebruikt `PhaseProgress`)
+- `src/components/profile/ProfileTileWrapper.tsx`
+- `src/components/onboarding/TestOnboardingPopup.tsx` + `TestInfoModal.tsx` (gesloten loop, niet bereikbaar)
+- `src/components/ui/use-toast.ts` (shim — consumers importeren direct uit `@/hooks/use-toast`)
 
-### 3. Edge Cleanup (10 min)
-Markeren en verwijderen van dode edge functions die geen runtime-import hebben:
-- `ingest-faqs`
-- `scrape-events`
-- `seed-admin-users`
-- `get-profiles-with-email`
+Unused exports binnen levende files weghalen:
 
-### Niet in scope
-- Model switch (gpt-5.4 werkt goed, geen actie nodig).
-- Dashboard fasetitels (bewust behouden).
+- `src/utils/responsePipeline.ts`: verwijder `ANSWER_TYPE_RULES`, `INTERNAL_URLS`, `classifyAnswerType`, `needsClarification`, `buildIntakeQuestions`, `ReflectionResult`, `VerifiedLink`, `IntakeQuestion`, `IntakeBatch`, `FollowUpAction`, `FORBIDDEN_PHRASES`, `FORBIDDEN_PATTERNS` — behoud alleen `parseStructuredMeta` + `resolveInternalUrl` (die laatste verplaatsen we, zie Tranche 3).
+- `src/hooks/use-toast.ts`: `reducer` export weghalen (intern houden).
+- `src/data/dashboard-phases.ts`: `quickLinks`, `PhaseAction` weg.
+- `src/utils/chatTurnArtifacts.ts`: niet-geïmporteerde sub-types intern maken (geen `export`).
+- `src/utils/themeMapper.ts`: `publicThemes` weg (server-side variant in `_shared/themes.ts` blijft).
 
-### Volgorde
-Verificatie → C1 t/m C7 → Edge cleanup.
+Duplicaten:
+
+- `Appointment`, `SavedEvent`, `SavedVacancy` interfaces: één SSOT in `src/types/backoffice.ts`, profile-tiles + `UserOverviewTable` importeren daar.
+
+---
+
+## Tranche 2 — `phaseDetectorEngine` beslissen
+
+`runPhaseDetector` is een complete client-side engine maar wordt nergens aangeroepen — alleen types (`KnownSlots`, `DetectorPhaseCode`) worden gebruikt. Phase-detectie gebeurt server-side in `doorai-chat`.
+
+Voorstel: **engine slopen, types behouden.**
+
+- Knip de gebruikte types (`KnownSlots`, `DetectorPhaseCode`, `UiPhaseCode`) naar `src/types/phase.ts`.
+- Verwijder `src/utils/phaseDetectorEngine.ts` volledig (scoring, transities, `themeHintForTransition`-aanroep).
+- Update imports in `TopicMenu.tsx`, `RecommendedContent.tsx`, `Dashboard.tsx`.
+- `themeHintForTransition` in `themeMapper.ts` blijft alleen als hij elders gebruikt wordt — anders ook weg.
+
+Reden: server is SSOT voor fase. Een tweede client-engine introduceert drift-risico.
+
+---
+
+## Tranche 3 — Sterke functies écht benutten (3 quick wins)
+
+### 3a. `known_slots` hydrateren uit DB op elke turn
+In `supabase/functions/doorai-chat/index.ts` wordt `fresh.known_slots` wel geselecteerd (regel ~984) maar niet gemerged in de actieve slot-state (regel ~1010 leest alleen `detector?.known_slots`).
+
+Fix:
+```ts
+const mergedSlots = { ...(fresh?.known_slots ?? {}), ...(detector?.known_slots ?? {}) };
+```
+Effect: slots overleven page-refresh / cross-session automatisch, infra bestaat al.
+
+### 3b. `useChatConversation` inzetten in V3 (of slopen)
+Hook bestaat met realtime + persist + sanitize + reset, maar `AuthenticatedChatOverlayV3` re-implementeert dat inline.
+
+Twee opties — kiezen in build mode:
+- **A. Adopteren**: V3 vervangt inline load/save/realtime door `useChatConversation`. Echte refactor, ~30 min, test-risico.
+- **B. Slopen**: hook + `parseActions` weg, geen nieuwe gedragingen.
+
+Mijn advies: **B** (slopen) — V3 werkt nu correct na de cleanups van vorige rondes, refactor levert geen functionele winst, alleen risico.
+
+### 3c. `resolveInternalUrl` als SSOT voor interne paden
+`doorai-chat` heeft eigen `computeLinks` / `INTERNAL_URLS`. `responsePipeline.ts` had al `resolveInternalUrl`. Verplaats die naar `supabase/functions/_shared/internal-urls.ts` zodat edge-functie + client dezelfde keyword→path mapping gebruiken. Voorkomt drift met de FORBIDDEN_PATTERNS sanitizer.
+
+### 3d. `_shared/turn-meta.ts` (`buildTurnMeta`) — beslissen
+Bestaat, wordt door niemand gebruikt. Of inzetten in `doorai-chat` als artifact-constructor (server↔client schema-sync), of verwijderen.
+Advies: **verwijderen** tenzij we binnenkort meer artifact-types toevoegen.
+
+---
+
+## Niet in scope
+- Geen wijzigingen aan `sanitize.ts` / `themes.ts` duplicatie tussen client en edge — bewuste split (browser vs Deno).
+- Geen UI/visuele wijzigingen.
+- Geen model- of prompt-aanpassingen.
+
+---
+
+## Volgorde van uitvoering
+1. Tranche 1 (delete-only, ~5 min)
+2. Tranche 2 (phaseDetectorEngine slopen, types verplaatsen)
+3. Tranche 3a (slot-merge fix — grootste functionele winst)
+4. Tranche 3b/c/d (alleen B+C+D weg-variant tenzij je 3b-A wilt)
+5. Build-check + 1 chat-turn runtime verificatie
+
+## Beslismomenten voor jou
+- **3b**: hook adopteren (A) of slopen (B)? Mijn advies: **B**.
+- **3d**: `buildTurnMeta` inzetten of slopen? Mijn advies: **slopen**.
