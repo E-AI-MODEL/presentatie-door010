@@ -417,7 +417,7 @@ export default function Backoffice() {
             <div className="ml-auto flex items-center gap-1">
               <Button variant="ghost" size="sm" onClick={() => setKpiOpen(v => !v)} className="h-7 text-xs gap-1 hidden sm:inline-flex">
                 {kpiOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                KPI's
+                Overzicht
               </Button>
               <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-7 w-7" aria-label="Verversen">
                 <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
