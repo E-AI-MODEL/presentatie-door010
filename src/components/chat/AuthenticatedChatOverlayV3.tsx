@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Globe, Send, Trash2, User, X } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { ChevronDown, Globe, Minimize2, Send, Trash2, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -114,8 +114,20 @@ export function AuthenticatedChatOverlayV3() {
       return true;
     }
   });
-  const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const wasDraggedRef = useRef(false);
+
+  const [launcherMinimized, setLauncherMinimized] = useState(() => {
+    try { return localStorage.getItem("doorai-launcher-min") === "1"; } catch { return false; }
+  });
+  const savedPos = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("doorai-launcher-pos");
+      return raw ? JSON.parse(raw) : { x: 0, y: 0 };
+    } catch { return { x: 0, y: 0 }; }
+  }, []);
+  const launcherX = useMotionValue(savedPos.x);
+  const launcherY = useMotionValue(savedPos.y);
 
   const isBackoffice = location.pathname.startsWith("/backoffice");
   const isPersonal = chatMode === "personal";
