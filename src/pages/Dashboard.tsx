@@ -321,7 +321,7 @@ export default function Dashboard() {
 
 
             {/* === PROFIEL === */}
-            <TabsContent value="profiel" className="mt-4">
+            <TabsContent value="profiel" className="mt-3">
               <form onSubmit={handleSave}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <TileCard icon={User} title="Gegevens">
