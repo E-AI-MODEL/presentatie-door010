@@ -58,7 +58,7 @@ export function HeroSection() {
               onClick={() => loginAsDemo("/dashboard")}
             >
               <Play className="mr-2 h-5 w-5" />
-              {demoLoading ? "Bezig..." : "Start als kandidaat"}
+              {demoLoading ? "Bezig..." : "Je eerste stap richting het Rotterdamse onderwijs, start hier\u00a0"}
             </Button>
           </motion.div>
         </div>
