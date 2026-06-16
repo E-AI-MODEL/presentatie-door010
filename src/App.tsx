@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { PublicChatWidget } from "@/components/chat/PublicChatWidget";
 import { AuthenticatedChatOverlayV3 as AuthenticatedChatOverlay } from "@/components/chat/AuthenticatedChatOverlayV3";
 import Index from "./pages/Index";
-import Demo from "./pages/Demo";
+
 import Vacatures from "./pages/Vacatures";
 import Events from "./pages/Events";
 import Opleidingen from "./pages/Opleidingen";
@@ -29,7 +29,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/demo" element={<Demo />} />
+            <Route path="/demo" element={<Navigate to="/" replace />} />
             <Route path="/vacatures" element={<Vacatures />} />
             <Route path="/events" element={<Events />} />
             <Route path="/opleidingen" element={<Opleidingen />} />

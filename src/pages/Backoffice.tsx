@@ -319,104 +319,74 @@ export default function Backoffice() {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
       <main className="flex-1">
-        {/* Header */}
-        <section className="bg-secondary py-3 md:py-4">
-          <div className="container">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 md:gap-4">
-                <div className="bg-primary/20 rounded-full p-2 md:p-3">
-                  <LayoutDashboard className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+        {/* Compact strip header */}
+        <section className="bg-secondary border-b border-border/40">
+          <div className="container py-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="bg-primary/20 rounded-lg p-1.5 shrink-0">
+                  <LayoutDashboard className="h-4 w-4 text-primary" />
                 </div>
-                <div>
-                  <h1 className="text-base md:text-xl font-bold text-secondary-foreground">
-                    BackDOORai
-                  </h1>
-                  <p className="text-secondary-foreground/80 text-xs md:text-sm">
-                    {isMobile ? `${profiles.length} kandidaten` : `Adviseur Dashboard • ${profiles.length} kandidaten`}
-                  </p>
+                <div className="min-w-0 flex items-baseline gap-2">
+                  <h1 className="text-sm font-bold text-secondary-foreground leading-none">BackDOORai</h1>
+                  <span className="text-[11px] text-secondary-foreground/70 tabular-nums">{profiles.length} kandidaten</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 md:gap-2">
-                <Button
-                  variant="outline"
-                  size={isMobile ? "icon" : "sm"}
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  className={isMobile ? "h-8 w-8" : ""}
-                >
-                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''} ${isMobile ? '' : 'mr-2'}`} />
-                  {!isMobile && "Vernieuwen"}
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-7 w-7">
+                  <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                 </Button>
-                <Button
-                  variant="outline"
-                  size={isMobile ? "icon" : "sm"}
-                  onClick={handleSignOut}
-                  className={isMobile ? "h-8 w-8" : ""}
-                >
-                  <LogOut className={`h-4 w-4 ${isMobile ? '' : 'mr-2'}`} />
-                  {!isMobile && "Uitloggen"}
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-7 w-7">
+                  <LogOut className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="container py-4 md:py-6">
+        <div className="container py-3">
           {error && (
-            <div className="mb-4 md:mb-6 p-3 md:p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
+            <div className="mb-3 p-2.5 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-xs">
               {error}
-              <Button variant="ghost" size="sm" className="ml-4" onClick={handleRefresh}>
-                Opnieuw proberen
-              </Button>
+              <Button variant="ghost" size="sm" className="ml-3 h-6 px-2 text-xs" onClick={handleRefresh}>Opnieuw</Button>
             </div>
           )}
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 md:mb-6"
-          >
+          {/* Dense KPI strip */}
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
             <BackofficeStats profiles={profiles} />
           </motion.div>
 
           {/* Main Content */}
-          <Tabs defaultValue="overview" className="space-y-4 md:space-y-6">
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 scrollbar-none">
-              <TabsList className="inline-flex w-max md:w-auto md:min-w-0">
-                <TabsTrigger value="overview" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <Users className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  {isMobile ? "Overzicht" : "Overzicht"}
+          <Tabs defaultValue="overview" className="space-y-3">
+            <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0 scrollbar-none">
+              <TabsList className="inline-flex h-8 gap-0.5 rounded-full bg-muted p-0.5">
+                <TabsTrigger value="overview" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Users className="h-3 w-3" />Overzicht
                 </TabsTrigger>
-                <TabsTrigger value="appointments" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  {isMobile ? "Afspraken" : "Afspraken"}
+                <TabsTrigger value="appointments" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Calendar className="h-3 w-3" />Afspraken
                 </TabsTrigger>
-                <TabsTrigger value="alerts" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <Bell className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  {isMobile ? "Meldingen" : "Meldingen"}
+                <TabsTrigger value="alerts" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Bell className="h-3 w-3" />Meldingen
                   {alerts.filter(a => a.priority === 'high').length > 0 && (
-                    <Badge variant="destructive" className="ml-0.5 md:ml-1 h-4 w-4 md:h-5 md:w-5 p-0 flex items-center justify-center text-[9px] md:text-[10px]">
+                    <Badge variant="destructive" className="ml-0.5 h-4 min-w-4 px-1 text-[9px]">
                       {alerts.filter(a => a.priority === 'high').length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="chat" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <MessageCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  {isMobile ? "Chat" : "Gesprekken"}
+                <TabsTrigger value="chat" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <MessageCircle className="h-3 w-3" />Gesprekken
                 </TabsTrigger>
-                <TabsTrigger value="sources" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <Globe className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  Bronnen
+                <TabsTrigger value="sources" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Globe className="h-3 w-3" />Bronnen
                 </TabsTrigger>
-                <TabsTrigger value="detector" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                  <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                  {isMobile ? "AI" : "AI-analyse"}
+                <TabsTrigger value="detector" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Activity className="h-3 w-3" />AI-analyse
                 </TabsTrigger>
                 {isSuperuser && (
-                  <TabsTrigger value="superuser" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
-                    <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                    Superuser
+                  <TabsTrigger value="superuser" className="rounded-full h-7 px-2.5 text-xs gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <LayoutDashboard className="h-3 w-3" />Superuser
                   </TabsTrigger>
                 )}
               </TabsList>
@@ -437,7 +407,7 @@ export default function Backoffice() {
                     selectedUserId={selectedUser?.user_id}
                   />
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     <div className="lg:col-span-2">
                       <UserOverviewTable 
                         profiles={profiles} 
@@ -485,7 +455,7 @@ export default function Backoffice() {
                     }}
                   />
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     <div className="lg:col-span-2">
                       <BackofficeAlerts 
                         alerts={alerts}
@@ -621,7 +591,7 @@ export default function Backoffice() {
                   )
                 ) : (
                   // Desktop: side by side
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
                     <div className="lg:col-span-1">
                       <Card>
                         <CardHeader className="pb-2">

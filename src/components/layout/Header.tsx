@@ -344,15 +344,26 @@ export function Header() {
                       </button>
                     </div>
                   ) : (
-                    <Button
-                      size="sm"
-                      className="mx-4 my-1.5 w-[calc(100%-2rem)]"
-                      disabled={demoLoading}
-                      onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
-                    >
-                      <Play className="mr-2 h-4 w-4" />
-                      {demoLoading ? "Bezig..." : "Inloggen"}
-                    </Button>
+                    <div className="flex flex-col">
+                      <Button
+                        size="sm"
+                        className="mx-4 my-1.5 w-[calc(100%-2rem)]"
+                        disabled={demoLoading}
+                        onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        {demoLoading ? "Bezig..." : "Inloggen"}
+                      </Button>
+                      <button
+                        type="button"
+                        disabled={demoLoading}
+                        onClick={() => { loginAsDemo("/backoffice"); setMobileMenuOpen(false); }}
+                        className="px-4 py-2 text-sm text-accent hover:text-accent/80 hover:bg-accent/5 transition-colors flex items-center gap-2 text-left w-full disabled:opacity-50"
+                      >
+                        <Shield className="h-3.5 w-3.5" />
+                        Inloggen als admin
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
