@@ -990,8 +990,13 @@ Deno.serve(async (req) => {
               preferred_sector: fresh.preferred_sector ?? profileMeta?.preferred_sector ?? null,
               current_phase: fresh.current_phase ?? profileMeta?.current_phase ?? null,
             };
+            console.log(`[doorai-chat] profile uid=${uid} first_name=${fresh.first_name ?? "∅"} phase=${fresh.current_phase ?? "∅"} sector=${fresh.preferred_sector ?? "∅"}`);
           }
+        } else {
+          console.warn("[doorai-chat] JWT present maar getUser gaf geen uid (mogelijk anon/publishable key)");
         }
+      } else {
+        console.warn("[doorai-chat] geen Authorization JWT op request");
       }
     } catch (e) {
       console.warn("[doorai-chat] server-side profile fetch skipped:", (e as Error).message);
@@ -1014,6 +1019,7 @@ Deno.serve(async (req) => {
 
     // Always fetch trusted sources (needed for link filtering)
     const trustedSources = await fetchTrustedSources();
+    console.log(`[doorai-chat] trustedSources active=${trustedSources.length}`);
 
     if (intent !== "greeting") {
       const faqResult = await retrieveFaqKnowledge(lastUserMessage, LOVABLE_API_KEY);
