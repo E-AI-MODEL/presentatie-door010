@@ -540,15 +540,62 @@ function TopicGroupSection({ group, onSendMessage, defaultOpen }: { group: Topic
 }
 
 
-export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed }: TopicMenuProps) {
-  const [menuOpen, setMenuOpen] = useState(!collapsed);
+/** Compact rendering: category tabs on top, flat item list below. Used in the chat overlay. */
+function TopicMenuCompact({ groups, onSendMessage }: { groups: TopicGroup[]; onSendMessage: (msg: string) => void }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const active = groups[activeIdx] ?? groups[0];
+
+  return (
+    <div className="flex flex-col">
+      <div className="px-3 pt-2 pb-2 border-b border-border/60 overflow-x-auto">
+        <div className="flex items-center gap-1.5 min-w-max">
+          {groups.map((g, i) => {
+            const Icon = g.icon;
+            const isActive = i === activeIdx;
+            return (
+              <button
+                key={i}
+                onClick={() => setActiveIdx(i)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 ${
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-3 w-3" />
+                {g.title}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="px-2 py-2 space-y-0.5">
+        {active.items.map((item, i) =>
+          item.href ? (
+            <Link
+              key={i}
+              to={item.href}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[13px] text-foreground hover:bg-muted/60 transition-colors"
+            >
+              <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+              <span>{item.label}</span>
+            </Link>
+          ) : (
+            <TopicItem key={i} item={item} onSendMessage={onSendMessage} />
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed, variant }: TopicMenuProps & { variant?: "default" | "compact" }) {
   const phaseInfo = phaseData[currentPhase];
 
   const phaseTopics = getPhaseTopics(currentPhase);
   const slotTopics = getSlotTopics(knownSlots);
   const ssotTopics = useMemo(() => getSSOTTopics(currentPhase, knownSlots), [currentPhase, knownSlots]);
 
-  // Eerste groep: gebruik subtitle in plaats van interne fasenaam (geen UX-leak)
   const groups: TopicGroup[] = [
     {
       title: phaseInfo.subtitle || "Voor jou nu",
@@ -558,35 +605,19 @@ export function TopicMenu({ currentPhase, knownSlots, onSendMessage, collapsed }
   ];
 
   if (slotTopics.length > 0) {
-    groups.push({
-      title: "Jouw profiel",
-      icon: BookOpen,
-      items: slotTopics,
-    });
+    groups.push({ title: "Jouw profiel", icon: BookOpen, items: slotTopics });
   }
-
   if (ssotTopics.length > 0) {
-    groups.push({
-      title: "Meer onderwerpen",
-      icon: Lightbulb,
-      items: ssotTopics,
-    });
+    groups.push({ title: "Meer", icon: Lightbulb, items: ssotTopics });
   }
 
-  // Per render 2 willekeurige vragen uit de pool — zorgt voor rotatie zonder backend roundtrip.
   const rotatingFaq = useMemo(() => pickRandom(FAQ_POOL, 2), [currentPhase, knownSlots]);
+  groups.push({ title: "FAQ", icon: MessageCircle, items: rotatingFaq });
+  groups.push({ title: "Snel naar", icon: ExternalLink, items: QUICK_LINKS });
 
-  groups.push({
-    title: "Veelgestelde vragen",
-    icon: MessageCircle,
-    items: rotatingFaq,
-  });
-
-  groups.push({
-    title: "Snel naar",
-    icon: ExternalLink,
-    items: QUICK_LINKS,
-  });
+  if (variant === "compact") {
+    return <TopicMenuCompact groups={groups} onSendMessage={onSendMessage} />;
+  }
 
   return (
     <div className="bg-card">
