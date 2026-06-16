@@ -230,7 +230,7 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
       <main className="flex-1">
-        <div className="container max-w-5xl py-4 md:py-6 space-y-4 md:space-y-5">
+        <div className="container max-w-6xl py-4 md:py-8 space-y-6 md:space-y-8">
           <HubHero
             firstName={firstName}
             lastName={lastName}
@@ -244,84 +244,107 @@ export default function Dashboard() {
           />
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 w-full rounded-2xl bg-card border border-border/60 p-1 h-auto">
-              <TabsTrigger value="vandaag" className="rounded-xl text-xs sm:text-sm py-2">Vandaag</TabsTrigger>
-              <TabsTrigger value="profiel" className="rounded-xl text-xs sm:text-sm py-2">Profiel</TabsTrigger>
-              <TabsTrigger value="documenten" className="rounded-xl text-xs sm:text-sm py-2">Documenten</TabsTrigger>
-              <TabsTrigger value="activiteit" className="rounded-xl text-xs sm:text-sm py-2">Activiteit</TabsTrigger>
+            <TabsList className="flex w-full justify-start gap-0 rounded-none border-b border-border bg-transparent p-0 h-auto">
+              {[
+                { v: "vandaag", l: "Vandaag" },
+                { v: "profiel", l: "Profiel" },
+                { v: "documenten", l: "Documenten" },
+                { v: "activiteit", l: "Activiteit" },
+              ].map((t) => (
+                <TabsTrigger
+                  key={t.v}
+                  value={t.v}
+                  className="rounded-none border-b-2 border-transparent bg-transparent px-5 md:px-7 py-3 text-sm font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent transition-colors"
+                >
+                  {t.l}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {/* === VANDAAG === */}
-            <TabsContent value="vandaag" className="mt-4 space-y-4 md:space-y-5">
-              {/* Quick actions */}
-              <div className="grid grid-cols-4 gap-2 md:gap-3">
-                {quickActions.map((a) => {
-                  const Icon = a.icon;
-                  const cls = `group flex flex-col items-center justify-center gap-1.5 rounded-2xl border p-3 md:p-4 transition-all hover:-translate-y-0.5 ${
-                    a.primary
-                      ? "bg-primary text-primary-foreground border-primary shadow-door"
-                      : "bg-card border-border/60 hover:border-primary/40 hover:shadow-sm"
-                  }`;
-                  const iconCls = `h-5 w-5 md:h-6 md:w-6 ${a.primary ? "text-primary-foreground" : "text-primary"}`;
-                  const labelCls = `text-[10px] md:text-xs font-medium text-center leading-tight ${
-                    a.primary ? "text-primary-foreground" : "text-foreground"
-                  }`;
-                  const inner = (
-                    <>
-                      <Icon className={iconCls} />
-                      <span className={labelCls}>{a.label}</span>
-                    </>
-                  );
-                  return a.to ? (
-                    <Link key={a.label} to={a.to} className={cls}>{inner}</Link>
-                  ) : (
-                    <button key={a.label} type="button" onClick={a.onClick} className={cls}>{inner}</button>
-                  );
-                })}
-              </div>
-
-              {/* Volgende stap CTA */}
-              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/8 via-card to-accent/5 p-5 md:p-6 shadow-sm">
-                <div className="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-                <div className="relative">
-                  <div className="text-[10px] uppercase tracking-wider text-primary font-semibold mb-1">
-                    Jouw volgende stap
+            <TabsContent value="vandaag" className="mt-6 md:mt-8">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+                {/* LEFT: sidebar — quick actions + topic menu */}
+                <aside className="lg:col-span-4 space-y-6">
+                  <div className="grid grid-cols-2 gap-3">
+                    {quickActions.map((a) => {
+                      const Icon = a.icon;
+                      const cls = `group flex flex-col items-center justify-center gap-2 rounded-3xl border p-4 md:p-5 transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                        a.primary
+                          ? "bg-primary text-primary-foreground border-primary shadow-door"
+                          : "bg-card border-border/60 hover:border-primary/40"
+                      }`;
+                      const chipCls = `h-10 w-10 rounded-2xl flex items-center justify-center ${
+                        a.primary ? "bg-white/20" : "bg-primary/10"
+                      }`;
+                      const iconCls = `h-5 w-5 ${a.primary ? "text-primary-foreground" : "text-primary"}`;
+                      const labelCls = `text-xs font-bold text-center leading-tight ${
+                        a.primary ? "text-primary-foreground" : "text-foreground"
+                      }`;
+                      const inner = (
+                        <>
+                          <span className={chipCls}><Icon className={iconCls} /></span>
+                          <span className={labelCls}>{a.label}</span>
+                        </>
+                      );
+                      return a.to ? (
+                        <Link key={a.label} to={a.to} className={cls}>{inner}</Link>
+                      ) : (
+                        <button key={a.label} type="button" onClick={a.onClick} className={cls}>{inner}</button>
+                      );
+                    })}
                   </div>
-                  <h2 className="text-base md:text-lg font-bold text-foreground leading-tight">
-                    {phaseInfo.subtitle || "Ontdek wat bij je past"}
-                  </h2>
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1.5 max-w-prose">
-                    Stel je vraag aan DoorAI. Hij denkt met je mee op basis van waar je nu staat.
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={() => handleOpenChat()}
-                    className="mt-3 rounded-full gap-1.5"
-                  >
-                    Start gesprek
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
 
-              {/* Topic menu + Aanbevolen — naast elkaar op desktop */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-border/60 bg-card overflow-hidden shadow-sm">
-                  <TopicMenu
-                    currentPhase={currentPhase}
-                    knownSlots={knownSlots}
-                    onSendMessage={handleTopicMessage}
-                  />
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-card p-4 md:p-5 shadow-sm">
-                  <RecommendedContent
-                    currentPhase={currentPhase}
-                    knownSlots={knownSlots}
-                    onOpenChat={handleOpenChat}
-                  />
-                </div>
+                  <div className="rounded-3xl border border-border/60 bg-card overflow-hidden shadow-sm">
+                    <div className="px-5 pt-5 pb-3 border-b border-border/50">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Onderwerpen
+                      </h3>
+                    </div>
+                    <TopicMenu
+                      currentPhase={currentPhase}
+                      knownSlots={knownSlots}
+                      onSendMessage={handleTopicMessage}
+                    />
+                  </div>
+                </aside>
+
+                {/* RIGHT: main — volgende stap + aanbevolen */}
+                <section className="lg:col-span-8 space-y-6 md:space-y-8">
+                  <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 md:p-8 shadow-sm">
+                    <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/5" />
+                    <div className="relative">
+                      <div className="text-[10px] uppercase tracking-widest text-primary font-bold mb-2">
+                        Jouw volgende stap
+                      </div>
+                      <h2 className="text-xl md:text-2xl font-bold text-foreground leading-tight mb-3">
+                        {phaseInfo.subtitle || "Ontdek wat bij je past"}
+                      </h2>
+                      <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-lg mb-6">
+                        Stel je vraag aan DoorAI. Hij denkt met je mee op basis van waar je nu staat in je oriëntatieproces.
+                      </p>
+                      <Button
+                        onClick={() => handleOpenChat()}
+                        className="rounded-full gap-2 px-6 py-3 h-auto font-bold"
+                      >
+                        Start gesprek
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-sm">
+                    <RecommendedContent
+                      currentPhase={currentPhase}
+                      knownSlots={knownSlots}
+                      onOpenChat={handleOpenChat}
+                    />
+                  </div>
+
+                </section>
               </div>
             </TabsContent>
+
 
             {/* === PROFIEL === */}
             <TabsContent value="profiel" className="mt-4">
