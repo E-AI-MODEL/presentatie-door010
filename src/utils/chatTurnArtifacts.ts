@@ -229,10 +229,21 @@ function buildStatusArtifact(
 
 function dedupeArtifacts(artifacts: ChatTurnArtifact[]): ChatTurnArtifact[] {
   const decision = artifacts.find((a) => a.kind === "decision");
-  const question = artifacts.find((a) => a.kind === "question");
-  const source = artifacts.find((a) => a.kind === "source");
   const status = artifacts.find((a) => a.kind === "status");
 
   if (decision) return [decision, status].filter(Boolean) as ChatTurnArtifact[];
-  return [question, source, status].filter(Boolean) as ChatTurnArtifact[];
+
+  const seen = new Set<string>();
+  const questions: ChatQuestionArtifact[] = [];
+  const sources: ChatSourceArtifact[] = [];
+  for (const a of artifacts) {
+    if (a.kind === "question" && questions.length < 2 && !seen.has(a.id)) {
+      seen.add(a.id);
+      questions.push(a);
+    } else if (a.kind === "source" && sources.length < 2 && !seen.has(a.id)) {
+      seen.add(a.id);
+      sources.push(a);
+    }
+  }
+  return [...questions, ...sources, ...(status ? [status] : [])];
 }
