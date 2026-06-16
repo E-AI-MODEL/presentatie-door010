@@ -236,7 +236,7 @@ export function Header() {
                 <Button size="sm" className="font-medium relative" asChild>
                   <Link to="/dashboard">
                     <User className="mr-2 h-4 w-4" />
-                    Dashboard
+                    Mijn hub
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
                         {unreadCount > 9 ? '9+' : unreadCount}
