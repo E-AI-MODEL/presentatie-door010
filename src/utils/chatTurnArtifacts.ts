@@ -57,7 +57,10 @@ interface RawTurnMeta {
   reflection_issues?: string[] | null;
   user_message?: string;
   include_status?: boolean;
+  /** Eerder getoonde chip-teksten of user-berichten die NIET opnieuw als chip mogen verschijnen. */
+  exclude_texts?: string[];
 }
+
 
 const DOUBT_WORDS = [
   "twijfel",
