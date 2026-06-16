@@ -161,8 +161,8 @@ function BackofficeSidebar({
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarHeader className="border-b border-border h-12 flex items-center justify-center px-2">
-        <div className="flex items-center gap-2 w-full">
+      <SidebarHeader className="border-b border-border h-12 flex items-center justify-between px-2">
+        <div className="flex items-center gap-2 w-full overflow-hidden">
           <div className="bg-primary/15 rounded-md p-1.5 shrink-0">
             <LayoutDashboard className="h-4 w-4 text-primary" />
           </div>
@@ -170,6 +170,7 @@ function BackofficeSidebar({
             <span className="text-sm font-bold leading-none truncate">BackDOOR</span>
           )}
         </div>
+        <SidebarTrigger className="h-6 w-6 shrink-0" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
