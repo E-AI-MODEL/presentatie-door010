@@ -11,9 +11,13 @@ export interface ThemeSignal {
   chatPromptVariants?: string[];
 }
 
+const DOUBT_RE = /\b(twijfel|ik twijfel|weet niet|ik weet het niet|lastig kiezen|keuze maken|past dit|wel of niet|onzeker)\b/i;
+
 // Themaprompts zijn bewust kort, mensgericht en uitnodigend. Geen examen-toon.
 // Meerdere varianten per thema zodat de chips niet altijd dezelfde vraag tonen.
 const ALL_THEMES: ThemeSignal[] = [
+  { key: "keuzehulp", label: "Help me kiezen", chatPrompt: "Kun je mijn opties rustig naast elkaar zetten?",
+    chatPromptVariants: ["Kun je mijn opties rustig naast elkaar zetten?", "Help me kiezen tussen de mogelijkheden.", "Wat past beter bij mijn situatie?"] },
   { key: "route", label: "Routes", chatPrompt: "Kun je me door de routes praten?",
     chatPromptVariants: ["Kun je me door de routes praten?", "Welke wegen leiden naar het onderwijs?", "Hoe ziet zo'n traject er voor mij uit?"] },
   { key: "bevoegdheid", label: "Bevoegdheid", chatPrompt: "Wat voor bevoegdheid past bij wat ik wil?",
@@ -70,7 +74,6 @@ export function deriveThemes(opts: {
     if (t) { selected.push(t); used.add(key); }
   }
 
-  // Phase-driven priorities
   if (p === "interesseren") {
     if (!knownSlots.school_type) add("sector");
     if (!knownSlots.role_interest) add("functie");
@@ -82,6 +85,7 @@ export function deriveThemes(opts: {
     add("toelating");
     add("kosten");
   } else if (p === "beslissen") {
+    add("keuzehulp");
     add("kosten");
     add("subsidie");
     add("salaris");
@@ -96,7 +100,6 @@ export function deriveThemes(opts: {
     add("regio");
   }
 
-  // Slot-driven additions
   if (knownSlots.region_preference && !used.has("regio")) add("regio");
   if (missingSlots.includes("admission_requirements") && !used.has("toelating")) add("toelating");
   if ((missingSlots.includes("salary_info") || knownSlots.salary_info) && !used.has("salaris")) add("salaris");
@@ -107,16 +110,13 @@ export function deriveThemes(opts: {
 }
 
 /**
- * Derive themes for public/anonymous context based on user message keywords.
- * Used by public pipeline (homepage-coach).
- */
-/**
  * Detect which theme keys the user message already covers,
  * so we can exclude them from follow-up actions.
  */
 export function detectCurrentThemeKeys(userMessage: string): string[] {
   const msg = userMessage.toLowerCase();
   const keys: string[] = [];
+  if (DOUBT_RE.test(msg)) keys.push("keuzehulp");
   if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) keys.push("route");
   if (/(vacature|baan|werk|school)/.test(msg)) keys.push("vacatures");
   if (/(salaris|verdien|loon|cao)/.test(msg)) keys.push("salaris");
@@ -143,6 +143,7 @@ export function publicThemes(userMessage: string, excludeKeys: string[] = []): T
     if (t) { selected.push(t); used.add(key); }
   }
 
+  if (DOUBT_RE.test(msg)) add("keuzehulp");
   if (/(route|opleiding|zij-instroom|hoe word|leraar word)/.test(msg)) add("route");
   if (/(vacature|baan|werk|school)/.test(msg)) add("vacatures");
   if (/(salaris|verdien|loon|cao)/.test(msg)) add("salaris");
@@ -153,7 +154,6 @@ export function publicThemes(userMessage: string, excludeKeys: string[] = []): T
   if (/(functie|rol|lesgeven|begeleid)/.test(msg)) add("functie");
   if (/(toelating|eisen|diploma|vooropleiding)/.test(msg)) add("toelating");
 
-  // Fallback: exploration themes (excluding already-covered ones)
   if (selected.length === 0) {
     add("route");
     add("sector");
