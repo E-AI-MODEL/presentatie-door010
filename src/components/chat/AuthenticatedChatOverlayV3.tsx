@@ -122,6 +122,11 @@ export function AuthenticatedChatOverlayV3() {
   ]);
   const [personalLoading, setPersonalLoading] = useState(false);
   const [generalLoading, setGeneralLoading] = useState(false);
+  const personalMessagesRef = useRef<ChatMessage[]>(personalMessages);
+  const generalMessagesRef = useRef<ChatMessage[]>(generalMessages);
+  personalMessagesRef.current = personalMessages;
+  generalMessagesRef.current = generalMessages;
+
   // Topic-burgermenu — default open in persoonlijke chat (per project-memory).
   // Sessie-persistent zodat hij niet steeds terugkomt na sluiten.
   const [topicsOpen, setTopicsOpen] = useState<boolean>(() => {
