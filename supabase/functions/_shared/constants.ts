@@ -3,9 +3,8 @@
  * Single source of truth for forbidden terms, knowledge peildatum and models.
  */
 
-// Datum waarop salaris/collegegeld/CAO data laatst geverifieerd is.
-// Update dit bij elke data-refresh; AI gebruikt dit voor "geverifieerd <maand>"-disclaimer.
-export const KNOWLEDGE_AS_OF = "mei 2026";
+// (KNOWLEDGE_AS_OF verwijderd — was nergens geïmporteerd; peildatum komt nu uit
+//  per-FAQ veld in retrieval.)
 
 // Termen die de AI nooit mag uitspreken (intern jargon).
 export const FORBIDDEN_TERMS: readonly string[] = [

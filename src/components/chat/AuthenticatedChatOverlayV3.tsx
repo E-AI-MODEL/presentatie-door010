@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyProfileUpdated } from "@/hooks/useLiveProfile";
+import { notifyProfileUpdated, useLiveProfile } from "@/hooks/useLiveProfile";
 import { CollapsibleAnswer } from "@/components/chat/CollapsibleAnswer";
 import { ChatTurnArtifacts } from "@/components/chat/ChatTurnArtifacts";
 import { parseStructuredMeta } from "@/utils/responsePipeline";
@@ -87,7 +87,12 @@ export function AuthenticatedChatOverlayV3() {
   const [isOpen, setIsOpen] = useState(false);
   const [chatMode, setChatMode] = useState<ChatMode>("personal");
   const [input, setInput] = useState("");
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { profile, refresh: refreshProfile } = useLiveProfile<Profile>(
+    user?.id,
+    "current_phase, preferred_sector, first_name, bio, test_completed, test_results, known_slots",
+  );
+  const profileRef = useRef<Profile | null>(null);
+  profileRef.current = profile;
   const [personalMessages, setPersonalMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "Fijn dat je er bent. Waar wil je vandaag mee verder?", artifacts: welcomeArtifacts() },
   ]);
@@ -104,16 +109,6 @@ export function AuthenticatedChatOverlayV3() {
   const messages = isPersonal ? personalMessages : generalMessages;
   const loading = isPersonal ? personalLoading : generalLoading;
   const visibleMessages = messages.slice(-10);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("profiles")
-      .select("current_phase, preferred_sector, first_name, bio, test_completed, test_results, known_slots")
-      .eq("user_id", user.id)
-      .single()
-      .then(({ data }) => { if (data) setProfile(data); });
-  }, [user]);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
@@ -212,44 +207,60 @@ export function AuthenticatedChatOverlayV3() {
     setLoading(true);
 
     try {
+      // Echte user-JWT meegeven zodat server-side verse profile fetch werkt
+      // (anon/publishable key matcht geen user → server zou stil terugvallen).
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken =
+        sessionData.session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const currentProfile = profileRef.current;
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
           messages: [...previous, userMessage].slice(-12).map((m) => ({ role: m.role, content: m.content })),
           mode: mode === "personal" ? "authenticated" : "public",
-          userPhase: profile?.current_phase || "interesseren",
-          userSector: profile?.preferred_sector,
-          profileContext: profile || undefined,
+          // userPhase/userSector bewust weggelaten: server doet verse DB-fetch.
+          profileMeta: currentProfile || undefined,
         }),
       });
-      if (!response.ok) throw new Error("Failed to get response");
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const errBody = await response.json();
+          detail = typeof errBody?.error === "string" ? errBody.error : "";
+        } catch { /* non-json body */ }
+        throw new Error(detail || `Failed to get response (${response.status})`);
+      }
       const result = await readStream(response, text, mode);
       patchLastAssistant(mode, result.hasArtifacts ? { content: result.text } : { content: result.text, artifacts: fallbackArtifacts(text) });
     } catch (error) {
       console.error("Chat error:", error);
-      patchLastAssistant(mode, { content: "Sorry, er ging iets mis. Probeer het later opnieuw.", artifacts: retryArtifacts(text) });
+      const msg = error instanceof Error && error.message && !error.message.startsWith("Failed to get response")
+        ? error.message
+        : "Sorry, er ging iets mis. Probeer het later opnieuw.";
+      patchLastAssistant(mode, { content: msg, artifacts: retryArtifacts(text) });
     } finally {
       setLoading(false);
     }
-  }, [chatMode, generalLoading, generalMessages, patchLastAssistant, personalLoading, personalMessages, profile, readStream]);
+  }, [chatMode, generalLoading, generalMessages, patchLastAssistant, personalLoading, personalMessages, readStream]);
 
   const handleDecisionAccept = useCallback(async (artifact: ChatDecisionArtifact) => {
     if (user && artifact.to) {
-      const { data } = await supabase
+      await supabase
         .from("profiles")
         .update({ current_phase: artifact.to as "beslissen" | "interesseren" | "matchen" | "orienteren" | "voorbereiden" })
-        .eq("user_id", user.id)
-        .select("current_phase, preferred_sector, first_name, bio, test_completed, test_results, known_slots")
-        .single();
-      if (data) setProfile(data);
+        .eq("user_id", user.id);
       notifyProfileUpdated();
+      // Verse fetch afwachten zodat profileRef de nieuwe fase bevat
+      // vóór de volgende sendMessage; voorkomt stale-phase race.
+      await refreshProfile();
     }
     await sendMessage(artifact.acceptValue, chatMode);
-  }, [chatMode, sendMessage, user]);
+  }, [chatMode, refreshProfile, sendMessage, user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
