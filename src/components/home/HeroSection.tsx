@@ -8,7 +8,7 @@ import { useDemoLogin } from "@/hooks/useDemoLogin";
 export function HeroSection() {
   const { loginAsDemo, loading: demoLoading } = useDemoLogin();
   return (
-    <section className="relative min-h-[70vh] flex items-center">
+    <section className="relative min-h-[70vh] flex items-start">
       {/* Background image - Rotterdam Erasmusbrug skyline */}
       <div className="absolute inset-0 -z-10">
         <div 
@@ -21,7 +21,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 via-50% to-white" />
       </div>
 
-      <div className="container py-20 md:py-28">
+      <div className="container pt-10 md:pt-14 pb-20 md:pb-28">
         <div className="max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -39,7 +39,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col sm:flex-row items-start gap-3"
+            className="flex flex-col sm:flex-row items-start gap-3 mt-16 md:mt-24"
           >
             <Button
               size="lg"
