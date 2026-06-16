@@ -333,21 +333,14 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-4 px-1">
-                      <h3 className="text-lg font-bold text-foreground">Aanbevolen voor jou</h3>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Op basis van je profiel
-                      </span>
-                    </div>
-                    <div className="rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-sm">
-                      <RecommendedContent
-                        currentPhase={currentPhase}
-                        knownSlots={knownSlots}
-                        onOpenChat={handleOpenChat}
-                      />
-                    </div>
+                  <div className="rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-sm">
+                    <RecommendedContent
+                      currentPhase={currentPhase}
+                      knownSlots={knownSlots}
+                      onOpenChat={handleOpenChat}
+                    />
                   </div>
+
                 </section>
               </div>
             </TabsContent>
