@@ -23,13 +23,17 @@ import {
   Clock,
   GraduationCap,
   Loader2,
-  Trash2
+  Trash2,
+  CalendarPlus,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ProfileWithEmail } from "./UserOverviewTable";
+import { ScheduleAppointmentDialog } from "./ScheduleAppointmentDialog";
 
 interface Message {
   id: string;
@@ -50,6 +54,7 @@ export function AdvisorChatPanel({ selectedUser, onClose }: AdvisorChatPanelProp
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load real messages when user is selected
@@ -240,46 +245,61 @@ export function AdvisorChatPanel({ selectedUser, onClose }: AdvisorChatPanelProp
 
   return (
     <Card className="h-full flex flex-col">
-      {/* Header */}
-      <CardHeader className="border-b border-border pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 rounded-full p-2">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-base">
-                {selectedUser.first_name && selectedUser.last_name 
-                  ? `${selectedUser.first_name} ${selectedUser.last_name}`
-                  : selectedUser.email || 'Onbekende gebruiker'}
-              </CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                {selectedUser.current_phase && (
-                  <Badge variant="outline" className="text-xs">
-                    <GraduationCap className="h-3 w-3 mr-1" />
-                    {phaseLabels[selectedUser.current_phase] || selectedUser.current_phase}
-                  </Badge>
-                )}
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Lid sinds {format(new Date(selectedUser.created_at), 'd MMM yyyy', { locale: nl })}
+      <ScheduleAppointmentDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        profiles={[selectedUser]}
+        defaultUserId={selectedUser.user_id}
+      />
+
+      {/* Sticky header — compact with quick actions */}
+      <CardHeader className="border-b border-border p-2 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary/10 rounded-full p-1.5 shrink-0">
+            <User className="h-3.5 w-3.5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-sm leading-tight truncate">
+              {selectedUser.first_name && selectedUser.last_name 
+                ? `${selectedUser.first_name} ${selectedUser.last_name}`
+                : selectedUser.email || 'Onbekend'}
+            </CardTitle>
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              {selectedUser.current_phase && (
+                <Badge variant="outline" className="text-[10px] h-4 px-1">
+                  <GraduationCap className="h-2.5 w-2.5 mr-0.5" />
+                  {phaseLabels[selectedUser.current_phase] || selectedUser.current_phase}
+                </Badge>
+              )}
+              {selectedUser.email && (
+                <span className="text-[10px] text-muted-foreground inline-flex items-center gap-0.5 truncate">
+                  <Mail className="h-2.5 w-2.5" />{selectedUser.email}
                 </span>
-              </div>
+              )}
+              {selectedUser.phone && (
+                <span className="text-[10px] text-muted-foreground inline-flex items-center gap-0.5">
+                  <Phone className="h-2.5 w-2.5" />{selectedUser.phone}
+                </span>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1"
+              onClick={() => setScheduleOpen(true)}>
+              <CalendarPlus className="h-3 w-3" /> Afspraak
+            </Button>
             {conversationId && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={deleting} title="Gesprek wissen">
-                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                  <Button variant="ghost" size="icon" className="h-7 w-7" disabled={deleting} title="Gesprek wissen">
+                    {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 text-destructive" />}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Gesprek wissen?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Alle berichten in dit gesprek worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.
+                      Alle berichten worden permanent verwijderd.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -291,12 +311,20 @@ export function AdvisorChatPanel({ selectedUser, onClose }: AdvisorChatPanelProp
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+              <X className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <Clock className="h-2.5 w-2.5" />
+          Lid sinds {format(new Date(selectedUser.created_at), 'd MMM yyyy', { locale: nl })}
+          {selectedUser.appointments && selectedUser.appointments.length > 0 && (
+            <span>· {selectedUser.appointments.length} afspra(a)k(en)</span>
+          )}
+        </div>
       </CardHeader>
+
 
       {/* Messages */}
       <CardContent className="flex-1 p-0 overflow-hidden">

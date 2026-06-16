@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, User, CheckCircle, XCircle, Loader2, MessageSquare } from "lucide-react";
+import { Calendar, Clock, User, CheckCircle, XCircle, Loader2, MessageSquare, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ProfileWithEmail, Appointment } from "./UserOverviewTable";
+import { ScheduleAppointmentDialog } from "./ScheduleAppointmentDialog";
 
 interface AppointmentsTabProps {
   profiles: ProfileWithEmail[];
@@ -32,6 +33,7 @@ export function AppointmentsTab({ profiles, onSelectUser, onOpenChat, onRefresh 
   const [editingNotesId, setEditingNotesId] = useState<string | null>(null);
   const [notesValue, setNotesValue] = useState("");
   const [localUpdates, setLocalUpdates] = useState<Record<string, Partial<Appointment>>>({});
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const allAppointments: (Appointment & { userName: string; profile: ProfileWithEmail })[] = [];
@@ -163,17 +165,13 @@ export function AppointmentsTab({ profiles, onSelectUser, onOpenChat, onRefresh 
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-foreground text-sm md:text-base">Alle afspraken</h3>
-          <Badge variant="secondary">{allAppointments.length}</Badge>
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Calendar className="h-4 w-4 text-primary" />
+        <h3 className="font-semibold text-sm">Afspraken</h3>
+        <Badge variant="secondary" className="h-5">{allAppointments.length}</Badge>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px] md:w-[160px]">
-            <SelectValue placeholder="Alle statussen" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[130px] h-7 text-xs ml-auto"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle statussen</SelectItem>
             <SelectItem value="pending">In afwachting</SelectItem>
@@ -182,7 +180,18 @@ export function AppointmentsTab({ profiles, onSelectUser, onOpenChat, onRefresh 
             <SelectItem value="cancelled">Geannuleerd</SelectItem>
           </SelectContent>
         </Select>
+        <Button size="sm" className="h-7 text-xs gap-1" onClick={() => setScheduleOpen(true)}>
+          <CalendarPlus className="h-3.5 w-3.5" /> Plan afspraak
+        </Button>
       </div>
+
+      <ScheduleAppointmentDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        profiles={profiles}
+        onCreated={() => onRefresh?.()}
+      />
+
 
       {isMobile ? (
         /* Mobile: Card view */

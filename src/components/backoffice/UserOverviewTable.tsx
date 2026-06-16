@@ -7,14 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PhaseStatusBar } from "./PhaseStatusBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
-  Users, Search, Phone, MessageCircle, FileText, Download, ClipboardCheck, User,
-  ArrowUp, ArrowDown, ArrowUpDown,
+  Search, Phone, MessageCircle, FileText, ClipboardCheck, User,
+  ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, SlidersHorizontal, Layers, List,
 } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 type OrientationPhase = 'interesseren' | 'orienteren' | 'beslissen' | 'matchen' | 'voorbereiden';
 
@@ -32,33 +32,18 @@ export interface Appointment {
 }
 
 export interface SavedEvent {
-  id: string;
-  user_id: string;
-  event_title: string;
-  event_date: string | null;
-  event_url: string | null;
-  event_source: string | null;
-  created_at: string;
+  id: string; user_id: string; event_title: string; event_date: string | null;
+  event_url: string | null; event_source: string | null; created_at: string;
 }
 
 export interface SavedVacancy {
-  id: string;
-  user_id: string;
-  title: string;
-  organization: string | null;
-  url: string | null;
-  sector: string | null;
-  notes: string | null;
-  created_at: string;
+  id: string; user_id: string; title: string; organization: string | null;
+  url: string | null; sector: string | null; notes: string | null; created_at: string;
 }
 
 export interface UserNote {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
+  id: string; user_id: string; title: string; content: string;
+  created_at: string; updated_at: string;
 }
 
 export interface ProfileWithEmail {
@@ -87,22 +72,18 @@ export interface ProfileWithEmail {
 }
 
 const phaseLabels: Record<OrientationPhase, { label: string; color: string }> = {
-  interesseren: { label: 'Interesseren', color: 'bg-accent/10 text-accent border-accent/20' },
-  orienteren: { label: 'Oriënteren', color: 'bg-primary/10 text-primary border-primary/20' },
-  beslissen: { label: 'Beslissen', color: 'bg-primary/20 text-primary border-primary/30' },
-  matchen: { label: 'Matchen', color: 'bg-accent/20 text-accent border-accent/30' },
-  voorbereiden: { label: 'Voorbereiden', color: 'bg-primary/15 text-primary border-primary/25' },
+  interesseren: { label: 'Interesseren', color: 'bg-accent/15 text-accent border-accent/30' },
+  orienteren: { label: 'Oriënteren', color: 'bg-primary/10 text-primary border-primary/25' },
+  beslissen: { label: 'Beslissen', color: 'bg-primary/20 text-primary border-primary/40' },
+  matchen: { label: 'Matchen', color: 'bg-accent/25 text-accent border-accent/40' },
+  voorbereiden: { label: 'Voorbereiden', color: 'bg-primary/30 text-primary-foreground border-primary' },
 };
 
 const sectorLabels: Record<string, string> = {
-  po: 'Primair Onderwijs',
-  vo: 'Voortgezet Onderwijs',
-  mbo: 'MBO',
-  so: 'Speciaal Onderwijs',
-  onbekend: 'Nog onbekend',
+  po: 'Primair Onderwijs', vo: 'Voortgezet Onderwijs', mbo: 'MBO', so: 'Speciaal Onderwijs', onbekend: 'Nog onbekend',
 };
 
-interface UserOverviewTableProps {
+interface Props {
   profiles: ProfileWithEmail[];
   onSelectUser: (profile: ProfileWithEmail) => void;
   selectedUserId?: string;
@@ -110,15 +91,23 @@ interface UserOverviewTableProps {
 
 type SortKey = 'name' | 'contact' | 'phase' | 'activity' | null;
 type SortDir = 'asc' | 'desc';
+const PHASE_ORDER: OrientationPhase[] = ['interesseren', 'orienteren', 'beslissen', 'matchen', 'voorbereiden'];
 
-const PHASE_ORDER = ['interesseren', 'orienteren', 'beslissen', 'matchen', 'voorbereiden'];
+function PhasePill({ phase }: { phase: OrientationPhase | null }) {
+  const p = phase || 'interesseren';
+  const cfg = phaseLabels[p];
+  return <Badge variant="outline" className={cn("text-[10px] font-medium px-1.5 h-4", cfg.color)}>{cfg.label}</Badge>;
+}
 
-export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: UserOverviewTableProps) {
+export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [phaseFilter, setPhaseFilter] = useState<string>("all");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>('activity');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [groupByPhase, setGroupByPhase] = useState(true);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ interesseren: true });
   const isMobile = useIsMobile();
 
   const toggleSort = (key: NonNullable<SortKey>) => {
@@ -127,337 +116,257 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Us
   };
 
   const filteredProfiles = useMemo(() => {
-    const list = profiles.filter((profile) => {
-      const matchesSearch =
-        !searchQuery ||
-        profile.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        profile.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        profile.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        profile.phone?.includes(searchQuery);
-      const matchesPhase = phaseFilter === "all" || profile.current_phase === phaseFilter;
-      const matchesSector = sectorFilter === "all" || profile.preferred_sector === sectorFilter;
+    const list = profiles.filter(p => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery ||
+        p.first_name?.toLowerCase().includes(q) ||
+        p.last_name?.toLowerCase().includes(q) ||
+        p.email?.toLowerCase().includes(q) ||
+        p.phone?.includes(searchQuery);
+      const matchesPhase = phaseFilter === "all" || p.current_phase === phaseFilter;
+      const matchesSector = sectorFilter === "all" || p.preferred_sector === sectorFilter;
       return matchesSearch && matchesPhase && matchesSector;
     });
 
     if (!sortKey) return list;
     const dir = sortDir === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => {
-      let av: string | number = '';
-      let bv: string | number = '';
+      let av: string | number = '', bv: string | number = '';
       switch (sortKey) {
         case 'name':
           av = `${a.first_name || ''} ${a.last_name || ''}`.trim().toLowerCase() || (a.email || '').toLowerCase();
           bv = `${b.first_name || ''} ${b.last_name || ''}`.trim().toLowerCase() || (b.email || '').toLowerCase();
           break;
         case 'contact':
-          av = (a.email || a.phone || '').toLowerCase();
-          bv = (b.email || b.phone || '').toLowerCase();
-          break;
+          av = (a.email || a.phone || '').toLowerCase(); bv = (b.email || b.phone || '').toLowerCase(); break;
         case 'phase':
-          av = PHASE_ORDER.indexOf(a.current_phase || 'interesseren');
-          bv = PHASE_ORDER.indexOf(b.current_phase || 'interesseren');
-          break;
+          av = PHASE_ORDER.indexOf((a.current_phase || 'interesseren') as OrientationPhase);
+          bv = PHASE_ORDER.indexOf((b.current_phase || 'interesseren') as OrientationPhase); break;
         case 'activity':
           av = new Date(a.last_message_at || a.updated_at || a.created_at).getTime();
-          bv = new Date(b.last_message_at || b.updated_at || b.created_at).getTime();
-          break;
+          bv = new Date(b.last_message_at || b.updated_at || b.created_at).getTime(); break;
       }
-      if (av < bv) return -1 * dir;
-      if (av > bv) return 1 * dir;
-      return 0;
+      if (av < bv) return -1 * dir; if (av > bv) return 1 * dir; return 0;
     });
   }, [profiles, searchQuery, phaseFilter, sectorFilter, sortKey, sortDir]);
+
+  const groups = useMemo(() => {
+    const out: Record<OrientationPhase, ProfileWithEmail[]> = {
+      interesseren: [], orienteren: [], beslissen: [], matchen: [], voorbereiden: [],
+    };
+    for (const p of filteredProfiles) {
+      const k = (p.current_phase || 'interesseren') as OrientationPhase;
+      out[k].push(p);
+    }
+    return out;
+  }, [filteredProfiles]);
 
   const SortIcon = ({ k }: { k: NonNullable<SortKey> }) =>
     sortKey !== k ? <ArrowUpDown className="h-3 w-3 opacity-40" /> :
       sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-primary" /> : <ArrowDown className="h-3 w-3 text-primary" />;
 
+  const activeFilters = (searchQuery ? 1 : 0) + (phaseFilter !== 'all' ? 1 : 0) + (sectorFilter !== 'all' ? 1 : 0);
+
+  const renderRow = (profile: ProfileWithEmail) => {
+    const initials = `${profile.first_name?.charAt(0) || ''}${profile.last_name?.charAt(0) || ''}`.toUpperCase();
+    return (
+      <TableRow key={profile.id}
+        className={cn("hover:bg-muted/40 cursor-pointer h-9", selectedUserId === profile.user_id && "bg-primary/5")}
+        onClick={() => onSelectUser(profile)}>
+        <TableCell className="py-1">
+          <div className="flex items-center gap-2">
+            <div className="relative shrink-0">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                  {initials || <User className="h-3 w-3" />}
+                </AvatarFallback>
+              </Avatar>
+              {(profile.unread_messages ?? 0) > 0 && (
+                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[8px] rounded-full h-3 w-3 flex items-center justify-center font-bold">
+                  {profile.unread_messages}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate leading-tight">
+                {profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : profile.first_name || 'Niet ingevuld'}
+              </p>
+              <p className="text-[10px] text-muted-foreground truncate leading-tight">{profile.email || '—'}</p>
+            </div>
+          </div>
+        </TableCell>
+        <TableCell className="py-1 text-xs">
+          {profile.phone ? (
+            <span className="inline-flex items-center gap-1 text-foreground">
+              <Phone className="h-2.5 w-2.5" />{profile.phone}
+            </span>
+          ) : <span className="text-muted-foreground">—</span>}
+        </TableCell>
+        <TableCell className="py-1"><PhasePill phase={profile.current_phase} /></TableCell>
+        <TableCell className="py-1">
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={cn("inline-flex items-center", profile.cv_url ? "text-primary" : "text-muted-foreground/30")}>
+                  <FileText className="h-3 w-3" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{profile.cv_url ? 'CV beschikbaar' : 'Geen CV'}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className={cn("inline-flex items-center", profile.test_completed ? "text-primary" : "text-muted-foreground/30")}>
+                  <ClipboardCheck className="h-3 w-3" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{profile.test_completed ? 'Test voltooid' : 'Geen test'}</TooltipContent>
+            </Tooltip>
+          </div>
+        </TableCell>
+        <TableCell className="py-1 text-[11px] text-muted-foreground tabular-nums">
+          {profile.last_message_at
+            ? format(new Date(profile.last_message_at), 'd MMM HH:mm', { locale: nl })
+            : format(new Date(profile.created_at), 'd MMM', { locale: nl })}
+        </TableCell>
+        <TableCell className="py-1 text-right">
+          <Button variant="ghost" size="icon" className="h-6 w-6"
+            onClick={(e) => { e.stopPropagation(); onSelectUser(profile); }}>
+            <MessageCircle className="h-3 w-3" />
+          </Button>
+        </TableCell>
+      </TableRow>
+    );
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="bg-card rounded-lg border border-border p-3 md:p-4">
-        <div className="flex flex-col gap-3 md:gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Zoek op naam, email of telefoon..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex gap-2">
+    <div className="space-y-2">
+      {/* Toolbar */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setFiltersOpen(o => !o)}>
+          <SlidersHorizontal className="h-3 w-3" />
+          Filters
+          {activeFilters > 0 && <Badge variant="secondary" className="h-3.5 px-1 text-[9px] ml-0.5">{activeFilters}</Badge>}
+          <ChevronDown className={cn("h-3 w-3 transition-transform", filtersOpen && "rotate-180")} />
+        </Button>
+        <div className="flex rounded-md border border-border overflow-hidden">
+          <button onClick={() => setGroupByPhase(true)}
+            className={cn("px-2 py-1 text-[11px] inline-flex items-center gap-1",
+              groupByPhase ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted")}>
+            <Layers className="h-3 w-3" />Per fase
+          </button>
+          <button onClick={() => setGroupByPhase(false)}
+            className={cn("px-2 py-1 text-[11px] inline-flex items-center gap-1",
+              !groupByPhase ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted")}>
+            <List className="h-3 w-3" />Lijst
+          </button>
+        </div>
+        <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
+          {filteredProfiles.length} / {profiles.length}
+        </span>
+      </div>
+
+      {/* Collapsible filters */}
+      {filtersOpen && (
+        <Card className="p-2">
+          <div className="flex flex-col sm:flex-row gap-1.5">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+              <Input placeholder="Zoek naam, email, telefoon..." value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} className="pl-7 h-7 text-xs" />
+            </div>
             <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-              <SelectTrigger className="flex-1 md:w-[160px] md:flex-none">
-                <SelectValue placeholder="Alle fases" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-32 h-7 text-xs"><SelectValue placeholder="Fase" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Alle fases</SelectItem>
-                {Object.entries(phaseLabels).map(([value, { label }]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
+                {Object.entries(phaseLabels).map(([v, { label }]) => <SelectItem key={v} value={v}>{label}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="flex-1 md:w-[180px] md:flex-none">
-                <SelectValue placeholder="Alle sectoren" />
-              </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-36 h-7 text-xs"><SelectValue placeholder="Sector" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Alle sectoren</SelectItem>
-                {Object.entries(sectorLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
+                {Object.entries(sectorLabels).map(([v, label]) => <SelectItem key={v} value={v}>{label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile: Card view */}
-      {isMobile ? (
-        <div className="space-y-3">
-          {filteredProfiles.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Geen kandidaten gevonden
-            </div>
-          ) : (
-            filteredProfiles.map((profile) => {
-              const initials = `${profile.first_name?.charAt(0) || ''}${profile.last_name?.charAt(0) || ''}`.toUpperCase();
-              return (
-                <Card
-                  key={profile.id}
-                  className={`p-3 cursor-pointer active:scale-[0.98] transition-transform overflow-hidden ${
-                    selectedUserId === profile.user_id ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => onSelectUser(profile)}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Avatar */}
-                    <div className="relative shrink-0">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={profile.avatar_url || undefined} alt="Avatar" />
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                          {initials || <User className="h-4 w-4" />}
-                        </AvatarFallback>
-                      </Avatar>
-                      {(profile.unread_messages ?? 0) > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                          {profile.unread_messages}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-foreground truncate">
-                          {profile.first_name && profile.last_name 
-                            ? `${profile.first_name} ${profile.last_name}`
-                            : profile.first_name || 'Niet ingevuld'}
-                        </p>
-                        <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                          {profile.last_message_at 
-                            ? format(new Date(profile.last_message_at), 'd MMM', { locale: nl })
-                            : format(new Date(profile.created_at), 'd MMM', { locale: nl })}
-                        </span>
-                      </div>
-
-                      {/* Phase bar */}
-                      <div className="mt-1.5">
-                        <PhaseStatusBar profile={profile} />
-                      </div>
-
-                      {/* Bottom row: docs + chat */}
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2">
-                          <FileText className={`h-3.5 w-3.5 ${profile.cv_url ? 'text-primary' : 'text-muted-foreground/30'}`} />
-                          <ClipboardCheck className={`h-3.5 w-3.5 ${profile.test_completed ? 'text-primary' : 'text-muted-foreground/30'}`} />
-                          {profile.phone && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                              <Phone className="h-3 w-3" />
-                            </span>
-                          )}
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-7 text-xs px-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectUser(profile);
-                          }}
-                        >
-                          <MessageCircle className="h-3.5 w-3.5 mr-1" />
-                          Bekijk
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })
-          )}
-        </div>
-      ) : (
-        /* Desktop: Table view */
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
-          <TooltipProvider>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>
-                    <button onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground font-medium">
-                      Kandidaat <SortIcon k="name" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button onClick={() => toggleSort('contact')} className="flex items-center gap-1 hover:text-foreground font-medium">
-                      Contact <SortIcon k="contact" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button onClick={() => toggleSort('phase')} className="flex items-center gap-1 hover:text-foreground font-medium">
-                      Fase <SortIcon k="phase" />
-                    </button>
-                  </TableHead>
-                  <TableHead>Documenten</TableHead>
-                  <TableHead>
-                    <button onClick={() => toggleSort('activity')} className="flex items-center gap-1 hover:text-foreground font-medium">
-                      Laatste activiteit <SortIcon k="activity" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-right">Acties</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProfiles.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Geen kandidaten gevonden
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredProfiles.map((profile) => {
-                    const initials = `${profile.first_name?.charAt(0) || ''}${profile.last_name?.charAt(0) || ''}`.toUpperCase();
-                    
-                    return (
-                      <TableRow 
-                        key={profile.id} 
-                        className={`hover:bg-muted/30 cursor-pointer ${selectedUserId === profile.user_id ? 'bg-primary/5' : ''}`}
-                        onClick={() => onSelectUser(profile)}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src={profile.avatar_url || undefined} alt="Avatar" />
-                                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                                  {initials || <User className="h-4 w-4" />}
-                                </AvatarFallback>
-                              </Avatar>
-                              {(profile.unread_messages ?? 0) > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                                  {profile.unread_messages}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">
-                                {profile.first_name && profile.last_name 
-                                  ? `${profile.first_name} ${profile.last_name}`
-                                  : profile.first_name || 'Niet ingevuld'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {profile.email || 'Geen email'}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {profile.phone && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Phone className="h-3 w-3 text-muted-foreground" />
-                                <span>{profile.phone}</span>
-                              </div>
-                            )}
-                            {!profile.phone && (
-                              <span className="text-muted-foreground text-sm">—</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[200px]">
-                          <PhaseStatusBar profile={profile} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className={`h-8 w-8 ${profile.cv_url ? 'text-primary' : 'text-muted-foreground/40'}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (profile.cv_url) {
-                                      window.open(profile.cv_url, '_blank');
-                                    }
-                                  }}
-                                  disabled={!profile.cv_url}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {profile.cv_url ? 'CV downloaden' : 'Geen CV geüpload'}
-                              </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className={`h-8 w-8 flex items-center justify-center rounded ${profile.test_completed ? 'text-primary' : 'text-muted-foreground/40'}`}>
-                                  <ClipboardCheck className="h-4 w-4" />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {profile.test_completed ? 'Interessetest voltooid' : 'Interessetest niet gedaan'}
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {profile.last_message_at 
-                              ? format(new Date(profile.last_message_at), 'd MMM HH:mm', { locale: nl })
-                              : format(new Date(profile.created_at), 'd MMM yyyy', { locale: nl })}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectUser(profile);
-                            }}
-                          >
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            Chat
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </TooltipProvider>
-        </div>
+        </Card>
       )}
 
-      <p className="text-sm text-muted-foreground text-center">
-        {filteredProfiles.length} van {profiles.length} kandidaten getoond
-      </p>
+      {/* Mobile cards */}
+      {isMobile ? (
+        <div className="space-y-1.5">
+          {filteredProfiles.length === 0 ? (
+            <p className="text-center py-6 text-xs text-muted-foreground">Geen kandidaten</p>
+          ) : filteredProfiles.map((p) => {
+            const initials = `${p.first_name?.charAt(0) || ''}${p.last_name?.charAt(0) || ''}`.toUpperCase();
+            return (
+              <Card key={p.id} className={cn("p-2 active:scale-[0.99] transition", selectedUserId === p.user_id && "ring-1 ring-primary")} onClick={() => onSelectUser(p)}>
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-7 w-7"><AvatarFallback className="bg-primary/10 text-primary text-[10px]">{initials || <User className="h-3 w-3" />}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-xs font-medium truncate">{p.first_name || p.email || '—'}</p>
+                      <PhasePill phase={p.current_phase} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground truncate">{p.email || p.phone || '—'}</p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="overflow-hidden">
+          <TooltipProvider>
+            {groupByPhase ? (
+              <div>
+                {PHASE_ORDER.map(phase => {
+                  const list = groups[phase];
+                  if (!list.length) return null;
+                  const open = openGroups[phase] !== false;
+                  return (
+                    <div key={phase} className="border-b border-border last:border-b-0">
+                      <button onClick={() => setOpenGroups(p => ({ ...p, [phase]: !open }))}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 hover:bg-muted/50 bg-muted/20 text-left">
+                        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", !open && "-rotate-90")} />
+                        <PhasePill phase={phase} />
+                        <Badge variant="outline" className="h-4 text-[10px] ml-auto">{list.length}</Badge>
+                      </button>
+                      {open && (
+                        <Table>
+                          <TableBody>{list.map(renderRow)}</TableBody>
+                        </Table>
+                      )}
+                    </div>
+                  );
+                })}
+                {filteredProfiles.length === 0 && (
+                  <div className="py-8 text-center text-xs text-muted-foreground">Geen kandidaten gevonden</div>
+                )}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 h-8">
+                    <TableHead className="py-1"><button onClick={() => toggleSort('name')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Kandidaat <SortIcon k="name" /></button></TableHead>
+                    <TableHead className="py-1"><button onClick={() => toggleSort('contact')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Contact <SortIcon k="contact" /></button></TableHead>
+                    <TableHead className="py-1"><button onClick={() => toggleSort('phase')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Fase <SortIcon k="phase" /></button></TableHead>
+                    <TableHead className="py-1 text-xs">Docs</TableHead>
+                    <TableHead className="py-1"><button onClick={() => toggleSort('activity')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Activiteit <SortIcon k="activity" /></button></TableHead>
+                    <TableHead className="py-1 text-right text-xs">Open</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProfiles.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center py-6 text-xs text-muted-foreground">Geen kandidaten gevonden</TableCell></TableRow>
+                  ) : filteredProfiles.map(renderRow)}
+                </TableBody>
+              </Table>
+            )}
+          </TooltipProvider>
+        </Card>
+      )}
     </div>
   );
 }
