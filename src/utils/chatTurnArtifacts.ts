@@ -123,12 +123,26 @@ export function normalizeTurnArtifacts(meta: RawTurnMeta): ChatTurnArtifact[] {
       source: "doubt",
     });
   } else {
-    const action = normalizeAction(meta.primary_followup) || normalizeAction(meta.actions?.[0]);
-    if (action) artifacts.push(action);
+    const questions: ChatQuestionArtifact[] = [];
+    const primary = normalizeAction(meta.primary_followup);
+    if (primary) questions.push(primary);
+    const secondary = normalizeAction(meta.secondary_action);
+    if (secondary) questions.push(secondary);
+    for (const raw of meta.actions ?? []) {
+      if (questions.length >= 2) break;
+      const a = normalizeAction(raw);
+      if (a) questions.push(a);
+    }
+    artifacts.push(...questions.slice(0, 2));
   }
 
-  const source = normalizeSource(meta.verified_links?.[0]) || normalizeSource(meta.links?.[0]);
-  if (source) artifacts.push(source);
+  const sources: ChatSourceArtifact[] = [];
+  for (const raw of [...(meta.verified_links ?? []), ...(meta.links ?? [])]) {
+    if (sources.length >= 2) break;
+    const s = normalizeSource(raw);
+    if (s) sources.push(s);
+  }
+  artifacts.push(...sources);
 
   if (meta.include_status) {
     const status = buildStatusArtifact(meta.confidence, meta.reflection_issues);
