@@ -18,13 +18,10 @@ type ActionKind =
 function classify(action: FollowUpAction): ActionKind {
   const v = (action.value || "").toLowerCase().trim();
 
-  // Link → starts with "/" or full URL
   if (v.startsWith("/") || v.startsWith("http")) {
-    const path = v.startsWith("http") ? v : v;
-    return { kind: "link", path, icon: ArrowUpRight, title: "Open pagina" };
+    return { kind: "link", path: action.value, icon: ArrowUpRight, title: "Open pagina" };
   }
 
-  // Tool triggers
   if (v.includes("interessetest") || v.includes("doe de test")) {
     return { kind: "tool", icon: ClipboardCheck, title: "Start interessetest" };
   }
@@ -32,7 +29,7 @@ function classify(action: FollowUpAction): ActionKind {
     return { kind: "tool", icon: FileUp, title: "Upload je CV" };
   }
 
-  return { kind: "question", icon: MessageCircleQuestion, title: "Vraag verder" };
+  return { kind: "question", icon: MessageCircleQuestion, title: "Stel vervolgvraag" };
 }
 
 export function ResponseActions({ primaryFollowup, secondaryAction, onAskClick, compact, disabled }: ResponseActionsProps) {
@@ -61,10 +58,11 @@ export function ResponseActions({ primaryFollowup, secondaryAction, onAskClick, 
 
     const sizing = compact ? "text-[11px] px-2.5 py-1.5" : "text-xs px-3 py-1.5";
     const base = `inline-flex items-center gap-1.5 rounded-full transition-colors disabled:opacity-50 ${sizing}`;
-    const palette =
-      variant === "primary"
-        ? "bg-primary/5 text-primary hover:bg-primary/15"
-        : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80";
+    const palette = isLink
+      ? "border border-border bg-background text-foreground hover:bg-muted"
+      : variant === "primary"
+        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+        : "bg-muted text-foreground hover:bg-muted/80";
 
     return (
       <button
@@ -75,7 +73,8 @@ export function ResponseActions({ primaryFollowup, secondaryAction, onAskClick, 
         aria-label={`${meta.title}: ${action.label}`}
         className={`${base} ${palette}`}
       >
-        {!isLink && <Icon className="h-3 w-3 shrink-0 opacity-70" aria-hidden />}
+        {!isLink && <Icon className="h-3 w-3 shrink-0 opacity-80" aria-hidden />}
+        {isLink && <span className="text-muted-foreground">Pagina</span>}
         <span className="truncate max-w-[220px]">{action.label}</span>
         {isLink && <Icon className="h-3 w-3 shrink-0 opacity-70" aria-hidden />}
       </button>

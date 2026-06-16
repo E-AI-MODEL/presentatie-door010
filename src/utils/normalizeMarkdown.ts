@@ -1,12 +1,29 @@
+function stripParenthesizedBareUrls(text: string): string {
+  // Remove loose parenthesized URLs, but keep markdown links intact:
+  // [label](https://example.nl) must survive.
+  return text.replace(/(^|[^\]])\((https?:\/\/[^\s)]+)\)/g, (_match, prefix) => prefix);
+}
+
+function linkifyBareUrls(text: string): string {
+  return text.replace(
+    /(^|[\s(])(https?:\/\/[^\s<)\]]+?)([.,;:!?'")\]]*(?:$|\s))/gm,
+    (match, prefix: string, url: string, suffix: string) => {
+      if (prefix.endsWith("(") || match.includes("](")) return match;
+      return `${prefix}[${url}](${url})${suffix}`;
+    },
+  );
+}
+
 /**
  * Normalizes markdown output from the LLM before rendering.
- * - Replaces em-dashes with regular dashes
+ * - Replaces em/en dashes with regular dashes
  * - Collapses consecutive blank lines
- * - Joins loose lines (non-bullet, non-heading, non-quote) into paragraphs
- * - Cleans up parenthesized URLs and bare domains
+ * - Joins loose lines into paragraphs
+ * - Removes loose parenthesized URLs without breaking markdown links
+ * - Linkifies bare URLs
  */
 export function normalizeMarkdown(input: string): string {
-  const s = (input ?? "").replace(/\r/g, "").replace(/\u2014/g, "-");
+  const s = (input ?? "").replace(/\r/g, "").replace(/\u2014|\u2013/g, "-");
 
   const lines = s.split("\n");
   const out: string[] = [];
@@ -45,21 +62,8 @@ export function normalizeMarkdown(input: string): string {
   flush();
 
   let normalized = out.join("\n").replace(/\n{3,}/g, "\n\n");
+  normalized = stripParenthesizedBareUrls(normalized);
+  normalized = normalized.replace(/ {2,}/g, " ").trim();
 
-  // Remove parenthesized URLs like (https://www.example.nl/path)
-  normalized = normalized.replace(/\(https?:\/\/[^\s)]+\)/g, "");
-
-  // Clean up double spaces left by URL removal
-  normalized = normalized.replace(/ {2,}/g, " ");
-
-  // Linkify bare URLs so they become clickable in markdown rendering.
-  // Strip trailing punctuation from URLs to avoid broken links.
-  return normalized.replace(
-    /(^|[\s(])(https?:\/\/[^\s<)\]]+?)([.,;:!?'")\]]*(?:$|\s))/gm,
-    (match, prefix: string, url: string, suffix: string) => {
-      // Skip already-markdown-linked URLs.
-      if (match.includes("](")) return match;
-      return `${prefix}[${url}](${url})${suffix}`;
-    },
-  );
+  return linkifyBareUrls(normalized);
 }
