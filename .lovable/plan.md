@@ -1,46 +1,56 @@
-## Wat ik in het admin-dashboard zie
+# Kleine totaalfunctie-test (geautomatiseerd)
 
-`/backoffice` → **Overzicht** rendert per-fase groepen (`UserOverviewTable.tsx`). Probleem nu:
+Credit-check: **36,90 build-credits** + AI gateway balance (apart, $1/maand gratis). Voor deze test ruim voldoende — AI-calls beperkt tot ~5 berichten in totaal (~$0.05).
 
-1. **Alle 5 fase-groepen staan default open** — bug in `openGroups[phase] !== false` (alleen `interesseren` is expliciet `true`, de rest is `undefined` → ook `!== false` → open). Met 84 kandidaten betekent dat ~84 rijen direct uitgeklapt → de hele viewport is 1 lange lijst.
-2. **Open groepen hebben geen max-hoogte** — 1 groep (56 in "Interesseren") duwt de andere 4 groepen ver onder de fold; je kan niet zien dat ze bestaan zonder eindeloos scrollen.
-3. **Rechter detailpaneel staat leeg** (`Selecteer een kandidaat`) → enorme witruimte zolang er geen selectie is.
-4. **Rijen zijn breed** — aparte kolom voor telefoon, aparte kolom voor "Docs", aparte voor datum → veel horizontale ruimte voor weinig info, terwijl de detail-kolom maar 1/3 van de breedte krijgt.
+## Wat de test dekt
 
-## Compacter maken (alleen `UserOverviewTable.tsx` + 2 regels in `Backoffice.tsx`)
+Eén nieuw script `scripts/smoketest-full.ts` dat in volgorde 4 blokken doorloopt en pass/fail per blok rapporteert.
 
-### 1. Default-staat van groepen omdraaien
-- **Alleen de eerste niet-lege groep** start open (meestal "Interesseren"). De rest dicht.
-- "Klap alles in/uit" toggle naast de Filters-knop (één klik → alles open of alles dicht).
+### Blok 1 — Multi-login realtime sync
+Hergebruikt logica uit `scripts/loadtest-realtime.ts`:
+- Login or1–or10 (kandidaten) + or29 (advisor) parallel
+- Subscribe per-user channels + advisor backoffice-wide channel
+- Trigger writes (profile/appointment/note), meet fanout-latency
+- **Pass-criterium:** 0 missed events, p95 < 2000ms
 
-### 2. Per groep een max-hoogte met eigen scroll
-- Body van een open groep: `max-h-[320px] overflow-y-auto`.
-- Header sticky binnen die scroll (je houdt de fase-pill in beeld).
-- Resultaat: 5 groepen passen tegelijk op één scherm, elk met eigen mini-scroll.
+### Blok 2 — Kandidaat happy path (1 user, or1)
+- Login or1 → `profiles.update({ bio, current_phase })` → verifieer write
+- POST naar edge function `doorai-chat` met 1 testbericht → check 200 + non-empty stream
+- `appointments.insert({ status: 'pending' })` → check advisor-channel ontvangt event
+- **Pass:** alle 3 steps OK
 
-### 3. Rijen denser (h-9 → h-8) en kolommen samenvoegen
-- "Contact"-kolom weg → telefoon als klein icoon-chip naast de naam (alleen als ingevuld).
-- "Docs"-kolom blijft (CV + test-icoontjes, minimaal), maar zonder eigen header-cel in lijstmodus.
-- "Activiteit"-datum smaller (`d MMM` zonder uur).
-- Action-knop (chat-icoon) blijft uiterst rechts.
+### Blok 3 — Backoffice actie (or29 → or1)
+- Advisor `advisor_notes.insert` + `appointments.update({ status: 'confirmed' })` voor or1
+- Or1's openstaande channel checkt of update binnen 2s binnenkomt
+- **Pass:** event ontvangen < 2000ms
 
-### 4. Rechter detail-paneel adaptive breedte
-- In `Backoffice.tsx renderSection() case 'overview'`:
-  - **Geen kandidaat geselecteerd** → lijst pakt volle breedte (`xl:col-span-3`), geen lege placeholder.
-  - **Kandidaat geselecteerd** → lijst `xl:col-span-1`, detail `xl:col-span-2` (was 2/1 → wordt 1/2: véél meer ruimte voor user-info, dat is wat je vroeg).
+### Blok 4 — AI guardrails sanity
+- 1 chatcall met prompt die forbidden term zou kunnen uitlokken ("welke fase ben ik in?")
+- Response sanitizen-check: geen `/dashboard`, `/profile`, `fase`, `intake`, `peildatum`, em-dashes, emoji's in output
+- **Pass:** geen forbidden patterns
 
-### 5. Kleine polish
-- Group header krijgt naast het aantal ook een mini-balk met "ongelezen" (•) als één van de kandidaten ongelezen berichten heeft → snel scannen waar actie nodig is.
-- Lege groepen (0) tonen we niet (al zo).
+## Output
+Console-rapport per blok + samenvatting:
+```
+[BLOK 1] Realtime sync       ✅  missed=0 p95=412ms
+[BLOK 2] Kandidaat flow      ✅  3/3 steps
+[BLOK 3] Backoffice actie    ✅  778ms
+[BLOK 4] AI guardrails       ✅  0 violations
+OVERALL: ✅ PASS
+```
+Exit code 0 bij pass, 1 bij fail. Test-data wordt aan einde opgeruimd (appointments + notes delete).
 
-## Buiten scope
+## Out of scope
+- Geen UI-screenshot/visuele checks (puur API/realtime)
+- Geen schema-wijzigingen
+- Geen wijziging aan productiecode — alleen nieuw script
 
-- Geen schema-wijzigingen.
-- Geen verandering aan andere tabs (Afspraken, Meldingen, Gesprekken).
-- Geen redesign van de detail-/chatpanelen zelf — alleen meer ruimte ervoor.
+## Bestanden
+- **Nieuw:** `scripts/smoketest-full.ts`
+- **Geen edits** in app-code
 
-## Effect
-
-- Boven de fold: alle 5 fases zichtbaar + toolbar + KPI-strip.
-- Detail-paneel krijgt 2/3 i.p.v. 1/3 van de breedte zodra je iemand selecteert.
-- 1 klik om alle groepen in of uit te klappen.
+## Uitvoeren (na build mode)
+```
+bun scripts/smoketest-full.ts
+```
+Looptijd ~30-45s.
