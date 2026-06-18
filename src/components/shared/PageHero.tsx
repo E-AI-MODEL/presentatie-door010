@@ -39,14 +39,14 @@ export function PageHero({
             transition={{ duration: 0.5 }}
             className="max-w-3xl"
           >
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight uppercase tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-[1.15] uppercase tracking-tight break-words">
               {titleHighlight ? (
                 <>
-                  <span className="bg-white text-foreground px-2 inline-block mb-2">{title}</span>{" "}
-                  <span className="bg-primary text-primary-foreground px-2 inline-block">{titleHighlight}</span>
+                  <span className="bg-white text-foreground px-2 inline-block mb-2 max-w-full">{title}</span>{" "}
+                  <span className="bg-primary text-primary-foreground px-2 inline-block max-w-full">{titleHighlight}</span>
                 </>
               ) : (
-                <span className="bg-primary text-primary-foreground px-2 inline-block">{title}</span>
+                <span className="bg-primary text-primary-foreground px-2 inline-block max-w-full">{title}</span>
               )}
             </h1>
             <motion.p
