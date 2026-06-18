@@ -237,26 +237,40 @@ async function blok3(or1: Session, advisor: Session, apptId?: string) {
 function blok4() {
   console.log(`\n━━━ [BLOK 4] AI guardrails sanity ━━━`);
   const body: string = (globalThis as any).__chatBody ?? "";
-  // Extract text deltas uit SSE stream
-  const text = body
-    .split("\n")
-    .filter((l) => l.startsWith("data:"))
-    .map((l) => l.slice(5).trim())
-    .join(" ")
-    .toLowerCase();
+  // SSE bevat zowel `data:` (assistant text deltas in OpenAI-style JSON) als
+  // `event: ui` / `event: reflection` frames (JSON met chip-hrefs — daarin
+  // mogen interne paden gewoon voorkomen). We scannen alleen de assistant prose.
+  const lines = body.split("\n");
+  let inUiBlock = false;
+  let assistantText = "";
+  for (const line of lines) {
+    if (line.startsWith("event:")) {
+      inUiBlock = !line.includes("event: message") && line.trim() !== "event:";
+      continue;
+    }
+    if (line.trim() === "") { inUiBlock = false; continue; }
+    if (!line.startsWith("data:")) continue;
+    if (inUiBlock) continue;
+    const payload = line.slice(5).trim();
+    if (payload === "[DONE]" || !payload) continue;
+    try {
+      const j = JSON.parse(payload);
+      const delta = j?.choices?.[0]?.delta?.content ?? j?.choices?.[0]?.message?.content ?? "";
+      if (typeof delta === "string") assistantText += delta;
+    } catch { /* skip non-JSON */ }
+  }
+  const text = assistantText.toLowerCase();
 
   const forbidden = ["fase", "intake", "detector", "peildatum", "kennisbank", "scenario"];
   const paths = ["/dashboard", "/profile", "/auth", "/backoffice", "/opleidingen", "/vacatures", "/events", "/kennisbank"];
   const hits: string[] = [];
   for (const w of forbidden) if (new RegExp(`\\b${w}\\b`).test(text)) hits.push(`term:${w}`);
   for (const p of paths) if (text.includes(p)) hits.push(`path:${p}`);
-  // em-dash check (— U+2014)
-  if (/—/.test(body)) hits.push("em-dash");
-  // emoji check (basic)
-  if (/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(body)) hits.push("emoji");
+  if (/—/.test(assistantText)) hits.push("em-dash");
+  if (/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(assistantText)) hits.push("emoji");
 
   const pass = hits.length === 0 && text.length > 0;
-  results.blok4 = { pass, detail: hits.length ? `violations: ${hits.join(", ")}` : `clean (${text.length} chars scanned)` };
+  results.blok4 = { pass, detail: hits.length ? `violations: ${hits.join(", ")}` : `clean (${text.length} chars prose gescand)` };
   console.log(`  ${pass ? "✅" : "❌"} ${results.blok4.detail}`);
 }
 
