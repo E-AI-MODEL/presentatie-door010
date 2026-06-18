@@ -282,6 +282,13 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
             <List className="h-3 w-3" />Lijst
           </button>
         </div>
+        {groupByPhase && !isMobile && (
+          <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 px-2" onClick={toggleAll}
+            title={anyOpen ? 'Alle fases inklappen' : 'Alle fases uitklappen'}>
+            {anyOpen ? <ChevronsDownUp className="h-3 w-3" /> : <ChevronsUpDown className="h-3 w-3" />}
+            {anyOpen ? 'Inklappen' : 'Uitklappen'}
+          </Button>
+        )}
         <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
           {filteredProfiles.length} / {profiles.length}
         </span>
@@ -345,19 +352,27 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
                 {PHASE_ORDER.map(phase => {
                   const list = groups[phase];
                   if (!list.length) return null;
-                  const open = openGroups[phase] !== false;
+                  const open = isGroupOpen(phase);
+                  const groupUnread = list.reduce((sum, p) => sum + (p.unread_messages ?? 0), 0);
                   return (
                     <div key={phase} className="border-b border-border last:border-b-0">
-                      <button onClick={() => setOpenGroups(p => ({ ...p, [phase]: !open }))}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 hover:bg-muted/50 bg-muted/20 text-left">
+                      <button onClick={() => toggleGroup(phase)}
+                        className="w-full flex items-center gap-2 px-2.5 py-1 hover:bg-muted/50 bg-muted/20 text-left sticky top-0 z-10">
                         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", !open && "-rotate-90")} />
                         <PhasePill phase={phase} />
-                        <Badge variant="outline" className="h-4 text-[10px] ml-auto">{list.length}</Badge>
+                        {groupUnread > 0 && (
+                          <Badge className="h-4 text-[9px] px-1 bg-accent text-accent-foreground border-transparent">
+                            {groupUnread} ongelezen
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="h-4 text-[10px] ml-auto tabular-nums">{list.length}</Badge>
                       </button>
                       {open && (
-                        <Table>
-                          <TableBody>{list.map(renderRow)}</TableBody>
-                        </Table>
+                        <div className="max-h-[280px] overflow-y-auto">
+                          <Table>
+                            <TableBody>{list.map(renderRow)}</TableBody>
+                          </Table>
+                        </div>
                       )}
                     </div>
                   );
@@ -367,23 +382,24 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
                 )}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 h-8">
-                    <TableHead className="py-1"><button onClick={() => toggleSort('name')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Kandidaat <SortIcon k="name" /></button></TableHead>
-                    <TableHead className="py-1"><button onClick={() => toggleSort('contact')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Contact <SortIcon k="contact" /></button></TableHead>
-                    <TableHead className="py-1"><button onClick={() => toggleSort('phase')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Fase <SortIcon k="phase" /></button></TableHead>
-                    <TableHead className="py-1 text-xs">Docs</TableHead>
-                    <TableHead className="py-1"><button onClick={() => toggleSort('activity')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Activiteit <SortIcon k="activity" /></button></TableHead>
-                    <TableHead className="py-1 text-right text-xs">Open</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProfiles.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-6 text-xs text-muted-foreground">Geen kandidaten gevonden</TableCell></TableRow>
-                  ) : filteredProfiles.map(renderRow)}
-                </TableBody>
-              </Table>
+              <div className="max-h-[640px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10">
+                    <TableRow className="bg-muted/40 h-8">
+                      <TableHead className="py-1"><button onClick={() => toggleSort('name')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Kandidaat <SortIcon k="name" /></button></TableHead>
+                      <TableHead className="py-1"><button onClick={() => toggleSort('phase')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Fase <SortIcon k="phase" /></button></TableHead>
+                      <TableHead className="py-1 text-xs">Docs</TableHead>
+                      <TableHead className="py-1"><button onClick={() => toggleSort('activity')} className="flex items-center gap-1 text-xs font-medium hover:text-foreground">Activiteit <SortIcon k="activity" /></button></TableHead>
+                      <TableHead className="py-1 text-right text-xs">Open</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProfiles.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} className="text-center py-6 text-xs text-muted-foreground">Geen kandidaten gevonden</TableCell></TableRow>
+                    ) : filteredProfiles.map(renderRow)}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </TooltipProvider>
         </Card>
