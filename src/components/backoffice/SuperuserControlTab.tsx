@@ -429,3 +429,55 @@ export function SuperuserControlTab() {
     </div>
   );
 }
+
+// ── Demo Seeder ────────────────────────────────────────────────
+function DemoSeederCard() {
+  const [running, setRunning] = useState(false);
+  const [lastResult, setLastResult] = useState<{ created: number; exists: number; errors: number } | null>(null);
+
+  async function seed() {
+    setRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-users");
+      if (error) throw error;
+      const results = (data as { results?: Array<{ status: string }> })?.results ?? [];
+      const summary = {
+        created: results.filter((r) => r.status === "created").length,
+        exists: results.filter((r) => r.status === "exists").length,
+        errors: results.filter((r) => r.status.startsWith("error")).length,
+      };
+      setLastResult(summary);
+      toast.success(`Demo-accounts: ${summary.created} nieuw, ${summary.exists} bestaand, ${summary.errors} fouten`);
+    } catch (e) {
+      toast.error("Seed mislukt: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Demo-accounts (or1@..or30@doorai.nl)
+        </CardTitle>
+        <CardDescription className="text-xs">
+          Maakt 30 testaccounts met wachtwoord <code className="px-1 bg-muted rounded">onderwijs010</code>. 28 candidate + 2 advisor (or29, or30). Idempotent — bestaande accounts worden overgeslagen.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button size="sm" onClick={seed} disabled={running}>
+          {running ? <RefreshCw className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
+          {running ? "Bezig..." : "Genereer 30 demo-accounts"}
+        </Button>
+        {lastResult && (
+          <p className="text-xs text-muted-foreground mt-3">
+            Laatste run: {lastResult.created} aangemaakt, {lastResult.exists} bestonden al, {lastResult.errors} fouten.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
