@@ -361,13 +361,15 @@ export default function Backoffice() {
       case 'overview':
         return isMobile ? (
           <UserOverviewTable profiles={profiles} onSelectUser={(p) => handleSelectUser(p, 'detail')} selectedUserId={selectedUser?.user_id} />
-        ) : (
+        ) : selectedUser ? (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 min-h-0">
-            <div className="xl:col-span-2 min-w-0">
+            <div className="xl:col-span-1 min-w-0">
               <UserOverviewTable profiles={profiles} onSelectUser={(p) => handleSelectUser(p, 'detail')} selectedUserId={selectedUser?.user_id} />
             </div>
-            <div className="xl:col-span-1 min-w-0">{renderDetailOrChatPanel()}</div>
+            <div className="xl:col-span-2 min-w-0">{renderDetailOrChatPanel()}</div>
           </div>
+        ) : (
+          <UserOverviewTable profiles={profiles} onSelectUser={(p) => handleSelectUser(p, 'detail')} selectedUserId={selectedUser?.user_id} />
         );
       case 'appointments':
         return <AppointmentsTab profiles={profiles} onSelectUser={(p) => handleSelectUser(p, 'detail')} onOpenChat={(p) => handleSelectUser(p, 'chat')} onRefresh={handleRefresh} />;
