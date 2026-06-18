@@ -250,15 +250,9 @@ export default function Auth() {
                 </form>
 
                 <div className="mt-6 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-sm text-primary hover:underline font-medium"
-                  >
-                    {isLogin
-                      ? "Nog geen account? Maak er een aan"
-                      : "Al een account? Log in"}
-                  </button>
+                  <p className="text-xs text-muted-foreground">
+                    Demo-omgeving — alleen vooraf aangemaakte accounts kunnen inloggen.
+                  </p>
                 </div>
               </div>
 
