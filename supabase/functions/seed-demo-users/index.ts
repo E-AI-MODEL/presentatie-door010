@@ -52,21 +52,22 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // ---- AUTH: caller must be admin ----
+    // ---- AUTH: admin only ----
     const authHeader = req.headers.get("Authorization") ?? "";
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: uerr } = await userClient.auth.getUser();
-    if (uerr || !user) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { data: isAdminRow } = await admin
-      .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    if (!isAdminRow) {
+    let authorized = false;
+    if (authHeader) {
+      const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      if (user) {
+        const { data: isAdminRow } = await admin
+          .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+        if (isAdminRow) authorized = true;
+      }
+    }
+    if (!authorized) {
       return new Response(JSON.stringify({ error: "forbidden: admin only" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -108,20 +109,19 @@ Deno.serve(async (req) => {
 
       if (!userId) continue;
 
-      // Upsert profile (trigger created an empty row already)
-      await admin.from("profiles").update({
+      // Upsert profile (no trigger present → always upsert)
+      await admin.from("profiles").upsert({
+        user_id: userId,
         first_name: persona.first_name,
         last_name: persona.last_name,
         current_phase: persona.current_phase,
         preferred_sector: persona.preferred_sector,
         bio: persona.bio,
-      }).eq("user_id", userId);
+      }, { onConflict: "user_id" });
 
-      // Ensure correct role: trigger inserted 'candidate'. For advisors, swap.
-      if (role === "advisor") {
-        await admin.from("user_roles").delete().eq("user_id", userId);
-        await admin.from("user_roles").insert({ user_id: userId, role: "advisor" });
-      }
+      // Ensure correct role (idempotent: clear then insert)
+      await admin.from("user_roles").delete().eq("user_id", userId);
+      await admin.from("user_roles").insert({ user_id: userId, role });
     }
 
     return new Response(JSON.stringify({ ok: true, results }), {
