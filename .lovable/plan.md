@@ -1,25 +1,40 @@
-## Diagnose
+## Doel
 
-De 30 demo-accounts bestaan nog niet in de database (gecontroleerd: 0 rijen in `auth.users` met `or%@doorai.nl`). De seed-edge-function is gebouwd, maar de seed-knop in Backoffice → Superuser is nog niet ingedrukt. Daarom geeft elke loginpoging met `or1@doorai.nl` correct "Invalid login credentials" (zichtbaar in de auth-logs).
+Realistisch nabootsen dat 10 kandidaten (or1..or10) tegelijk inloggen, en meten of de Supabase Realtime-kanalen die de dashboards voeden alle writes binnen ~2s ontvangen — zonder handmatige refresh.
 
-Over "systeem mag pas wachtwoord checken na klik op Inloggen": het loginformulier in `src/pages/Auth.tsx` doet al precies dat — `signInWithPassword` wordt alleen aangeroepen in `handleSubmit` op form-submit. Geen wijziging nodig daar. Wat we wel doen: voorkomen dat browser-autofill of dubbele submits onbedoeld triggert.
+De browser-automation kan maar 1 sessie tegelijk, dus gebruik ik een **headless multi-client loadtest** vanuit de sandbox die exact dezelfde `supabase-js` client en channel-config gebruikt als de echte app.
 
-## Wat ik ga doen (na approval)
+## Wat ik ga bouwen
 
-1. **Seed-functie uitbreiden** zodat hij ook met `SUPABASE_SERVICE_ROLE_KEY` als Authorization aangeroepen kan worden (naast de bestaande admin-JWT check). Dit is nodig zodat ik hem eenmalig vanuit de sandbox kan starten zonder dat jij eerst hoeft in te loggen.
+`scripts/loadtest-realtime.ts` (alleen scripts/, geen app-code).
 
-2. **Seed eenmaal uitvoeren** vanuit sandbox via curl met service-role. Verwacht resultaat: 30 accounts `or1@..or30@doorai.nl` aangemaakt + profielen gevuld + 2 advisors (or29, or30).
+### Stappen die het script uitvoert
 
-3. **Verificatie**:
-   - SQL-check: `SELECT count(*) FROM auth.users WHERE email LIKE 'or%@doorai.nl'` → moet 30 zijn.
-   - SQL-check: profielen hebben `first_name` ingevuld.
-   - Browser-test: open preview → `/auth` → inlog `or1@doorai.nl` / `onderwijs010` → moet redirecten naar `/dashboard` met de persona-naam.
-   - Browser-test: `or29@doorai.nl` → moet redirecten naar `/backoffice` (advisor-rol).
+1. **Parallel inloggen**: 10 onafhankelijke `createClient` instances → `signInWithPassword` voor `or1..or10@doorai.nl` / `onderwijs010`. Plus 1 advisor-sessie (or29) die de backoffice-kanalen abonneert (profiles, appointments, conversations, messages, advisor_notes).
+2. **Per-user kanalen** (zelfde signatuur als `useLiveProfile` en `Backoffice.tsx`):
+   - kandidaat: `postgres_changes` op `profiles` (filter `user_id=eq.<id>`) en `appointments` (filter `user_id=eq.<id>`).
+   - advisor: globale kanalen op profiles/appointments/conversations/messages/advisor_notes.
+3. **Writes triggeren** (gespreid over ~10s):
+   - elke kandidaat: 1 profile-update (`bio` → timestamp) + 1 appointment insert.
+   - advisor: 1 advisor_note insert per kandidaat.
+4. **Meten** per write: tijdstempel bij verzending → tijdstempel bij ontvangst op elk relevant kanaal. Bereken p50 / p95 / max latency en het aantal gemiste events.
+5. **Rapporteren**: tabel in stdout (per sessie: events_expected, events_received, p50_ms, p95_ms) + duidelijke PASS/FAIL.
 
-4. **Form-hardening** (klein): submit-knop disablen tijdens `loading` staat al, maar ik voeg `autoComplete="current-password"` toe en zorg dat de submit alleen via expliciete klik gebeurt (form `onSubmit` blijft, geen `onChange`-triggers). Bevestigt jouw eis dat wachtwoord pas gecheckt wordt na klikken.
+### Slagingscriteria
 
-## Buiten scope
+- **0 gemiste events** op alle 11 sessies.
+- **p95 latency < 2000 ms** (Realtime SLA-ruimte).
+- Geen reconnect-storm in `system`-events.
 
+### Wat ik NIET doe
+
+- Geen app-code wijzigen (alleen meten).
 - Geen schema-wijzigingen.
-- Geen aanpassing aan AI-chat, dashboard of backoffice-layout.
-- Het bestaande admin-only pad in de seed-functie blijft werken voor toekomstige runs vanuit de Superuser-tab.
+- Geen permanente test-data: alle inserts worden aan het einde opgeruimd (`DELETE` op gemarkeerde `loadtest-*` rijen).
+- Geen UI-screenshots van 10 browsers — niet mogelijk met de huidige browser-tool en niet nodig: het script meet de Realtime-laag direct, en die voedt de UI.
+
+### Vervolg (optioneel, na deze meting)
+
+Als latency of misses zichtbaar zijn, dan:
+- check `supabase--db_health` voor connection-saturatie,
+- check duplicate channel-subscribes in components (re-render leaks).
