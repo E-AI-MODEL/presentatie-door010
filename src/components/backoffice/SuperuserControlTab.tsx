@@ -287,6 +287,11 @@ export function SuperuserControlTab() {
         </CardHeader>
       </Card>
 
+      {/* Demo Seeder */}
+      <DemoSeederCard />
+
+
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card><CardContent className="pt-5"><p className="text-xs text-muted-foreground">Pipeline events</p><p className="text-2xl font-semibold">{eventCounts.total}</p></CardContent></Card>
