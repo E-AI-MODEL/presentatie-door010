@@ -1,12 +1,10 @@
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import rotterdamSkyline from "@/assets/rotterdam-skyline.jpeg";
-import { useDemoLogin } from "@/hooks/useDemoLogin";
 
 export function HeroSection() {
-  const { loginAsDemo, loading: demoLoading } = useDemoLogin();
   return (
     <section className="relative min-h-[70vh] flex items-start">
       {/* Background image - Rotterdam Erasmusbrug skyline */}
@@ -44,11 +42,12 @@ export function HeroSection() {
             <Button
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6"
-              disabled={demoLoading}
-              onClick={() => loginAsDemo("/dashboard")}
+              asChild
             >
-              <Play className="mr-2 h-5 w-5" />
-              {demoLoading ? "Bezig..." : "Je eerste stap richting het Rotterdamse onderwijs\u00a0"}
+              <Link to="/auth">
+                Je eerste stap richting het Rotterdamse onderwijs
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
           </motion.div>
         </div>
