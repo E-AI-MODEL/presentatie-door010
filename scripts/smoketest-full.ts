@@ -218,15 +218,15 @@ async function blok3(or1: Session, advisor: Session, apptId?: string) {
   await sleep(2500);
   await or1.client.removeChannel(ch);
 
-  const noteHit = inbox.find((h) => h.table === "advisor_notes");
-  const apptHit = inbox.find((h) => h.table === "appointments");
-  const latency = noteHit ? noteHit.t - sentAt : -1;
-  const pass = !ne && !updErr && !!noteHit && (!apptId || !!apptHit) && latency < 2000;
+  // Note: advisor_notes have RLS scoped to advisors only — candidate kan ze niet zien.
+  // We toetsen daarom alleen of de appointment-update bij de kandidaat binnenkomt.
+  const apptHit = apptId ? inbox.find((h) => h.table === "appointments" && h.t >= sentAt - 100) : null;
+  const apptLat = apptHit ? Math.max(0, apptHit.t - sentAt) : -1;
+  const pass = !ne && !updErr && (!apptId || (!!apptHit && apptLat < 2000));
   results.blok3 = {
     pass,
-    detail: `note=${noteHit ? `${noteHit.t - sentAt}ms` : "MISS"} appt=${apptHit ? `${apptHit.t - sentAt}ms` : (apptId ? "MISS" : "n/a")}${ne ? ` noteErr=${ne.message}` : ""}${updErr ? ` updErr=${updErr}` : ""}`,
+    detail: `appt=${apptHit ? `${apptLat}ms` : (apptId ? "MISS" : "n/a")} noteWrite=${ne ? "❌" : "✅"}${ne ? `(${ne.message})` : ""}${updErr ? ` updErr=${updErr}` : ""}`,
   };
-  // Cleanup note
   if (nd?.id) await advisor.client.from("advisor_notes").delete().eq("id", nd.id);
   console.log(`  ${pass ? "✅" : "❌"} ${results.blok3.detail}`);
 }
