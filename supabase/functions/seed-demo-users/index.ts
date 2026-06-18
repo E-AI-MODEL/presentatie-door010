@@ -52,10 +52,10 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // ---- AUTH: admin only (bootstrap: no Authorization header allowed) ----
+    // ---- AUTH: admin only ----
     const authHeader = req.headers.get("Authorization") ?? "";
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    let authorized = !authHeader; // bootstrap path
+    let authorized = false;
     if (authHeader) {
       const userClient = createClient(SUPABASE_URL, ANON_KEY, {
         global: { headers: { Authorization: authHeader } },
