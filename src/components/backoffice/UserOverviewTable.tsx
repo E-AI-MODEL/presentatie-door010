@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Search, Phone, MessageCircle, FileText, ClipboardCheck, User,
   ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, SlidersHorizontal, Layers, List,
+  ChevronsDownUp, ChevronsUpDown,
 } from "lucide-react";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
@@ -107,7 +108,8 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [groupByPhase, setGroupByPhase] = useState(true);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ interesseren: true });
+  // null = use default (only first non-empty group open); object = explicit user state
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean> | null>(null);
   const isMobile = useIsMobile();
 
   const toggleSort = (key: NonNullable<SortKey>) => {
@@ -167,13 +169,31 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
 
   const activeFilters = (searchQuery ? 1 : 0) + (phaseFilter !== 'all' ? 1 : 0) + (sectorFilter !== 'all' ? 1 : 0);
 
+  // Default-open logic: when user hasn't toggled anything, open only the
+  // first non-empty phase group so the panel stays compact.
+  const firstNonEmpty = PHASE_ORDER.find(p => groups[p].length > 0);
+  const isGroupOpen = (phase: OrientationPhase) =>
+    openGroups ? openGroups[phase] === true : phase === firstNonEmpty;
+  const anyOpen = PHASE_ORDER.some(p => groups[p].length > 0 && isGroupOpen(p));
+  const toggleGroup = (phase: OrientationPhase) =>
+    setOpenGroups(prev => {
+      const base = prev ?? PHASE_ORDER.reduce((acc, p) => {
+        acc[p] = p === firstNonEmpty; return acc;
+      }, {} as Record<string, boolean>);
+      return { ...base, [phase]: !base[phase] };
+    });
+  const toggleAll = () => {
+    const next = !anyOpen;
+    setOpenGroups(PHASE_ORDER.reduce((acc, p) => { acc[p] = next; return acc; }, {} as Record<string, boolean>));
+  };
+
   const renderRow = (profile: ProfileWithEmail) => {
     const initials = `${profile.first_name?.charAt(0) || ''}${profile.last_name?.charAt(0) || ''}`.toUpperCase();
     return (
       <TableRow key={profile.id}
-        className={cn("hover:bg-muted/40 cursor-pointer h-9", selectedUserId === profile.user_id && "bg-primary/5")}
+        className={cn("hover:bg-muted/40 cursor-pointer h-8", selectedUserId === profile.user_id && "bg-primary/5")}
         onClick={() => onSelectUser(profile)}>
-        <TableCell className="py-1">
+        <TableCell className="py-0.5">
           <div className="flex items-center gap-2">
             <div className="relative shrink-0">
               <Avatar className="h-6 w-6">
@@ -192,19 +212,20 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
               <p className="text-xs font-medium truncate leading-tight">
                 {profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : profile.first_name || 'Niet ingevuld'}
               </p>
-              <p className="text-[10px] text-muted-foreground truncate leading-tight">{profile.email || '—'}</p>
+              <p className="text-[10px] text-muted-foreground truncate leading-tight flex items-center gap-1">
+                {profile.phone && (
+                  <span className="inline-flex items-center gap-0.5 text-foreground/70">
+                    <Phone className="h-2.5 w-2.5" />{profile.phone}
+                  </span>
+                )}
+                {profile.phone && profile.email && <span className="opacity-40">·</span>}
+                <span className="truncate">{profile.email || (!profile.phone ? '—' : '')}</span>
+              </p>
             </div>
           </div>
         </TableCell>
-        <TableCell className="py-1 text-xs">
-          {profile.phone ? (
-            <span className="inline-flex items-center gap-1 text-foreground">
-              <Phone className="h-2.5 w-2.5" />{profile.phone}
-            </span>
-          ) : <span className="text-muted-foreground">—</span>}
-        </TableCell>
-        <TableCell className="py-1"><PhasePill phase={profile.current_phase} /></TableCell>
-        <TableCell className="py-1">
+        <TableCell className="py-0.5"><PhasePill phase={profile.current_phase} /></TableCell>
+        <TableCell className="py-0.5">
           <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -224,12 +245,12 @@ export function UserOverviewTable({ profiles, onSelectUser, selectedUserId }: Pr
             </Tooltip>
           </div>
         </TableCell>
-        <TableCell className="py-1 text-[11px] text-muted-foreground tabular-nums">
+        <TableCell className="py-0.5 text-[11px] text-muted-foreground tabular-nums">
           {profile.last_message_at
-            ? format(new Date(profile.last_message_at), 'd MMM HH:mm', { locale: nl })
+            ? format(new Date(profile.last_message_at), 'd MMM', { locale: nl })
             : format(new Date(profile.created_at), 'd MMM', { locale: nl })}
         </TableCell>
-        <TableCell className="py-1 text-right">
+        <TableCell className="py-0.5 text-right">
           <Button variant="ghost" size="icon" className="h-6 w-6"
             onClick={(e) => { e.stopPropagation(); onSelectUser(profile); }}>
             <MessageCircle className="h-3 w-3" />
