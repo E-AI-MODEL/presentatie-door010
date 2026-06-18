@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, Shield, LogOut, Play } from "lucide-react";
+import { Menu, X, User, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useDemoLogin } from "@/hooks/useDemoLogin";
 
 const navigation = [
   { name: "Ontdek het onderwijs", href: "/kennisbank" },
@@ -79,7 +78,6 @@ function RegularLogo() {
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
-  const { loginAsDemo, loading: demoLoading } = useDemoLogin();
   const navigate = useNavigate();
   const [showMascot, setShowMascot] = useState(false);
   const [isAdvisorOrAdmin, setIsAdvisorOrAdmin] = useState(false);
@@ -254,18 +252,9 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <>
-                <Button
-                  size="sm"
-                  className="font-medium"
-                  disabled={demoLoading}
-                  onClick={() => loginAsDemo("/dashboard")}
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  {demoLoading ? "Bezig..." : "Inloggen"}
-                </Button>
-              </>
-
+              <Button size="sm" className="font-medium" asChild>
+                <Link to="/auth">Inloggen</Link>
+              </Button>
             )
           )}
         </div>
@@ -348,21 +337,12 @@ export function Header() {
                       <Button
                         size="sm"
                         className="mx-4 my-1.5 w-[calc(100%-2rem)]"
-                        disabled={demoLoading}
-                        onClick={() => { loginAsDemo("/dashboard"); setMobileMenuOpen(false); }}
+                        asChild
                       >
-                        <Play className="mr-2 h-4 w-4" />
-                        {demoLoading ? "Bezig..." : "Inloggen"}
+                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                          Inloggen
+                        </Link>
                       </Button>
-                      <button
-                        type="button"
-                        disabled={demoLoading}
-                        onClick={() => { loginAsDemo("/backoffice"); setMobileMenuOpen(false); }}
-                        className="px-4 py-2 text-sm text-accent hover:text-accent/80 hover:bg-accent/5 transition-colors flex items-center gap-2 text-left w-full disabled:opacity-50"
-                      >
-                        <Shield className="h-3.5 w-3.5" />
-                        Inloggen als admin
-                      </button>
                     </div>
                   )}
                 </div>
