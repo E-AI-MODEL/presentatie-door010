@@ -233,7 +233,7 @@ export default function Backoffice() {
   const [chatSearch, setChatSearch] = useState("");
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [section, setSection] = useState<SectionId>('overview');
-  const [kpiOpen, setKpiOpen] = useState(true);
+  const [kpiOpen, setKpiOpen] = useState(!isMobile);
   const isSuperuser = user?.email?.toLowerCase() === "vis@emmauscollege.nl";
 
   useEffect(() => {
@@ -459,9 +459,9 @@ export default function Backoffice() {
                   {liveStatus === 'live' ? 'Live' : liveStatus === 'connecting' ? '…' : 'Off'}
                 </span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setKpiOpen(v => !v)} className="h-7 text-xs gap-1 hidden sm:inline-flex">
+              <Button variant="ghost" size="sm" onClick={() => setKpiOpen(v => !v)} className="h-7 text-xs gap-1">
                 {kpiOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                Overzicht
+                <span className="hidden sm:inline">Overzicht</span>
               </Button>
               <Button
                 variant="ghost"

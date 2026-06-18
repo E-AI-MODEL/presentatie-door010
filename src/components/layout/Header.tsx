@@ -148,17 +148,18 @@ export function Header() {
     }
   };
 
-  // Show DOORai mascot every 5 minutes for 8 seconds (replaces logo)
+  // Show DOORai mascot every 5 minutes for 8 seconds (replaces logo).
+  // Disabled on small screens — the wider mascot label crowds the hamburger.
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(max-width: 1023px)").matches) return;
+
     const showMascotAnimation = () => {
       setShowMascot(true);
       setTimeout(() => setShowMascot(false), 8000);
     };
 
-    // Show after 30 seconds initially
     const initialTimeout = setTimeout(showMascotAnimation, 30000);
-    
-    // Then every 5 minutes
     const interval = setInterval(showMascotAnimation, 300000);
 
     return () => {
