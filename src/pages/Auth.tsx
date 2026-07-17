@@ -47,6 +47,11 @@ export default function Auth() {
   
   const redirectTo = resolveRedirectTarget(searchParams.get("redirect"));
 
+  // Support `?next=/relative/path` for OAuth consent flow. Must be same-origin.
+  const rawNext = searchParams.get("next");
+  const nextPath =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -88,7 +93,9 @@ export default function Auth() {
           });
 
           // Redirect based on role or original destination
-          if (isAdvisorOrAdmin) {
+          if (nextPath) {
+            navigate(nextPath, { replace: true });
+          } else if (isAdvisorOrAdmin) {
             navigate("/backoffice", { replace: true });
           } else {
             navigate("/" + redirectTo, { replace: true });
@@ -99,7 +106,7 @@ export default function Auth() {
             title: "Welkom terug!",
             description: "Je bent succesvol ingelogd.",
           });
-          navigate("/" + redirectTo, { replace: true });
+          navigate(nextPath ?? "/" + redirectTo, { replace: true });
         }
       } else {
         const { error } = await signUp(email, password);
