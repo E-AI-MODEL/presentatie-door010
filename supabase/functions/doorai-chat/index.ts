@@ -732,10 +732,10 @@ const DOORAI_CORE = `Je bent DoorAI, de orientatie-assistent van Onderwijsloket 
 `;
 
 const INTENT_APPENDIX: Record<IntentType, string> = {
-  greeting: `\n## Modus: Begroeting\n- Reageer warm en kort. Stel 1 open wedervraag.\n- Max 2 zinnen.`,
-  question: `\n## Modus: Vraag\n- Beantwoord in max 3 zinnen. Eén kernfeit + één link + eventueel 1 vervolgvraag.\n- GEEN opsommingen of stappen.`,
-  exploration: `\n## Modus: Verkenning\n- Max 2 zinnen + 1 wedervraag.`,
-  followup: `\n## Modus: Vervolg\n- Max 3 zinnen. Bouw voort, geen herhaling.`,
+  greeting: `\n## Modus: Begroeting\n- Reageer warm en kort, alsof je iemand in de hal begroet. Stel 1 open, uitnodigende wedervraag.\n- Max 2 zinnen.`,
+  question: `\n## Modus: Vraag\n- Geef eerst het antwoord in 1 heldere zin, dan max 1 zin nuance of context. Sluit eventueel af met 1 zachte vervolgvraag.\n- Max 3 zinnen totaal. Geen opsommingen of stappen.`,
+  exploration: `\n## Modus: Verkenning\n- Denk hardop mee in max 2 zinnen en nodig uit met 1 concrete wedervraag ("zal ik...", "wil je dat ik...").`,
+  followup: `\n## Modus: Vervolg\n- Bouw voort op wat er net stond. Max 3 zinnen, geen herhaling, geen samenvatting van eerdere beurt.`,
 };
 
 // ─────────────────────────────────────────────────────────────────────
